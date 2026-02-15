@@ -16,12 +16,14 @@ WC = {"Rev":2,"COGS":3,"AR":4,"Inv":6,"Prep":8,"OCA":9,
 CD = {"Beg":2,"Capex":3,"DepEx":4,"DepNew":5,"Dep":6,"End":7}
 # Debt Schedule rows
 DS = {"Beg":2,"New":3,"Int":4,"Rep":5,"End":6,"Cur":7}
-# Balance Sheet rows
-BS = {"Cash":2,"AR":3,"Inv":4,"Prep":5,"OCA":6,"CA":7,
-      "PPE":8,"GW":9,"Intan":10,"OLA":11,"NCA":12,"TA":13,
-      "AP":15,"Accr":16,"OCL":17,"CurD":18,"CL":19,
-      "LTD":20,"OLL":21,"NCL":22,"TL":23,
-      "CS":25,"RE":26,"TE":27,"TLE":28,"Chk":30,"Stat":31}
+# Balance Sheet rows — IFRS (IAS 1) order
+BS = {"PPE":2,"GW":3,"Intan":4,"OLA":5,"NCA":6,
+      "Inv":8,"AR":9,"Prep":10,"OCA":11,"Cash":12,"CA":13,
+      "TA":14,
+      "CS":16,"RE":17,"TE":18,
+      "LTD":20,"OLL":21,"NCL":22,
+      "AP":24,"Accr":25,"CurD":26,"OCL":27,"CL":28,
+      "TL":29,"TLE":30,"Chk":32,"Stat":33}
 # Cash Flow rows
 CF = {"NI":3,"Dep":4,"Amort":5,"DA":6,"dNWC":7,"CFO":8,
       "Capex":11,"CFI":12,

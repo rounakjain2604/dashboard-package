@@ -50,7 +50,7 @@ def run_monte_carlo(
     3. Compute terminal value (blended)
     4. Discount to get Equity Value
     """
-    rng = np.random.default_rng(cfg.seed)
+    rng = np.random.default_rng(cfg.seed if cfg.seed is not None else None)
     n = cfg.iterations
 
     # ── Sample random inputs ─────────────────────────────────────────

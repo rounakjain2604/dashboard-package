@@ -130,6 +130,8 @@ def _build_config_from_payload(data: dict) -> DCFEngineConfig:
     )
 
     mc = data.get("monte_carlo", {})
+    mc_seed_raw = mc.get("seed", None)
+    mc_seed = int(mc_seed_raw) if mc_seed_raw is not None else None
     monte_carlo = MonteCarloConfig(
         iterations=int(mc.get("iterations", 10_000)),
         revenue_growth_mean=float(mc.get("revenue_growth_mean", 0.08)),
@@ -142,7 +144,7 @@ def _build_config_from_payload(data: dict) -> DCFEngineConfig:
         terminal_growth_std=float(mc.get("terminal_growth_std", 0.01)),
         exit_multiple_mean=float(mc.get("exit_multiple_mean", 10.0)),
         exit_multiple_std=float(mc.get("exit_multiple_std", 2.0)),
-        seed=int(mc.get("seed", 42)),
+        seed=mc_seed,
     )
 
     sc = data.get("sensitivity", {})

@@ -14,32 +14,34 @@ def build_bs(wb, n):
         ws.cell(1,j+2,value=f"Year {j+1}"); auto_col(ws,j+2,15)
     hdr_row(ws,1,n+1)
     labels = {
-        BS["Cash"]:"Cash & Equivalents", BS["AR"]:"Accounts Receivable",
-        BS["Inv"]:"Inventory", BS["Prep"]:"Prepaid Expenses",
-        BS["OCA"]:"Other Current Assets", BS["CA"]:"Total Current Assets",
-        BS["PPE"]:"PP&E (Net)", BS["GW"]:"Goodwill", BS["Intan"]:"Intangibles",
-        BS["OLA"]:"Other LT Assets", BS["NCA"]:"Total Non-Current Assets",
+        BS["PPE"]:"Property, Plant & Equipment", BS["GW"]:"Goodwill",
+        BS["Intan"]:"Intangible Assets", BS["OLA"]:"Other Non-Current Assets",
+        BS["NCA"]:"Total Non-Current Assets",
+        7:"",
+        BS["Inv"]:"Inventories", BS["AR"]:"Trade & Other Receivables",
+        BS["Prep"]:"Prepayments", BS["OCA"]:"Other Current Assets",
+        BS["Cash"]:"Cash & Cash Equivalents", BS["CA"]:"Total Current Assets",
         BS["TA"]:"TOTAL ASSETS",
-        14:"", BS["AP"]:"Accounts Payable", BS["Accr"]:"Accrued Liabilities",
-        BS["OCL"]:"Other Current Liabilities", BS["CurD"]:"Current Portion of Debt",
-        BS["CL"]:"Total Current Liabilities",
-        BS["LTD"]:"Long-Term Debt", BS["OLL"]:"Other LT Liabilities",
-        BS["NCL"]:"Total Non-Current Liabilities", BS["TL"]:"TOTAL LIABILITIES",
-        24:"", BS["CS"]:"Common Stock", BS["RE"]:"Retained Earnings",
-        BS["TE"]:"Total Equity", BS["TLE"]:"TOTAL L + E",
-        29:"", BS["Chk"]:"Balance Check (A-L-E)", BS["Stat"]:"Status",
+        14:"",
+        BS["CS"]:"Share Capital", BS["RE"]:"Retained Earnings",
+        BS["TE"]:"Total Equity",
+        18:"",
+        BS["LTD"]:"Long-Term Borrowings", BS["OLL"]:"Other Non-Current Liabilities",
+        BS["NCL"]:"Total Non-Current Liabilities",
+        22:"",
+        BS["AP"]:"Trade & Other Payables", BS["Accr"]:"Accrued Liabilities",
+        BS["CurD"]:"Current Portion of Borrowings",
+        BS["OCL"]:"Other Current Liabilities", BS["CL"]:"Total Current Liabilities",
+        BS["TL"]:"TOTAL LIABILITIES",
+        BS["TLE"]:"TOTAL EQUITY & LIABILITIES",
+        29:"", BS["Chk"]:"Balance Check (A-E-L)", BS["Stat"]:"Status",
     }
-    bolds = {BS["CA"],BS["NCA"],BS["TA"],BS["CL"],BS["NCL"],BS["TL"],BS["TE"],BS["TLE"],BS["Chk"]}
+    bolds = {BS["NCA"],BS["CA"],BS["TA"],BS["TE"],BS["NCL"],BS["CL"],BS["TL"],BS["TLE"],BS["Chk"]}
     for r,lbl in labels.items():
         if lbl: style_label(ws,r,1,lbl,bold=(r in bolds))
     for j in range(n):
         col=j+2; c=CL(col); pc=CL(col-1) if j>0 else None
-        ws[f"{c}{BS['Cash']}"]  = f"='Cash Flow'!{c}{CF['EndC']}"
-        ws[f"{c}{BS['AR']}"]    = f"='Working Capital'!{c}{WC['AR']}"
-        ws[f"{c}{BS['Inv']}"]   = f"='Working Capital'!{c}{WC['Inv']}"
-        ws[f"{c}{BS['Prep']}"]  = f"='Working Capital'!{c}{WC['Prep']}"
-        ws[f"{c}{BS['OCA']}"]   = f"='Working Capital'!{c}{WC['OCA']}"
-        ws[f"{c}{BS['CA']}"]    = f"=SUM({c}{BS['Cash']}:{c}{BS['OCA']})"
+        # ── Non-Current Assets ──
         ws[f"{c}{BS['PPE']}"]   = f"='Capex DA'!{c}{CD['End']}"
         ws[f"{c}{BS['GW']}"]    = f"={ar('goodwill')}"
         if j==0:
@@ -48,27 +50,37 @@ def build_bs(wb, n):
             ws[f"{c}{BS['Intan']}"] = f"=MAX({pc}{BS['Intan']}-'Income Statement'!{c}{IS['Amort']},0)"
         ws[f"{c}{BS['OLA']}"]   = f"={ar('olt_assets')}"
         ws[f"{c}{BS['NCA']}"]   = f"=SUM({c}{BS['PPE']}:{c}{BS['OLA']})"
-        ws[f"{c}{BS['TA']}"]    = f"={c}{BS['CA']}+{c}{BS['NCA']}"
-        ws[f"{c}{BS['AP']}"]    = f"='Working Capital'!{c}{WC['AP']}"
-        ws[f"{c}{BS['Accr']}"]  = f"='Working Capital'!{c}{WC['Accr']}"
-        ws[f"{c}{BS['OCL']}"]   = f"='Working Capital'!{c}{WC['OCL']}"
-        ws[f"{c}{BS['CurD']}"]  = f"='Debt Schedule'!{c}{DS['Cur']}"
-        ws[f"{c}{BS['CL']}"]    = f"=SUM({c}{BS['AP']}:{c}{BS['CurD']})"
-        ws[f"{c}{BS['LTD']}"]   = f"='Debt Schedule'!{c}{DS['End']}-{c}{BS['CurD']}"
-        ws[f"{c}{BS['OLL']}"]   = f"={ar('olt_liab')}"
-        ws[f"{c}{BS['NCL']}"]   = f"={c}{BS['LTD']}+{c}{BS['OLL']}"
-        ws[f"{c}{BS['TL']}"]    = f"={c}{BS['CL']}+{c}{BS['NCL']}"
+        # ── Current Assets ──
+        ws[f"{c}{BS['Inv']}"]   = f"='Working Capital'!{c}{WC['Inv']}"
+        ws[f"{c}{BS['AR']}"]    = f"='Working Capital'!{c}{WC['AR']}"
+        ws[f"{c}{BS['Prep']}"]  = f"='Working Capital'!{c}{WC['Prep']}"
+        ws[f"{c}{BS['OCA']}"]   = f"='Working Capital'!{c}{WC['OCA']}"
+        ws[f"{c}{BS['Cash']}"]  = f"='Cash Flow'!{c}{CF['EndC']}"
+        ws[f"{c}{BS['CA']}"]    = f"=SUM({c}{BS['Inv']}:{c}{BS['Cash']})"
+        ws[f"{c}{BS['TA']}"]    = f"={c}{BS['NCA']}+{c}{BS['CA']}"
+        # ── Equity ──
         ws[f"{c}{BS['CS']}"]    = f"={ar('bcs')}"
         if j==0:
             ws[f"{c}{BS['RE']}"] = f"={ar('bre')}+'Income Statement'!{c}{IS['NI']}-'Income Statement'!{c}{IS['NI']}*{ar('div')}"
         else:
             ws[f"{c}{BS['RE']}"] = f"={pc}{BS['RE']}+'Income Statement'!{c}{IS['NI']}-'Income Statement'!{c}{IS['NI']}*{ar('div')}"
         ws[f"{c}{BS['TE']}"]    = f"={c}{BS['CS']}+{c}{BS['RE']}"
-        ws[f"{c}{BS['TLE']}"]   = f"={c}{BS['TL']}+{c}{BS['TE']}"
+        # ── Non-Current Liabilities ──
+        ws[f"{c}{BS['LTD']}"]   = f"='Debt Schedule'!{c}{DS['End']}-{c}{BS['CurD']}"
+        ws[f"{c}{BS['OLL']}"]   = f"={ar('olt_liab')}"
+        ws[f"{c}{BS['NCL']}"]   = f"={c}{BS['LTD']}+{c}{BS['OLL']}"
+        # ── Current Liabilities ──
+        ws[f"{c}{BS['AP']}"]    = f"='Working Capital'!{c}{WC['AP']}"
+        ws[f"{c}{BS['Accr']}"]  = f"='Working Capital'!{c}{WC['Accr']}"
+        ws[f"{c}{BS['CurD']}"]  = f"='Debt Schedule'!{c}{DS['Cur']}"
+        ws[f"{c}{BS['OCL']}"]   = f"='Working Capital'!{c}{WC['OCL']}"
+        ws[f"{c}{BS['CL']}"]    = f"=SUM({c}{BS['AP']}:{c}{BS['OCL']})"
+        ws[f"{c}{BS['TL']}"]    = f"={c}{BS['NCL']}+{c}{BS['CL']}"
+        ws[f"{c}{BS['TLE']}"]   = f"={c}{BS['TE']}+{c}{BS['TL']}"
         ws[f"{c}{BS['Chk']}"]   = f"={c}{BS['TA']}-{c}{BS['TLE']}"
         ws[f"{c}{BS['Stat']}"]  = f'=IF(ABS({c}{BS["Chk"]})<1,"PASS","FAIL")'
-        for r in range(2,32):
-            if r in {14,24,29}: continue
+        for r in range(2,34):
+            if r in {7,15,19,23,31}: continue
             fmt_cells(ws,r,col,col,NF,bold=(r in bolds))
     fit_to_width(ws)
 

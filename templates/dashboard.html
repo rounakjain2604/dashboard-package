@@ -911,7 +911,7 @@ const DEFAULT_CONFIG = {
     terminal_growth_std: 0.01,
     exit_multiple_mean: 10.0,
     exit_multiple_std: 2.0,
-    seed: 42,
+    seed: null,
   },
   sensitivity: {
     wacc_range: [-0.02, -0.01, 0, 0.01, 0.02],
@@ -1702,7 +1702,7 @@ function App() {
     );
   };
 
-  // ── BALANCE SHEET TAB ──────────────────────────────────
+  // ── BALANCE SHEET TAB (IFRS / IAS 1) ──────────────────────────────
   const renderBalanceSheet = () => {
     const bs = results.balance_sheet || [];
     if (!bs.length) return <div style={{color:'var(--text-muted)',padding:40}}>No data</div>;
@@ -1716,11 +1716,11 @@ function App() {
               <ChartComponent type="bar" data={{
                 labels: bs.map(r => `Yr ${r.year_index}`),
                 datasets: [
-                  { label: 'Cash', data: bs.map(r => r['Cash']), backgroundColor: 'rgba(16,185,129,0.7)', stack: 's' },
-                  { label: 'AR', data: bs.map(r => r['Accounts Receivable']), backgroundColor: 'rgba(59,130,246,0.7)', stack: 's' },
-                  { label: 'Inventory', data: bs.map(r => r['Inventory']), backgroundColor: 'rgba(245,158,11,0.7)', stack: 's' },
-                  { label: 'PP&E', data: bs.map(r => r['PP&E Net']), backgroundColor: 'rgba(139,92,246,0.7)', stack: 's' },
-                  { label: 'Other', data: bs.map(r => (r['Total Assets'] || 0) - (r['Cash']||0) - (r['Accounts Receivable']||0) - (r['Inventory']||0) - (r['PP&E Net']||0)), backgroundColor: 'rgba(100,116,139,0.5)', stack: 's' },
+                  { label: 'PP&E', data: bs.map(r => r['Property, Plant & Equipment']), backgroundColor: 'rgba(139,92,246,0.7)', stack: 's' },
+                  { label: 'Inventories', data: bs.map(r => r['Inventories']), backgroundColor: 'rgba(245,158,11,0.7)', stack: 's' },
+                  { label: 'Receivables', data: bs.map(r => r['Trade & Other Receivables']), backgroundColor: 'rgba(59,130,246,0.7)', stack: 's' },
+                  { label: 'Cash', data: bs.map(r => r['Cash & Cash Equivalents']), backgroundColor: 'rgba(16,185,129,0.7)', stack: 's' },
+                  { label: 'Other', data: bs.map(r => (r['Total Assets'] || 0) - (r['Property, Plant & Equipment']||0) - (r['Inventories']||0) - (r['Trade & Other Receivables']||0) - (r['Cash & Cash Equivalents']||0)), backgroundColor: 'rgba(100,116,139,0.5)', stack: 's' },
                 ],
               }} options={{
                 plugins: { legend: { position: 'bottom' } },
@@ -1730,15 +1730,15 @@ function App() {
           </div>
 
           <div className="chart-card">
-            <div className="chart-title"><span className="dot" style={{background:'var(--accent-purple)'}}></span>L + E Composition</div>
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-purple)'}}></span>Equity & Liabilities</div>
             <div className="chart-container">
               <ChartComponent type="bar" data={{
                 labels: bs.map(r => `Yr ${r.year_index}`),
                 datasets: [
-                  { label: 'AP', data: bs.map(r => r['Accounts Payable']), backgroundColor: 'rgba(239,68,68,0.7)', stack: 's' },
-                  { label: 'Debt', data: bs.map(r => (r['Long-Term Debt']||0) + (r['Current Portion of Debt']||0)), backgroundColor: 'rgba(236,72,153,0.7)', stack: 's' },
-                  { label: 'Other Liab', data: bs.map(r => (r['Total Liabilities']||0) - (r['Accounts Payable']||0) - (r['Long-Term Debt']||0) - (r['Current Portion of Debt']||0)), backgroundColor: 'rgba(100,116,139,0.5)', stack: 's' },
                   { label: 'Equity', data: bs.map(r => r['Total Equity']), backgroundColor: 'rgba(16,185,129,0.7)', stack: 's' },
+                  { label: 'Borrowings', data: bs.map(r => (r['Long-Term Borrowings']||0) + (r['Current Portion of Borrowings']||0)), backgroundColor: 'rgba(236,72,153,0.7)', stack: 's' },
+                  { label: 'Payables', data: bs.map(r => r['Trade & Other Payables']), backgroundColor: 'rgba(239,68,68,0.7)', stack: 's' },
+                  { label: 'Other Liab', data: bs.map(r => (r['Total Liabilities']||0) - (r['Trade & Other Payables']||0) - (r['Long-Term Borrowings']||0) - (r['Current Portion of Borrowings']||0)), backgroundColor: 'rgba(100,116,139,0.5)', stack: 's' },
                 ],
               }} options={{
                 plugins: { legend: { position: 'bottom' } },
@@ -1749,16 +1749,36 @@ function App() {
         </div>
 
         <div className="chart-card" style={{ marginTop: 20 }}>
-          <div className="chart-title"><span className="dot" style={{background:'var(--accent-cyan)'}}></span>Balance Sheet</div>
+          <div className="chart-title"><span className="dot" style={{background:'var(--accent-cyan)'}}></span>Statement of Financial Position (IFRS / IAS 1)</div>
           {(() => {
-            const metrics = Object.keys(bs[0] || {}).filter(k => k !== 'year_index');
+            // IFRS-ordered sections with separators
+            const ifrsOrder = [
+              // Non-current assets
+              'Property, Plant & Equipment', 'Goodwill', 'Intangible Assets',
+              'Other Non-Current Assets', 'Non-Current Assets',
+              // Current assets
+              'Inventories', 'Trade & Other Receivables', 'Prepayments',
+              'Other Current Assets', 'Cash & Cash Equivalents', 'Current Assets',
+              // Total Assets
+              'Total Assets',
+              // Equity
+              'Share Capital', 'Retained Earnings', 'Total Equity',
+              // Non-current liabilities
+              'Long-Term Borrowings', 'Other Non-Current Liabilities', 'Non-Current Liabilities',
+              // Current liabilities
+              'Trade & Other Payables', 'Accrued Liabilities', 'Current Portion of Borrowings',
+              'Other Current Liabilities', 'Current Liabilities',
+              // Totals
+              'Total Liabilities', 'Total Equity & Liabilities',
+            ];
+            const metrics = ifrsOrder.filter(m => bs[0] && bs[0][m] !== undefined);
             const pivoted = metrics.map(m => {
               const row = { Metric: m };
               bs.forEach(r => { row[`Yr ${r.year_index}`] = r[m] != null ? fmt.num(r[m], 0) : '—'; });
               return row;
             });
             return <DataTable data={pivoted} columns={['Metric', ...bs.map(r => `Yr ${r.year_index}`)]}
-              totalRows={['Total Assets', 'Total Liabilities & Equity', 'Total Equity', 'Total Liabilities']}
+              totalRows={['Total Assets', 'Total Equity & Liabilities', 'Total Equity', 'Total Liabilities']}
               subtotalRows={['Current Assets', 'Non-Current Assets', 'Current Liabilities', 'Non-Current Liabilities']} />;
           })()}
         </div>
@@ -2100,7 +2120,7 @@ function App() {
           <div className="chart-title"><span className="dot" style={{background:'var(--accent-cyan)'}}></span>Monte Carlo Distribution ({(config.monte_carlo.iterations || 10000).toLocaleString()} Simulations)</div>
           <div className="chart-container tall">
             {hist.centers && hist.counts ? (
-              <ChartComponent type="bar" data={{
+              <ChartComponent key={`mc-${JSON.stringify(stats).slice(0,60)}`} type="bar" data={{
                 labels: hist.centers.map(c => fmt.usd(c)),
                 datasets: [{
                   label: 'Frequency',
@@ -2204,7 +2224,7 @@ function App() {
             <div className="header-title">IB-Grade DCF Engine</div>
             <div className="header-subtitle">Interactive Valuation Dashboard</div>
           </div>
-          <span style={{marginLeft:10,padding:'2px 8px',fontSize:11,fontWeight:700,borderRadius:6,background:'var(--gradient-primary)',color:'#fff',letterSpacing:0.5}}>V1</span>
+          <span style={{marginLeft:10,padding:'2px 8px',fontSize:11,fontWeight:700,borderRadius:6,background:'var(--gradient-primary)',color:'#fff',letterSpacing:0.5}}>V2</span>
         </div>
         <div className="header-actions">
           {results && (

@@ -104,38 +104,49 @@ def build_balance_sheet(
         current_assets_adj = cash_adjusted + accounts_receivable + inventory + prepaid + other_ca
         total_assets_adj = current_assets_adj + non_current_assets
 
+        # ── IFRS (IAS 1) presentation order ────────────────────────
         rows.append({
             "year_index": idx,
-            # Assets
-            "Cash": cash_adjusted,
-            "Accounts Receivable": accounts_receivable,
-            "Inventory": inventory,
-            "Prepaid": prepaid,
-            "Other Current Assets": other_ca,
-            "Current Assets": current_assets_adj,
-            "PP&E Net": ppe_net,
+
+            # ── NON-CURRENT ASSETS (listed first per IFRS) ──────────
+            "Property, Plant & Equipment": ppe_net,
             "Goodwill": goodwill,
-            "Intangibles": intangibles,
-            "Other LT Assets": other_lt_assets,
+            "Intangible Assets": intangibles,
+            "Other Non-Current Assets": other_lt_assets,
             "Non-Current Assets": non_current_assets,
+
+            # ── CURRENT ASSETS ───────────────────────────────────────
+            "Inventories": inventory,
+            "Trade & Other Receivables": accounts_receivable,
+            "Prepayments": prepaid,
+            "Other Current Assets": other_ca,
+            "Cash & Cash Equivalents": cash_adjusted,
+            "Current Assets": current_assets_adj,
+
             "Total Assets": total_assets_adj,
-            # Liabilities
-            "Accounts Payable": accounts_payable,
-            "Accrued Liabilities": accrued,
-            "Other Current Liabilities": other_cl,
-            "Current Portion of Debt": current_debt,
-            "Current Liabilities": current_liabilities,
-            "Long-Term Debt": lt_debt,
-            "Other LT Liabilities": other_lt_liabilities,
-            "Non-Current Liabilities": non_current_liabilities,
-            "Total Liabilities": total_liabilities,
-            # Equity
-            "Common Stock": common_stock,
+
+            # ── EQUITY (listed before liabilities per IFRS) ─────────
+            "Share Capital": common_stock,
             "Retained Earnings": retained_earnings,
             "Total Equity": total_equity,
-            "Total Liabilities & Equity": total_liabilities + total_equity,
-            # Extras
-            "Dividends": dividends,
+
+            # ── NON-CURRENT LIABILITIES ──────────────────────────────
+            "Long-Term Borrowings": lt_debt,
+            "Other Non-Current Liabilities": other_lt_liabilities,
+            "Non-Current Liabilities": non_current_liabilities,
+
+            # ── CURRENT LIABILITIES ──────────────────────────────────
+            "Trade & Other Payables": accounts_payable,
+            "Accrued Liabilities": accrued,
+            "Current Portion of Borrowings": current_debt,
+            "Other Current Liabilities": other_cl,
+            "Current Liabilities": current_liabilities,
+
+            "Total Liabilities": total_liabilities,
+            "Total Equity & Liabilities": total_liabilities + total_equity,
+
+            # ── Supplementary ────────────────────────────────────────
+            "Dividends Paid": dividends,
             "Net Income": net_income,
         })
 
@@ -143,7 +154,7 @@ def build_balance_sheet(
         checks.append({
             "year_index": idx,
             "Total Assets": total_assets_adj,
-            "Total L+E": total_liabilities + total_equity,
+            "Total Equity & Liabilities": total_liabilities + total_equity,
             "Difference": diff,
             "Status": "PASS" if diff < 0.01 else "FAIL",
         })
