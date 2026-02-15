@@ -133,6 +133,13 @@ def build_assumptions(wb, cfg, base_rev, base_cash, base_ppe, base_nwc, base_re,
     _inp(A["debt_rate"], "Debt Interest Rate", _debt_rate, PF)
     _inp(A["debt_amort"], "Debt Annual Amortisation", _debt_amort, NF)
     _inp(A["debt_maturity"], "Debt Maturity (Year)", _debt_maturity, '#,##0')
+
+    # ── Other Balance Sheet Items ────────────────────────────────────
+    _sec(55, "OTHER BALANCE SHEET ITEMS")
+    _inp(A["goodwill"], "Goodwill", 0, NF)
+    _inp(A["intangibles"], "Intangibles (Net)", 0, NF)
+    _inp(A["olt_assets"], "Other Long-Term Assets", 0, NF)
+    _inp(A["olt_liab"], "Other Long-Term Liabilities", 0, NF)
     fit_to_width(ws)
 
 

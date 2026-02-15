@@ -41,9 +41,9 @@ def build_bs(wb, n):
         ws[f"{c}{BS['OCA']}"]   = f"='Working Capital'!{c}{WC['OCA']}"
         ws[f"{c}{BS['CA']}"]    = f"=SUM({c}{BS['Cash']}:{c}{BS['OCA']})"
         ws[f"{c}{BS['PPE']}"]   = f"='Capex DA'!{c}{CD['End']}"
-        ws[f"{c}{BS['GW']}"]    = f"=0"
-        ws[f"{c}{BS['Intan']}"] = f"=0"
-        ws[f"{c}{BS['OLA']}"]   = f"=0"
+        ws[f"{c}{BS['GW']}"]    = f"={ar('goodwill')}"
+        ws[f"{c}{BS['Intan']}"] = f"={ar('intangibles')}"
+        ws[f"{c}{BS['OLA']}"]   = f"={ar('olt_assets')}"
         ws[f"{c}{BS['NCA']}"]   = f"=SUM({c}{BS['PPE']}:{c}{BS['OLA']})"
         ws[f"{c}{BS['TA']}"]    = f"={c}{BS['CA']}+{c}{BS['NCA']}"
         ws[f"{c}{BS['AP']}"]    = f"='Working Capital'!{c}{WC['AP']}"
@@ -52,7 +52,7 @@ def build_bs(wb, n):
         ws[f"{c}{BS['CurD']}"]  = f"='Debt Schedule'!{c}{DS['Cur']}"
         ws[f"{c}{BS['CL']}"]    = f"=SUM({c}{BS['AP']}:{c}{BS['CurD']})"
         ws[f"{c}{BS['LTD']}"]   = f"='Debt Schedule'!{c}{DS['End']}-{c}{BS['CurD']}"
-        ws[f"{c}{BS['OLL']}"]   = f"=0"
+        ws[f"{c}{BS['OLL']}"]   = f"={ar('olt_liab')}"
         ws[f"{c}{BS['NCL']}"]   = f"={c}{BS['LTD']}+{c}{BS['OLL']}"
         ws[f"{c}{BS['TL']}"]    = f"={c}{BS['CL']}+{c}{BS['NCL']}"
         ws[f"{c}{BS['CS']}"]    = f"={ar('bcs')}"
@@ -116,9 +116,9 @@ def build_cf(wb, n):
         # CFF
         ws[f"{c}{CF['NewD']}"] = f"='Debt Schedule'!{c}{DS['New']}"
         ws[f"{c}{CF['RepD']}"] = f"=-'Debt Schedule'!{c}{DS['Rep']}"
-        ws[f"{c}{CF['IntP']}"] = f"=-'Debt Schedule'!{c}{DS['Int']}"
+        ws[f"{c}{CF['IntP']}"] = f"=0"
         ws[f"{c}{CF['Div']}"]  = f"=-'Income Statement'!{c}{IS['NI']}*{ar('div')}"
-        ws[f"{c}{CF['CFF']}"]  = f"={c}{CF['NewD']}+{c}{CF['RepD']}+{c}{CF['IntP']}+{c}{CF['Div']}"
+        ws[f"{c}{CF['CFF']}"]  = f"={c}{CF['NewD']}+{c}{CF['RepD']}+{c}{CF['Div']}"
         # Net / Cash
         ws[f"{c}{CF['Net']}"]  = f"={c}{CF['CFO']}+{c}{CF['CFI']}+{c}{CF['CFF']}"
         if j==0:

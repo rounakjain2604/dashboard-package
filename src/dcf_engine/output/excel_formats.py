@@ -46,6 +46,8 @@ A = {
     "brev": 43, "bcash": 44, "bppe": 45, "bnwc": 46, "bre": 47, "bcs": 48,
     # Debt Schedule Inputs
     "debt_bal": 51, "debt_rate": 52, "debt_amort": 53, "debt_maturity": 54,
+    # Other Balance Sheet Items
+    "goodwill": 57, "intangibles": 58, "olt_assets": 59, "olt_liab": 60,
 }
 
 def ar(key):
