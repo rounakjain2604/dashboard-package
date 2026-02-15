@@ -1,0 +1,79 @@
+{
+  "forecast": {
+    "years": 5,
+    "revenue_method": "manual",
+    "revenue_manual": {
+      "1": 0.08,
+      "2": 0.06,
+      "3": 0.04,
+      "4": 0.03,
+      "5": 0.025
+    },
+    "cogs_method": "pct_revenue",
+    "cogs_pct_revenue": 0.33,
+    "cogs_manual": {
+      "1": 0.33,
+      "2": 0.332,
+      "3": 0.335,
+      "4": 0.338,
+      "5": 0.34
+    },
+    "opex_method": "pct_revenue",
+    "opex_pct_revenue": 0.559,
+    "opex_manual": {
+      "1": 0.559,
+      "2": 0.56,
+      "3": 0.56,
+      "4": 0.56,
+      "5": 0.56
+    },
+    "tax_rate": 0.0,
+    "dso": 0,
+    "dpo": 14,
+    "dio": 17,
+    "capex_method": "fixed",
+    "capex_fixed": 20000,
+    "capex_manual": {
+      "1": 20000,
+      "2": 21000,
+      "3": 22000,
+      "4": 23000,
+      "5": 24000
+    },
+    "depreciation_rate": 0.02,
+    "depreciation_manual": {
+      "1": 17000,
+      "2": 17000,
+      "3": 17000,
+      "4": 17000,
+      "5": 17000
+    },
+    "min_cash_days": 8,
+    "prepaid_pct_revenue": 0.00425,
+    "accrued_expenses_pct_revenue": 0.0068
+  },
+  "wacc": {
+    "risk_free_rate": 0.0425,
+    "market_risk_premium": 0.065,
+    "beta": 1.0,
+    "size_premium": 0.075,
+    "country_risk_premium": 0.2925,
+    "target_debt_weight": 0.0,
+    "target_equity_weight": 1.0,
+    "interest_coverage_ratio": 8.0,
+    "tax_rate": 0.0
+  },
+  "valuation": {
+    "terminal_growth_rate": 0.015,
+    "exit_ev_ebitda_multiple": 3.0,
+    "discount_convention": "end_period",
+    "cash": 0,
+    "debt": 0,
+    "minority_interest": 0,
+    "preferred_stock": 0,
+    "fully_diluted_shares": 1,
+    "gdp_growth_cap": 0.02,
+    "terminal_value_blend_weight_gordon": 0.35,
+    "terminal_spread_floor_bps": 100
+  }
+}
