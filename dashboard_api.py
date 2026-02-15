@@ -7,13 +7,14 @@ from __future__ import annotations
 import json
 import logging
 import os
+import tempfile
 import traceback
 from dataclasses import asdict
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from flask import Flask, jsonify, render_template, request, send_from_directory
+from flask import Flask, jsonify, render_template, request, send_from_directory, send_file
 
 from src.dcf_engine.config import (
     DCFEngineConfig,
@@ -403,6 +404,86 @@ def api_run():
     except Exception as e:
         logger.error("API error: %s", traceback.format_exc())
         return jsonify({"success": False, "error": str(e), "traceback": traceback.format_exc()}), 500
+
+
+@app.route("/api/export-excel", methods=["POST"])
+def api_export_excel():
+    """Run pipeline and return the fully formula-linked Excel workbook."""
+    try:
+        data = request.get_json(force=True)
+        cfg = _build_config_from_payload(data)
+
+        if IS_VERCEL:
+            cfg.monte_carlo.iterations = min(cfg.monte_carlo.iterations, 2000)
+            cfg.wacc.use_live_data = False
+
+        # Load historical data
+        data_file = data.get("data_file", "data/asian_street_financials.csv")
+        hist_path = _BASE_DIR / data_file
+        if not hist_path.exists():
+            hist_path = Path(data_file)
+        hist = pd.read_csv(hist_path) if hist_path.exists() else pd.DataFrame()
+
+        # Base-year values
+        base_year_revenue = float(data.get("base_year_revenue", 0))
+        base_cash = float(data.get("base_cash", 0))
+        base_ppe = float(data.get("base_ppe", 0))
+        base_nwc = float(data.get("base_nwc", 0))
+        base_retained_earnings = float(data.get("base_retained_earnings", 0))
+        base_common_stock = float(data.get("base_common_stock", 0))
+
+        # Auto-detect from historical
+        if base_year_revenue == 0 and not hist.empty:
+            try:
+                base_year_revenue = float(hist[hist["account"] == "Revenue"].sort_values("period").iloc[-1]["amount"])
+            except Exception:
+                pass
+        if base_cash == 0 and not hist.empty:
+            try:
+                base_cash = float(hist[hist["account"] == "Cash"].sort_values("period").iloc[-1]["amount"])
+            except Exception:
+                pass
+        if base_nwc == 0 and not hist.empty:
+            try:
+                ar = float(hist[hist["account"].isin(["Accounts Receivable"])].sort_values("period").iloc[-1]["amount"]) if len(hist[hist["account"] == "Accounts Receivable"]) else 0
+                inv = float(hist[hist["account"] == "Inventory"].sort_values("period").iloc[-1]["amount"]) if len(hist[hist["account"] == "Inventory"]) else 0
+                ap = float(hist[hist["account"] == "Accounts Payable"].sort_values("period").iloc[-1]["amount"]) if len(hist[hist["account"] == "Accounts Payable"]) else 0
+                base_nwc = ar + inv - ap
+            except Exception:
+                pass
+
+        # Generate Excel to a temp file
+        tmp_dir = tempfile.mkdtemp()
+        company_name = data.get("company_name", "DCF_Model").replace(" ", "_")
+        excel_filename = f"{company_name}_IB_Grade_Model.xlsx"
+        excel_path = os.path.join(tmp_dir, excel_filename)
+
+        result = run_pipeline(
+            cfg=cfg,
+            historical=hist,
+            base_year_revenue=base_year_revenue,
+            base_cash=base_cash,
+            base_ppe=base_ppe,
+            base_nwc=base_nwc,
+            base_retained_earnings=base_retained_earnings,
+            base_common_stock=base_common_stock,
+            output_excel=excel_path,
+        )
+
+        if result.excel_path and Path(result.excel_path).exists():
+            return send_file(
+                str(result.excel_path),
+                mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                as_attachment=True,
+                download_name=excel_filename,
+            )
+        else:
+            errors = result.errors or ["Excel generation failed"]
+            return jsonify({"success": False, "error": "; ".join(errors)}), 500
+
+    except Exception as e:
+        logger.error("Excel export error: %s", traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/api/configs", methods=["GET"])

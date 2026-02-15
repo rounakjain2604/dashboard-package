@@ -324,6 +324,27 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
   transform: none;
 }
 
+.btn-export {
+  background: var(--gradient-success);
+  color: white;
+  box-shadow: 0 4px 12px rgba(79, 125, 82, 0.2);
+}
+
+.btn-export:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(79, 125, 82, 0.25);
+  filter: brightness(1.05);
+}
+
+.btn-export:active { transform: translateY(0); }
+
+.btn-export:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
 .btn-secondary {
   background: var(--bg-card);
   color: var(--text-primary);
@@ -353,6 +374,13 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
   justify-content: center;
   padding: 12px;
   font-size: 14px;
+}
+
+.run-bar .btn-export {
+  width: 100%;
+  justify-content: center;
+  padding: 10px;
+  font-size: 13px;
 }
 
 .config-loader {
@@ -1074,6 +1102,7 @@ function App() {
   const [config, setConfig] = useState(JSON.parse(JSON.stringify(DEFAULT_CONFIG)));
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [configs, setConfigs] = useState([]);
   const [dataFiles, setDataFiles] = useState([]);
@@ -1142,6 +1171,36 @@ function App() {
     setLoading(false);
   }, [config]);
 
+  // Export to Excel
+  const exportExcel = useCallback(async () => {
+    setExporting(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/export-excel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Export failed');
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const companyName = (config.company_name || 'DCF_Model').replace(/\s+/g, '_');
+      a.download = `${companyName}_IB_Grade_Model.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      setError(e.message);
+    }
+    setExporting(false);
+  }, [config]);
+
   // ── Sidebar ──────────────────────────────────
   const renderSidebar = () => (
     <div className="sidebar">
@@ -1161,6 +1220,9 @@ function App() {
         </div>
         <button className="btn btn-primary" onClick={runModel} disabled={loading}>
           {loading ? <><span className="spinner"></span> Running Pipeline...</> : <>▶ Run DCF Model</>}
+        </button>
+        <button className="btn btn-export" onClick={exportExcel} disabled={loading || !results} title="Export fully formula-linked IB-grade Excel workbook">
+          {exporting ? <><span className="spinner"></span> Exporting...</> : <>📥 Export to Excel</>}
         </button>
       </div>
 
