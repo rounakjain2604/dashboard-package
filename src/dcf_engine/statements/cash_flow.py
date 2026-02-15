@@ -73,7 +73,11 @@ def build_cash_flow_statement(
             interest = 0.0
 
         dividends = net_income * dividend_payout_ratio
-        cff = new_debt - repayment - interest - dividends
+        # Interest is NOT included in CFF because it already flows through
+        # Net Income → CFO (indirect method).  Including it here would
+        # double-count the cash outflow.  This matches the Excel model
+        # where Interest Paid = 0 in the CFF section.
+        cff = new_debt - repayment - dividends
 
         # ── Net Change & Ending Cash ─────────────────────────────────
         net_change = cfo + cfi + cff
@@ -94,7 +98,7 @@ def build_cash_flow_statement(
             # CFF
             "New Debt Issuance": new_debt,
             "Debt Repayment": -repayment,
-            "Interest Paid": -interest,
+            "Interest Paid": 0,  # Flows through NI in CFO; see Income Statement
             "Dividends Paid": -dividends,
             "CFF": cff,
             # Summary

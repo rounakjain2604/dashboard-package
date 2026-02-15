@@ -1,4 +1,17 @@
 {
+  "company": {
+    "name": "Asian Street Eats",
+    "ticker": "",
+    "industry": "Food & Beverage",
+    "currency": "USD"
+  },
+  "data_file": "data/asian_street_financials.csv",
+  "base_year_revenue": 1175357,
+  "base_cash": 25000,
+  "base_ppe": 100000,
+  "base_nwc": 3000,
+  "base_retained_earnings": 0,
+  "base_common_stock": 0,
   "forecast": {
     "years": 5,
     "revenue_method": "manual",

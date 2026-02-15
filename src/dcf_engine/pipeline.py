@@ -147,6 +147,28 @@ def run_pipeline(
                           result, revenue_list, cfg.forecast, base_scenario, base_ppe)
     result.capex_da = cd_result
 
+    # ── Step 3b: Auto-create debt tranche from valuation.debt ────────
+    # The Excel Assumptions sheet populates Debt Beginning Balance (B51)
+    # from valuation.debt when no explicit tranches exist.  Mirror that
+    # logic here so the Python debt schedule produces the same interest
+    # figures the formula-linked Excel model does.
+    if not cfg.debt_tranches and cfg.valuation.debt > 0:
+        from .config import DebtTranche as _DT
+        from .valuation.wacc import synthetic_credit_spread
+        # Derive interest rate from WACC config (risk-free + synthetic spread)
+        # instead of hardcoding, so Interest Expense is consistent with WACC.
+        _rating, _spread = synthetic_credit_spread(cfg.wacc.interest_coverage_ratio)
+        _auto_rate = cfg.wacc.risk_free_rate + _spread
+        cfg.debt_tranches.append(_DT(
+            name="Auto (from Equity Bridge)",
+            beginning_balance=cfg.valuation.debt,
+            interest_rate=_auto_rate,
+            annual_amortisation=0.0,
+            maturity_year=cfg.forecast.projection_years,
+        ))
+        logger.info("Auto-created debt tranche from valuation.debt: %.0f @ %.2f%%",
+                    cfg.valuation.debt, _auto_rate * 100)
+
     # ── Step 4: Debt Schedule ────────────────────────────────────────
     ds_result = _run_step("Debt Schedule", build_debt_schedule,
                           result, cfg.debt_tranches, cfg.forecast.projection_years)
@@ -199,6 +221,36 @@ def run_pipeline(
         dividend_payout_ratio=cfg.forecast.dividend_payout_ratio,
     )
     result.cash_flow = cf_result
+
+    # ── Step 7b: Auto-compute WACC capital-structure weights ─────────
+    # When the model carries debt, always derive capital-structure
+    # weights from actual debt and book-equity so the WACC reflects
+    # the real cap structure.  The frontend may also pre-compute these,
+    # but we enforce consistency here.
+    total_model_debt = (
+        sum(t.beginning_balance for t in cfg.debt_tranches)
+        if cfg.debt_tranches else cfg.valuation.debt
+    )
+    if total_model_debt > 0:
+        book_equity = base_common_stock + base_retained_earnings
+        if book_equity <= 0:
+            book_equity = base_cash + base_ppe + base_nwc - total_model_debt
+        if book_equity <= 0:
+            book_equity = total_model_debt  # floor at 50/50
+        total_capital = total_model_debt + book_equity
+        cfg.wacc.target_debt_weight = total_model_debt / total_capital
+        cfg.wacc.target_equity_weight = book_equity / total_capital
+        logger.info(
+            "Auto-computed WACC weights: D=%.1f%% E=%.1f%%",
+            cfg.wacc.target_debt_weight * 100,
+            cfg.wacc.target_equity_weight * 100,
+        )
+    elif total_model_debt == 0 and cfg.wacc.target_debt_weight > 0:
+        # No debt in the model → force 100% equity so WACC is not
+        # misleadingly weighted toward a non-existent debt cost.
+        cfg.wacc.target_debt_weight = 0.0
+        cfg.wacc.target_equity_weight = 1.0
+        logger.info("No debt in model — set WACC weights to 100%% equity")
 
     # ── Step 8: WACC ─────────────────────────────────────────────────
     wacc_result = _run_step("WACC", compute_wacc, result, cfg.wacc, cfg.company.ticker)

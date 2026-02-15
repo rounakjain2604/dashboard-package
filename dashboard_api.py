@@ -526,5 +526,42 @@ def api_list_data_files():
     return jsonify(files)
 
 
+@app.route("/api/data-file-base-values/<path:filename>", methods=["GET"])
+def api_data_file_base_values(filename: str):
+    """Extract latest-period base-year values from a historical data CSV."""
+    try:
+        hist_path = _BASE_DIR / filename
+        if not hist_path.exists():
+            return jsonify({"error": "File not found"}), 404
+
+        hist = pd.read_csv(hist_path)
+        if hist.empty:
+            return jsonify({"error": "Empty file"}), 400
+
+        latest_period = hist["period"].max()
+        latest = hist[hist["period"] == latest_period]
+
+        def _get(account):
+            rows = latest[latest["account"] == account]
+            return float(rows.iloc[0]["amount"]) if len(rows) else 0
+
+        rev = _get("Revenue")
+        cash = _get("Cash")
+        ar = _get("Accounts Receivable")
+        inv = _get("Inventory")
+        ap = _get("Accounts Payable")
+        nwc = ar + inv - ap
+
+        return jsonify({
+            "base_year_revenue": rev,
+            "base_cash": cash,
+            "base_nwc": nwc,
+            "base_ppe": 0,
+            "latest_period": latest_period,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5050, host="0.0.0.0")

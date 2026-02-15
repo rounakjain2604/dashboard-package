@@ -89,8 +89,13 @@ def build_debt_schedule(
 
             ending = max(beginning - total_repayment, 0)
 
-            # Current portion = next year's mandatory amortisation (if applicable)
-            if yr < tranche.maturity_year:
+            # Current portion: debt due within the next 12 months.
+            # In the year immediately before bullet maturity, the entire
+            # remaining balance becomes current (per GAAP/IFRS).
+            if yr == tranche.maturity_year - 1:
+                # Next year is maturity → entire ending balance is current
+                current_portion = ending
+            elif yr < tranche.maturity_year:
                 current_portion = min(tranche.annual_amortisation, ending)
             elif yr == tranche.maturity_year:
                 current_portion = ending  # All remaining is current

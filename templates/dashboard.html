@@ -1132,7 +1132,7 @@ function App() {
     });
   }, []);
 
-  // Load a preset config
+  // Load a preset config (merges all sections including base-year values)
   const loadPreset = useCallback(async (filename) => {
     try {
       const res = await fetch(`/api/config/${filename}`);
@@ -1149,13 +1149,22 @@ function App() {
           next.company_name = data.company.name || next.company_name;
           next.ticker = data.company.ticker || '';
         }
+        // Merge base-year values and data file from preset
+        if (data.base_year_revenue != null) next.base_year_revenue = data.base_year_revenue;
+        if (data.base_cash != null) next.base_cash = data.base_cash;
+        if (data.base_ppe != null) next.base_ppe = data.base_ppe;
+        if (data.base_nwc != null) next.base_nwc = data.base_nwc;
+        if (data.base_retained_earnings != null) next.base_retained_earnings = data.base_retained_earnings;
+        if (data.base_common_stock != null) next.base_common_stock = data.base_common_stock;
+        if (data.data_file) next.data_file = data.data_file;
         return next;
       });
     } catch (e) { console.error(e); }
   }, []);
 
   // Run the model
-  const runModel = useCallback(async () => {
+  const isFirstRun = useRef(true);
+  const runModel = useCallback(async (autoRun = false) => {
     setLoading(true);
     setError(null);
     try {
@@ -1167,7 +1176,7 @@ function App() {
       const data = await res.json();
       if (data.success) {
         setResults(data);
-        setActiveTab('overview');
+        if (!autoRun) setActiveTab('overview');
       } else {
         setError(data.error || 'Pipeline failed');
       }
@@ -1176,6 +1185,15 @@ function App() {
     }
     setLoading(false);
   }, [config]);
+
+  // Auto-rerun model when config changes (debounced 800ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      runModel(isFirstRun.current ? false : true);
+      isFirstRun.current = false;
+    }, isFirstRun.current ? 100 : 800);
+    return () => clearTimeout(timer);
+  }, [runModel]);
 
   // Export to Excel
   const exportExcel = useCallback(async () => {
@@ -1221,7 +1239,26 @@ function App() {
         </div>
         <div className="config-loader" style={{ flexDirection: 'column', gap: 4, display: 'flex' }}>
           <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>Historical Data File</label>
-          <select value={config.data_file} onChange={e => updateConfig('data_file', e.target.value)}>
+          <select value={config.data_file} onChange={async e => {
+            const file = e.target.value;
+            updateConfig('data_file', file);
+            if (!file) return;
+            try {
+              const r = await fetch(`/api/data-file-base-values/${encodeURIComponent(file)}`);
+              const vals = await r.json();
+              if (vals && !vals.error) {
+                setConfig(prev => {
+                  const next = JSON.parse(JSON.stringify(prev));
+                  next.data_file = file;
+                  if (vals.base_year_revenue) next.base_year_revenue = vals.base_year_revenue;
+                  if (vals.base_cash) next.base_cash = vals.base_cash;
+                  if (vals.base_ppe) next.base_ppe = vals.base_ppe;
+                  if (vals.base_nwc) next.base_nwc = vals.base_nwc;
+                  return next;
+                });
+              }
+            } catch (err) { console.warn('Could not auto-populate base values:', err); }
+          }}>
             <option value="">Select data file...</option>
             {dataFiles.map(f => <option key={f.filename} value={f.filename}>{f.name}</option>)}
           </select>
@@ -1338,7 +1375,20 @@ function App() {
         <InputField label="Cash (bridge)" unit="$" value={config.valuation.cash}
           onChange={v => updateConfig('valuation.cash', v)} />
         <InputField label="Debt (bridge)" unit="$" value={config.valuation.debt}
-          onChange={v => updateConfig('valuation.debt', v)} />
+          onChange={v => {
+            // Set debt AND auto-compute WACC capital structure weights
+            setConfig(prev => {
+              const next = JSON.parse(JSON.stringify(prev));
+              next.valuation.debt = v;
+              const shares = next.valuation.fully_diluted_shares || 1000000;
+              const lastPrice = (results && results.dcf) ? results.dcf.price_blended : 1;
+              const equityMV = shares * Math.max(lastPrice, 0.01);
+              const debtW = v > 0 ? v / (v + equityMV) : 0;
+              next.wacc.target_debt_weight = Math.round(debtW * 1000) / 1000;
+              next.wacc.target_equity_weight = Math.round((1 - debtW) * 1000) / 1000;
+              return next;
+            });
+          }} />
         <InputField label="Shares Outstanding" value={config.valuation.fully_diluted_shares}
           onChange={v => updateConfig('valuation.fully_diluted_shares', v)} />
         <InputField label="GDP Growth Cap" unit="%" value={config.valuation.gdp_growth_cap}
@@ -2154,6 +2204,7 @@ function App() {
             <div className="header-title">IB-Grade DCF Engine</div>
             <div className="header-subtitle">Interactive Valuation Dashboard</div>
           </div>
+          <span style={{marginLeft:10,padding:'2px 8px',fontSize:11,fontWeight:700,borderRadius:6,background:'var(--gradient-primary)',color:'#fff',letterSpacing:0.5}}>V1</span>
         </div>
         <div className="header-actions">
           {results && (

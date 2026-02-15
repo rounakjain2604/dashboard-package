@@ -1,4 +1,17 @@
 {
+  "company": {
+    "name": "Example Company",
+    "ticker": "",
+    "industry": "",
+    "currency": "USD"
+  },
+  "data_file": "",
+  "base_year_revenue": 1000000,
+  "base_cash": 50000,
+  "base_ppe": 200000,
+  "base_nwc": 0,
+  "base_retained_earnings": 0,
+  "base_common_stock": 100000,
   "forecast": {
     "years": 5,
     "revenue_method": "cagr",
