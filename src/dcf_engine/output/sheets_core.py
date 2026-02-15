@@ -104,7 +104,7 @@ def build_assumptions(wb, cfg, base_rev, base_cash, base_ppe, base_nwc, base_re,
     _inp(A["tg"], "Terminal Growth Rate", v.terminal_growth_rate, PF)
     _inp(A["exit_m"], "Exit EV/EBITDA Multiple", v.exit_ev_ebitda_multiple, '0.0x')
     _inp(A["gw"], "Gordon Growth Weight", v.gordon_weight, PF)
-    _inp(A["shares"], "Shares Outstanding (M)", v.fully_diluted_shares/1e6 if v.fully_diluted_shares>1e6 else v.fully_diluted_shares, NF)
+    _inp(A["shares"], "Shares Outstanding", v.fully_diluted_shares, NF)
     _inp(A["cash"], "Cash (Equity Bridge)", v.cash, NF)
     _inp(A["debt"], "Debt (Equity Bridge)", v.debt, NF)
 

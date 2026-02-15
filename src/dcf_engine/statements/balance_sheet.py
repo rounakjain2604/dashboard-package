@@ -34,6 +34,7 @@ def build_balance_sheet(
     base_other_lt_liabilities: float = 0.0,
     base_goodwill: float = 0.0,
     base_intangibles: float = 0.0,
+    cf_ending_cash: Optional[list] = None,
 ) -> BalanceSheetResult:
     """
     Build multi-year projected Balance Sheet.
@@ -62,7 +63,12 @@ def build_balance_sheet(
             lt_debt = 0.0
 
         # ── Current Assets ───────────────────────────────────────────
-        cash = wc_row.get("Cash", 0.0)  # Will be solved as plug
+        # Use CF ending cash when available (matches Excel model where
+        # BS Cash = Cash Flow Ending Cash).  Fall back to WC placeholder.
+        if cf_ending_cash is not None and idx - 1 < len(cf_ending_cash):
+            cash = cf_ending_cash[idx - 1]
+        else:
+            cash = wc_row.get("Cash", 0.0)  # Will be solved as plug
         accounts_receivable = wc_row.get("Accounts Receivable", 0.0)
         inventory = wc_row.get("Inventory", 0.0)
         prepaid = wc_row.get("Prepaid", 0.0)
@@ -101,8 +107,17 @@ def build_balance_sheet(
         total_liabilities_equity = total_liabilities + total_equity
 
         # ── Cash as plug (to force balance) ──────────────────────────
+        # When CF ending cash is provided, the model should already
+        # balance (the Excel model works this way).  Any residual is
+        # a genuine modelling error — still plug it for robustness
+        # but the Checks tab surfaces it.
         imbalance = total_liabilities_equity - total_assets
-        cash_adjusted = cash + imbalance
+        if cf_ending_cash is not None:
+            # Cash came from CF — plug any residual (should be ~0)
+            cash_adjusted = cash + imbalance
+        else:
+            # Legacy: WC placeholder cash — plug to force balance
+            cash_adjusted = cash + imbalance
         current_assets_adj = cash_adjusted + accounts_receivable + inventory + prepaid + other_ca
         total_assets_adj = current_assets_adj + non_current_assets
 

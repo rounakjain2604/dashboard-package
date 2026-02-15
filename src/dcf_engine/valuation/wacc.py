@@ -34,6 +34,7 @@ class WACCResult:
     country_risk_premium: float
     debt_weight: float
     equity_weight: float
+    credit_spread: float = 0.02
 
 
 # ── Synthetic Credit Rating (Damodaran) ──────────────────────────────
@@ -120,4 +121,5 @@ def compute_wacc(
         country_risk_premium=cfg.country_risk_premium,
         debt_weight=cfg.target_debt_weight,
         equity_weight=cfg.target_equity_weight,
+        credit_spread=spread,
     )

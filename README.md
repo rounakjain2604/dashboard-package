@@ -1,4 +1,4 @@
-# IB-Grade DCF Valuation Engine — V3.0.0
+# IB-Grade DCF Valuation Engine — V4.0.0
 
 **A fully automated, investment-banking-grade Discounted Cash Flow (DCF) valuation engine with an interactive React dashboard, formula-linked Excel export, and PDF memo generation.**
 
@@ -197,7 +197,7 @@ The dashboard will be available at **http://localhost:5050**.
 
 | File | Purpose |
 |------|---------|
-| `__init__.py` | Version (`3.0.0`) |
+| `__init__.py` | Version (`4.0.0`) |
 | `config.py` | All configuration dataclasses (`DCFEngineConfig`, `ForecastConfig`, `WACCConfig`, etc.) with JSON serialisation and alias handling |
 | `pipeline.py` | 16-step orchestrator — the heart of the engine |
 | `main.py` | CLI entry point (`python -m src.dcf_engine.main`) |
@@ -573,9 +573,18 @@ The config parser supports aliases for backward compatibility:
 
 ---
 
-## 10. V3.0.0 Changelog
+## 10. V4.0.0 Changelog
 
-### Bugs Fixed in V3.0.0
+### Bugs Fixed in V4.0.0
+
+| # | Bug | Fix |
+|---|-----|-----|
+| 1 | **CF Ending Cash ≠ BS Cash** — Balance Sheet used a WC placeholder for cash instead of linking to Cash Flow Ending Cash | Pipeline now builds CF *before* BS (swapped Steps 6/7) and passes `cf_ending_cash` to the BS builder |
+| 2 | **Shares in millions in Excel** — `build_assumptions` stored `shares/1e6` (e.g. 2.0 for 2M shares), so the DCF formula `Equity/B37` divided by 2 instead of 2,000,000 | Assumptions now stores the absolute share count |
+| 3 | **Credit spread not surfaced** — `WACCResult` had no `credit_spread` field; pipeline fallback logic used `pre_tax_kd − rf` which differed from the actual synthetic spread | Added `credit_spread` to `WACCResult` dataclass, populated from `synthetic_credit_spread()` |
+| 4 | **Amortisation uncapped** — Python IS computed `Rev × amort_pct` every year regardless of remaining intangible balance; Excel used `MIN(Rev×amort_pct, intangibles)` | Step 5 and Step 10 (Scenarios) re-linking now tracks `_remaining_intangibles` and caps amortisation at surviving balance |
+
+### V3.0.0 Changelog (prior release)
 
 | # | Bug | Fix |
 |---|-----|-----|

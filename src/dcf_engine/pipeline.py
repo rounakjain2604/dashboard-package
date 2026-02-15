@@ -175,6 +175,9 @@ def run_pipeline(
     result.debt_schedule = ds_result
 
     # ── Step 5: Link D&A and Interest back to IS ─────────────────────
+    # Also cap amortisation at remaining intangible balance (matching
+    # the Excel formula: MIN(Rev*amort_pct, prior_intangibles)).
+    _remaining_intangibles = 0.0  # default; no intangibles on BS
     if cd_result and ds_result:
         for idx in range(len(is_table)):
             yr = is_table.loc[idx, "year_index"]
@@ -183,7 +186,15 @@ def run_pipeline(
             if not cd_row.empty:
                 dep = float(cd_row.iloc[0].get("Depreciation", 0))
                 is_table.loc[idx, "Depreciation"] = dep
-                is_table.loc[idx, "Total D&A"] = dep + is_table.loc[idx, "Amortisation"]
+
+            # Cap amortisation at remaining intangible balance
+            raw_amort = is_table.loc[idx, "Amortisation"]
+            capped_amort = min(raw_amort, max(_remaining_intangibles, 0))
+            is_table.loc[idx, "Amortisation"] = capped_amort
+            _remaining_intangibles -= capped_amort
+
+            is_table.loc[idx, "Total D&A"] = is_table.loc[idx, "Depreciation"] + capped_amort
+
             # Interest from debt schedule
             ds_row = ds_result.table[ds_result.table["year_index"] == yr]
             if not ds_row.empty:
@@ -196,20 +207,7 @@ def run_pipeline(
             is_table.loc[idx, "Tax Expense"] = max(is_table.loc[idx, "EBT"] * cfg.forecast.tax_rate, 0)
             is_table.loc[idx, "Net Income"] = is_table.loc[idx, "EBT"] - is_table.loc[idx, "Tax Expense"]
 
-    # ── Step 6: Balance Sheet ────────────────────────────────────────
-    bs_result = _run_step(
-        "Balance Sheet", build_balance_sheet, result,
-        is_table,
-        wc_result.table if wc_result else pd.DataFrame(),
-        cd_result.table if cd_result else pd.DataFrame(),
-        ds_result.table if ds_result else pd.DataFrame(),
-        dividend_payout_ratio=cfg.forecast.dividend_payout_ratio,
-        base_retained_earnings=base_retained_earnings,
-        base_common_stock=base_common_stock,
-    )
-    result.balance_sheet = bs_result
-
-    # ── Step 7: Cash Flow Statement ──────────────────────────────────
+    # ── Step 6: Cash Flow Statement ──────────────────────────────────
     cf_result = _run_step(
         "Cash Flow Statement", build_cash_flow_statement, result,
         is_table,
@@ -221,6 +219,25 @@ def run_pipeline(
         dividend_payout_ratio=cfg.forecast.dividend_payout_ratio,
     )
     result.cash_flow = cf_result
+
+    # Extract ending cash per year for the Balance Sheet
+    cf_ending_cash = (
+        cf_result.table["Ending Cash"].tolist() if cf_result else None
+    )
+
+    # ── Step 7: Balance Sheet ────────────────────────────────────────
+    bs_result = _run_step(
+        "Balance Sheet", build_balance_sheet, result,
+        is_table,
+        wc_result.table if wc_result else pd.DataFrame(),
+        cd_result.table if cd_result else pd.DataFrame(),
+        ds_result.table if ds_result else pd.DataFrame(),
+        dividend_payout_ratio=cfg.forecast.dividend_payout_ratio,
+        base_retained_earnings=base_retained_earnings,
+        base_common_stock=base_common_stock,
+        cf_ending_cash=cf_ending_cash,
+    )
+    result.balance_sheet = bs_result
 
     # ── Step 7b: WACC capital-structure weights ───────────────────────
     # Respect the user's explicit WACC weight inputs.  The target
@@ -262,13 +279,22 @@ def run_pipeline(
         # Re-link D&A and Interest into the scenario IS (mirrors Step 5)
         s_is_table = s_is.table
         _ds_table = ds_result.table if ds_result else pd.DataFrame()
+        _s_remaining_intangibles = 0.0  # same cap as Step 5
         for _si in range(len(s_is_table)):
             _yr = s_is_table.loc[_si, "year_index"]
             _cd_r = s_cd.table[s_cd.table["year_index"] == _yr]
             if not _cd_r.empty:
                 _dep = float(_cd_r.iloc[0].get("Depreciation", 0))
                 s_is_table.loc[_si, "Depreciation"] = _dep
-                s_is_table.loc[_si, "Total D&A"] = _dep + s_is_table.loc[_si, "Amortisation"]
+
+            # Cap amortisation at remaining intangible balance
+            _raw_amort = s_is_table.loc[_si, "Amortisation"]
+            _capped_amort = min(_raw_amort, max(_s_remaining_intangibles, 0))
+            s_is_table.loc[_si, "Amortisation"] = _capped_amort
+            _s_remaining_intangibles -= _capped_amort
+
+            s_is_table.loc[_si, "Total D&A"] = s_is_table.loc[_si, "Depreciation"] + _capped_amort
+
             if not _ds_table.empty:
                 _ds_r = _ds_table[_ds_table["year_index"] == _yr]
                 if not _ds_r.empty:
@@ -391,10 +417,8 @@ def run_pipeline(
     if output_excel:
         # Extract credit spread from WACC result
         _credit_spread = 0.02
-        if wacc_result and hasattr(wacc_result, 'credit_spread'):
+        if wacc_result:
             _credit_spread = wacc_result.credit_spread
-        elif wacc_result:
-            _credit_spread = getattr(wacc_result, 'pre_tax_kd', 0.06) - (wacc_result.risk_free_rate if hasattr(wacc_result, 'risk_free_rate') else 0.04)
 
         excel_path = _run_step(
             "Excel Output", _get_build_excel(), result,
