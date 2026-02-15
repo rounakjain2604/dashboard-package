@@ -42,7 +42,10 @@ def build_bs(wb, n):
         ws[f"{c}{BS['CA']}"]    = f"=SUM({c}{BS['Cash']}:{c}{BS['OCA']})"
         ws[f"{c}{BS['PPE']}"]   = f"='Capex DA'!{c}{CD['End']}"
         ws[f"{c}{BS['GW']}"]    = f"={ar('goodwill')}"
-        ws[f"{c}{BS['Intan']}"] = f"={ar('intangibles')}"
+        if j==0:
+            ws[f"{c}{BS['Intan']}"] = f"=MAX({ar('intangibles')}-'Income Statement'!{c}{IS['Amort']},0)"
+        else:
+            ws[f"{c}{BS['Intan']}"] = f"=MAX({pc}{BS['Intan']}-'Income Statement'!{c}{IS['Amort']},0)"
         ws[f"{c}{BS['OLA']}"]   = f"={ar('olt_assets')}"
         ws[f"{c}{BS['NCA']}"]   = f"=SUM({c}{BS['PPE']}:{c}{BS['OLA']})"
         ws[f"{c}{BS['TA']}"]    = f"={c}{BS['CA']}+{c}{BS['NCA']}"

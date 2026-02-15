@@ -972,7 +972,13 @@ function ChartComponent({ type, data, options, className = '' }) {
 }
 
 // ── Input Field Component ──────────────────────────────────
-function InputField({ label, unit, value, onChange, type = 'number', step, min, max, options: selectOptions }) {
+function InputField({ label, unit, value, onChange, type = 'number', step, min, max, pct, options: selectOptions }) {
+  // pct: display as whole-number percentage (8 for 8%), store as decimal (0.08)
+  const displayValue = pct ? +(value * 100).toFixed(4) : value;
+  const handleChange = (e) => {
+    const raw = parseFloat(e.target.value) || 0;
+    onChange(pct ? raw / 100 : raw);
+  };
   if (selectOptions) {
     return (
       <div className="input-group">
@@ -986,8 +992,8 @@ function InputField({ label, unit, value, onChange, type = 'number', step, min, 
   return (
     <div className="input-group">
       <label className="input-label">{label} {unit && <span className="unit">({unit})</span>}</label>
-      <input type={type} value={value} step={step || 'any'} min={min} max={max}
-        onChange={e => onChange(type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value)} />
+      <input type={type} value={type === 'number' ? displayValue : value} step={step || 'any'} min={min} max={max}
+        onChange={type === 'number' ? handleChange : e => onChange(e.target.value)} />
     </div>
   );
 }
@@ -1206,13 +1212,15 @@ function App() {
     <div className="sidebar">
       {/* Run Button */}
       <div className="run-bar">
-        <div className="config-loader">
+        <div className="config-loader" style={{ flexDirection: 'column', gap: 4, display: 'flex' }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>Preset Configuration</label>
           <select onChange={e => e.target.value && loadPreset(e.target.value)} defaultValue="">
             <option value="">Load preset config...</option>
             {configs.map(c => <option key={c.filename} value={c.filename}>{c.name}</option>)}
           </select>
         </div>
-        <div className="config-loader">
+        <div className="config-loader" style={{ flexDirection: 'column', gap: 4, display: 'flex' }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>Historical Data File</label>
           <select value={config.data_file} onChange={e => updateConfig('data_file', e.target.value)}>
             <option value="">Select data file...</option>
             {dataFiles.map(f => <option key={f.filename} value={f.filename}>{f.name}</option>)}
@@ -1260,26 +1268,26 @@ function App() {
           onChange={v => updateConfig('forecast.revenue_method', v)}
           options={[{value:'cagr',label:'CAGR'},{value:'yoy',label:'Year-over-Year'},{value:'manual',label:'Manual'}]} />
         <InputField label="Revenue CAGR" unit="%" value={config.forecast.revenue_cagr}
-          onChange={v => updateConfig('forecast.revenue_cagr', v)} step={0.005} />
+          onChange={v => updateConfig('forecast.revenue_cagr', v)} step={0.5} pct />
         <InputField label="COGS % Revenue" unit="%" value={config.forecast.cogs_pct_revenue}
-          onChange={v => updateConfig('forecast.cogs_pct_revenue', v)} step={0.01} />
+          onChange={v => updateConfig('forecast.cogs_pct_revenue', v)} step={1} pct />
         <InputField label="SG&A % Revenue" unit="%" value={config.forecast.sga_pct_revenue}
-          onChange={v => updateConfig('forecast.sga_pct_revenue', v)} step={0.01} />
+          onChange={v => updateConfig('forecast.sga_pct_revenue', v)} step={1} pct />
         <InputField label="Other OpEx %" unit="%" value={config.forecast.other_opex_pct_revenue}
-          onChange={v => updateConfig('forecast.other_opex_pct_revenue', v)} step={0.005} />
+          onChange={v => updateConfig('forecast.other_opex_pct_revenue', v)} step={0.5} pct />
         <InputField label="Tax Rate" unit="%" value={config.forecast.tax_rate}
-          onChange={v => updateConfig('forecast.tax_rate', v)} step={0.01} />
+          onChange={v => updateConfig('forecast.tax_rate', v)} step={1} pct />
         <InputField label="Capex Method" value={config.forecast.capex_method}
           onChange={v => updateConfig('forecast.capex_method', v)}
           options={[{value:'pct_revenue',label:'% of Revenue'},{value:'fixed',label:'Fixed Amount'}]} />
         <InputField label="Capex % Revenue" unit="%" value={config.forecast.capex_pct_revenue}
-          onChange={v => updateConfig('forecast.capex_pct_revenue', v)} step={0.005} />
+          onChange={v => updateConfig('forecast.capex_pct_revenue', v)} step={0.5} pct />
         <InputField label="Depreciation Rate" unit="%" value={config.forecast.depreciation_rate}
-          onChange={v => updateConfig('forecast.depreciation_rate', v)} step={0.01} />
+          onChange={v => updateConfig('forecast.depreciation_rate', v)} step={1} pct />
         <InputField label="Amort % Rev" unit="%" value={config.forecast.amortisation_pct_revenue}
-          onChange={v => updateConfig('forecast.amortisation_pct_revenue', v)} step={0.001} />
+          onChange={v => updateConfig('forecast.amortisation_pct_revenue', v)} step={0.1} pct />
         <InputField label="Dividend Payout" unit="%" value={config.forecast.dividend_payout_ratio}
-          onChange={v => updateConfig('forecast.dividend_payout_ratio', v)} step={0.01} />
+          onChange={v => updateConfig('forecast.dividend_payout_ratio', v)} step={1} pct />
       </Section>
 
       {/* Working Capital */}
@@ -1291,42 +1299,42 @@ function App() {
         <InputField label="DPO" unit="days" value={config.forecast.dpo}
           onChange={v => updateConfig('forecast.dpo', v)} step={1} />
         <InputField label="Prepaid % Rev" unit="%" value={config.forecast.prepaid_pct_revenue}
-          onChange={v => updateConfig('forecast.prepaid_pct_revenue', v)} step={0.001} />
+          onChange={v => updateConfig('forecast.prepaid_pct_revenue', v)} step={0.1} pct />
         <InputField label="Accrued % Rev" unit="%" value={config.forecast.accrued_pct_revenue}
-          onChange={v => updateConfig('forecast.accrued_pct_revenue', v)} step={0.001} />
+          onChange={v => updateConfig('forecast.accrued_pct_revenue', v)} step={0.1} pct />
       </Section>
 
       {/* WACC */}
       <Section icon="⚖️" color="#8b5cf6" label="WACC" defaultOpen={false}>
         <InputField label="Risk-Free Rate" unit="%" value={config.wacc.risk_free_rate}
-          onChange={v => updateConfig('wacc.risk_free_rate', v)} step={0.001} />
+          onChange={v => updateConfig('wacc.risk_free_rate', v)} step={0.1} pct />
         <InputField label="Equity Risk Premium" unit="%" value={config.wacc.equity_risk_premium}
-          onChange={v => updateConfig('wacc.equity_risk_premium', v)} step={0.005} />
+          onChange={v => updateConfig('wacc.equity_risk_premium', v)} step={0.5} pct />
         <InputField label="Beta" value={config.wacc.beta}
           onChange={v => updateConfig('wacc.beta', v)} step={0.05} />
         <InputField label="Size Premium" unit="%" value={config.wacc.size_premium}
-          onChange={v => updateConfig('wacc.size_premium', v)} step={0.005} />
+          onChange={v => updateConfig('wacc.size_premium', v)} step={0.5} pct />
         <InputField label="Country Risk" unit="%" value={config.wacc.country_risk_premium}
-          onChange={v => updateConfig('wacc.country_risk_premium', v)} step={0.005} />
+          onChange={v => updateConfig('wacc.country_risk_premium', v)} step={0.5} pct />
         <InputField label="Debt Weight" unit="%" value={config.wacc.target_debt_weight}
-          onChange={v => { updateConfig('wacc.target_debt_weight', v); updateConfig('wacc.target_equity_weight', 1 - v); }} step={0.05} />
+          onChange={v => { updateConfig('wacc.target_debt_weight', v); updateConfig('wacc.target_equity_weight', 1 - v); }} step={5} pct />
         <InputField label="Int Coverage" unit="x" value={config.wacc.interest_coverage_ratio}
           onChange={v => updateConfig('wacc.interest_coverage_ratio', v)} step={0.5} />
         <InputField label="Tax Rate" unit="%" value={config.wacc.tax_rate}
-          onChange={v => updateConfig('wacc.tax_rate', v)} step={0.01} />
+          onChange={v => updateConfig('wacc.tax_rate', v)} step={1} pct />
       </Section>
 
       {/* Valuation */}
       <Section icon="💎" color="#ec4899" label="Valuation" defaultOpen={false}>
         <InputField label="Terminal Growth" unit="%" value={config.valuation.terminal_growth_rate}
-          onChange={v => updateConfig('valuation.terminal_growth_rate', v)} step={0.005} />
+          onChange={v => updateConfig('valuation.terminal_growth_rate', v)} step={0.5} pct />
         <InputField label="Exit EV/EBITDA" unit="x" value={config.valuation.exit_ev_ebitda_multiple}
           onChange={v => updateConfig('valuation.exit_ev_ebitda_multiple', v)} step={0.5} />
         <InputField label="Discount Method" value={config.valuation.discount_convention}
           onChange={v => updateConfig('valuation.discount_convention', v)}
           options={[{value:'mid_year',label:'Mid-Year'},{value:'end_period',label:'End Period'}]} />
         <InputField label="Gordon Weight" unit="%" value={config.valuation.gordon_weight}
-          onChange={v => updateConfig('valuation.gordon_weight', v)} step={0.05} />
+          onChange={v => updateConfig('valuation.gordon_weight', v)} step={5} pct />
         <InputField label="Cash (bridge)" unit="$" value={config.valuation.cash}
           onChange={v => updateConfig('valuation.cash', v)} />
         <InputField label="Debt (bridge)" unit="$" value={config.valuation.debt}
@@ -1334,7 +1342,7 @@ function App() {
         <InputField label="Shares Outstanding" value={config.valuation.fully_diluted_shares}
           onChange={v => updateConfig('valuation.fully_diluted_shares', v)} />
         <InputField label="GDP Growth Cap" unit="%" value={config.valuation.gdp_growth_cap}
-          onChange={v => updateConfig('valuation.gdp_growth_cap', v)} step={0.005} />
+          onChange={v => updateConfig('valuation.gdp_growth_cap', v)} step={0.5} pct />
         <InputField label="TV Spread Floor" unit="bps" value={config.valuation.terminal_spread_floor_bps}
           onChange={v => updateConfig('valuation.terminal_spread_floor_bps', v)} step={10} />
       </Section>
@@ -1344,21 +1352,21 @@ function App() {
         <InputField label="Iterations" value={config.monte_carlo.iterations}
           onChange={v => updateConfig('monte_carlo.iterations', v)} step={1000} />
         <InputField label="Rev Growth μ" unit="%" value={config.monte_carlo.revenue_growth_mean}
-          onChange={v => updateConfig('monte_carlo.revenue_growth_mean', v)} step={0.005} />
+          onChange={v => updateConfig('monte_carlo.revenue_growth_mean', v)} step={0.5} pct />
         <InputField label="Rev Growth σ" unit="%" value={config.monte_carlo.revenue_growth_std}
-          onChange={v => updateConfig('monte_carlo.revenue_growth_std', v)} step={0.005} />
+          onChange={v => updateConfig('monte_carlo.revenue_growth_std', v)} step={0.5} pct />
         <InputField label="EBITDA Margin μ" unit="%" value={config.monte_carlo.ebitda_margin_mean}
-          onChange={v => updateConfig('monte_carlo.ebitda_margin_mean', v)} step={0.005} />
+          onChange={v => updateConfig('monte_carlo.ebitda_margin_mean', v)} step={0.5} pct />
         <InputField label="EBITDA Margin σ" unit="%" value={config.monte_carlo.ebitda_margin_std}
-          onChange={v => updateConfig('monte_carlo.ebitda_margin_std', v)} step={0.005} />
+          onChange={v => updateConfig('monte_carlo.ebitda_margin_std', v)} step={0.5} pct />
         <InputField label="WACC μ" unit="%" value={config.monte_carlo.wacc_mean}
-          onChange={v => updateConfig('monte_carlo.wacc_mean', v)} step={0.005} />
+          onChange={v => updateConfig('monte_carlo.wacc_mean', v)} step={0.5} pct />
         <InputField label="WACC σ" unit="%" value={config.monte_carlo.wacc_std}
-          onChange={v => updateConfig('monte_carlo.wacc_std', v)} step={0.005} />
+          onChange={v => updateConfig('monte_carlo.wacc_std', v)} step={0.5} pct />
         <InputField label="TG μ" unit="%" value={config.monte_carlo.terminal_growth_mean}
-          onChange={v => updateConfig('monte_carlo.terminal_growth_mean', v)} step={0.005} />
+          onChange={v => updateConfig('monte_carlo.terminal_growth_mean', v)} step={0.5} pct />
         <InputField label="TG σ" unit="%" value={config.monte_carlo.terminal_growth_std}
-          onChange={v => updateConfig('monte_carlo.terminal_growth_std', v)} step={0.005} />
+          onChange={v => updateConfig('monte_carlo.terminal_growth_std', v)} step={0.5} pct />
         <InputField label="Exit Multiple μ" unit="x" value={config.monte_carlo.exit_multiple_mean}
           onChange={v => updateConfig('monte_carlo.exit_multiple_mean', v)} step={0.5} />
         <InputField label="Exit Multiple σ" unit="x" value={config.monte_carlo.exit_multiple_std}
@@ -1678,8 +1686,8 @@ function App() {
                 labels: bs.map(r => `Yr ${r.year_index}`),
                 datasets: [
                   { label: 'AP', data: bs.map(r => r['Accounts Payable']), backgroundColor: 'rgba(239,68,68,0.7)', stack: 's' },
-                  { label: 'Debt', data: bs.map(r => (r['LT Debt']||0) + (r['Current Debt']||0)), backgroundColor: 'rgba(236,72,153,0.7)', stack: 's' },
-                  { label: 'Other Liab', data: bs.map(r => (r['Total Liabilities']||0) - (r['Accounts Payable']||0) - (r['LT Debt']||0) - (r['Current Debt']||0)), backgroundColor: 'rgba(100,116,139,0.5)', stack: 's' },
+                  { label: 'Debt', data: bs.map(r => (r['Long-Term Debt']||0) + (r['Current Portion of Debt']||0)), backgroundColor: 'rgba(236,72,153,0.7)', stack: 's' },
+                  { label: 'Other Liab', data: bs.map(r => (r['Total Liabilities']||0) - (r['Accounts Payable']||0) - (r['Long-Term Debt']||0) - (r['Current Portion of Debt']||0)), backgroundColor: 'rgba(100,116,139,0.5)', stack: 's' },
                   { label: 'Equity', data: bs.map(r => r['Total Equity']), backgroundColor: 'rgba(16,185,129,0.7)', stack: 's' },
                 ],
               }} options={{
@@ -1700,8 +1708,8 @@ function App() {
               return row;
             });
             return <DataTable data={pivoted} columns={['Metric', ...bs.map(r => `Yr ${r.year_index}`)]}
-              totalRows={['Total Assets', 'Total L&E', 'Total Equity', 'Total Liabilities']}
-              subtotalRows={['Current Assets', 'Non-Current Assets', 'Current Liabilities']} />;
+              totalRows={['Total Assets', 'Total Liabilities & Equity', 'Total Equity', 'Total Liabilities']}
+              subtotalRows={['Current Assets', 'Non-Current Assets', 'Current Liabilities', 'Non-Current Liabilities']} />;
           })()}
         </div>
       </>
@@ -1951,32 +1959,52 @@ function App() {
     const sc = results.scenarios || [];
     if (!sc.length) return <div style={{color:'var(--text-muted)',padding:40}}>No scenario data</div>;
 
+    // Separate monetary and percentage metrics for charting
+    const pctMetrics = ['WACC', 'Terminal Growth', 'EBITDA Margin Yr5', 'TV % of EV'];
+    const dollarMetrics = sc.filter(r => !pctMetrics.includes(r.Metric));
+    const scenCols = Object.keys(sc[0] || {}).filter(k => k !== 'Metric' && k !== 'metric');
+    const colors = { Base: 'rgba(59,130,246,0.7)', Bull: 'rgba(16,185,129,0.7)', Bear: 'rgba(239,68,68,0.7)' };
+
+    // Format scenario table values
+    const formattedSc = sc.map(r => {
+      const row = { Metric: r.Metric };
+      const isPct = pctMetrics.includes(r.Metric);
+      scenCols.forEach(c => {
+        const v = r[c];
+        if (typeof v === 'number') {
+          row[c] = isPct ? fmt.pct(v) : (r.Metric === 'Exit Multiple' ? fmt.x(v) : fmt.usd(v));
+        } else {
+          row[c] = v ?? '—';
+        }
+      });
+      return row;
+    });
+
     return (
       <>
         <div className="chart-card">
-          <div className="chart-title"><span className="dot" style={{background:'var(--accent-cyan)'}}></span>Scenario Comparison</div>
+          <div className="chart-title"><span className="dot" style={{background:'var(--accent-cyan)'}}></span>Scenario Comparison — Key Valuation Metrics</div>
 
           <div className="chart-container tall" style={{ marginBottom: 20 }}>
             <ChartComponent type="bar" data={{
-              labels: sc.map(r => r.Metric || r.metric || Object.values(r)[0]),
-              datasets: (() => {
-                const cols = Object.keys(sc[0] || {}).filter(k => k !== 'Metric' && k !== 'metric');
-                const colors = { Base: 'rgba(59,130,246,0.7)', Bull: 'rgba(16,185,129,0.7)', Bear: 'rgba(239,68,68,0.7)' };
-                return cols.map(c => ({
-                  label: c,
-                  data: sc.map(r => typeof r[c] === 'number' ? r[c] : null),
-                  backgroundColor: colors[c] || 'rgba(139,92,246,0.7)',
-                  borderRadius: 4,
-                }));
-              })(),
+              labels: dollarMetrics.map(r => r.Metric || Object.values(r)[0]),
+              datasets: scenCols.map(c => ({
+                label: c,
+                data: dollarMetrics.map(r => typeof r[c] === 'number' ? r[c] : null),
+                backgroundColor: colors[c] || 'rgba(139,92,246,0.7)',
+                borderRadius: 4,
+              })),
             }} options={{
               indexAxis: 'y',
               plugins: { legend: { position: 'top' } },
-              scales: { x: { ticks: { callback: v => typeof v === 'number' ? fmt.usd(v) : v } } },
+              scales: {
+                x: { ticks: { callback: v => typeof v === 'number' ? fmt.usd(v) : v } },
+                y: { ticks: { font: { size: 11, family: 'Inter' }, align: 'start' } },
+              },
             }} />
           </div>
 
-          <DataTable data={sc} />
+          <DataTable data={formattedSc} columns={['Metric', ...scenCols]} />
         </div>
       </>
     );
@@ -2069,6 +2097,9 @@ function App() {
     const t = results.tornado;
     if (!t || !t.length) return <div style={{color:'var(--text-muted)',padding:40}}>Tornado not computed</div>;
 
+    // Compute base equity line for reference
+    const baseEquity = results.dcf ? results.dcf.equity_blended : 0;
+
     return (
       <div className="chart-card">
         <div className="chart-title"><span className="dot" style={{background:'var(--accent-red)'}}></span>Tornado Sensitivity (±20% Swing)</div>
@@ -2077,14 +2108,14 @@ function App() {
             labels: t.map(r => r['Driver'] || r['driver'] || Object.values(r)[0]),
             datasets: [
               {
-                label: 'Low',
-                data: t.map(r => r['Low Value'] || r['low_value'] || r['Low'] || 0),
+                label: 'Low Case',
+                data: t.map(r => r['Equity at Low'] || r['Low Value'] || r['low_value'] || 0),
                 backgroundColor: 'rgba(239,68,68,0.7)',
                 borderRadius: 4,
               },
               {
-                label: 'High',
-                data: t.map(r => r['High Value'] || r['high_value'] || r['High'] || 0),
+                label: 'High Case',
+                data: t.map(r => r['Equity at High'] || r['High Value'] || r['high_value'] || 0),
                 backgroundColor: 'rgba(16,185,129,0.7)',
                 borderRadius: 4,
               },
@@ -2092,12 +2123,21 @@ function App() {
           }} options={{
             indexAxis: 'y',
             plugins: { legend: { position: 'top' } },
-            scales: { x: { ticks: { callback: v => fmt.usd(v) } } },
+            scales: {
+              x: { ticks: { callback: v => fmt.usd(v) } },
+              y: { ticks: { font: { size: 11, family: 'Inter' }, align: 'start' } },
+            },
           }} />
         </div>
 
         <div style={{ marginTop: 20 }}>
-          <DataTable data={t} />
+          <DataTable data={t.map(r => ({
+            Driver: r['Driver'],
+            'Base Input': typeof r['Base Input'] === 'number' ? (Math.abs(r['Base Input']) < 1 ? fmt.pct(r['Base Input']) : fmt.num(r['Base Input'], 2)) : r['Base Input'],
+            'Low Case': fmt.usd(r['Equity at Low']),
+            'High Case': fmt.usd(r['Equity at High']),
+            'Impact': fmt.usd(r['Impact']),
+          }))} columns={['Driver', 'Base Input', 'Low Case', 'High Case', 'Impact']} />
         </div>
       </div>
     );

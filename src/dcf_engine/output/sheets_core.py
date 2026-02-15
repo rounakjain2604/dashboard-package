@@ -111,7 +111,17 @@ def build_assumptions(wb, cfg, base_rev, base_cash, base_ppe, base_nwc, base_re,
     _inp(A["bcash"], "Base Year Cash", base_cash, NF)
     _inp(A["bppe"], "Base Year PP&E (Net)", base_ppe, NF)
     _inp(A["bnwc"], "Base Year NWC", base_nwc, NF)
-    _inp(A["bre"], "Base Retained Earnings", base_re, NF)
+    # Retained Earnings is computed to ensure the opening BS balances:
+    # RE = Assets - Liabilities - Common Stock
+    ws.cell(A["bre"], 1, value="Base Retained Earnings (auto)").font = FN
+    c_bre = ws.cell(A["bre"], 2)
+    c_bre.value = (
+        f"=B{A['bcash']}+B{A['bppe']}+B{A['bnwc']}"
+        f"+B{A['goodwill']}+B{A['intangibles']}+B{A['olt_assets']}"
+        f"-B{A['debt_bal']}-B{A['olt_liab']}-B{A['bcs']}"
+    )
+    c_bre.font = FN
+    c_bre.number_format = NF
     _inp(A["bcs"], "Base Common Stock", base_cs, NF)
 
     # ── Debt Schedule Inputs ─────────────────────────────────────────
@@ -178,7 +188,10 @@ def build_is(wb, n):
         ws[f"{c}{IS['EBITDA']}"]= f"={c}{IS['GP']}-{c}{IS['SGA']}-{c}{IS['OOp']}"
         ws[f"{c}{IS['EM']}"]   = f"=IF({c}{IS['Rev']}=0,0,{c}{IS['EBITDA']}/{c}{IS['Rev']})"
         ws[f"{c}{IS['Dep']}"]  = f"='{sr('Capex DA',c,CD['Dep'])[1:]}"[:-1] if False else f"='Capex DA'!{c}{CD['Dep']}"
-        ws[f"{c}{IS['Amort']}"]= f"={c}{IS['Rev']}*{ar('amort_pct')}"
+        if j==0:
+            ws[f"{c}{IS['Amort']}"]= f"=MIN({c}{IS['Rev']}*{ar('amort_pct')},{ar('intangibles')})"
+        else:
+            ws[f"{c}{IS['Amort']}"]= f"=MIN({c}{IS['Rev']}*{ar('amort_pct')},'Balance Sheet'!{pc}{BS['Intan']})"
         ws[f"{c}{IS['DA']}"]   = f"={c}{IS['Dep']}+{c}{IS['Amort']}"
         ws[f"{c}{IS['EBIT']}"] = f"={c}{IS['EBITDA']}-{c}{IS['DA']}"
         ws[f"{c}{IS['Int']}"]  = f"='Debt Schedule'!{c}{DS['Int']}"
