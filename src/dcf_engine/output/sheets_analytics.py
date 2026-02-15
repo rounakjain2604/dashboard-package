@@ -75,25 +75,61 @@ def _apply_heatmap(ws, start_row, end_row, start_col, num_cols):
                 ws.cell(r,c).fill = PatternFill("solid",fgColor=f"{min(red,255):02X}{min(green,255):02X}55")
 
 
-def build_monte_carlo(wb, mc_result):
+def build_monte_carlo(wb, mc_result, mc_config=None):
     ws = wb.create_sheet("Monte Carlo")
     ws.sheet_properties.tabColor = "7030A0"
     if mc_result is None:
         ws.cell(1,1,value="No Monte Carlo data").font = FN; return
     ws.cell(1,1,value="Monte Carlo Simulation").font = FK
-    auto_col(ws,1,22); auto_col(ws,2,16)
+    auto_col(ws,1,22); auto_col(ws,2,16); auto_col(ws,3,16)
+
+    # ── Section 1: Simulation Parameters ─────────────────────────────
     r = 3
+    ws.cell(r,1,value="Simulation Parameters").font = FB; r += 1
+    if mc_config is not None:
+        params = [
+            ("Iterations",          mc_config.iterations,             '#,##0'),
+            ("Revenue Growth μ",    mc_config.revenue_growth_mean,    PF),
+            ("Revenue Growth σ",    mc_config.revenue_growth_std,     PF),
+            ("EBITDA Margin μ",     mc_config.ebitda_margin_mean,     PF),
+            ("EBITDA Margin σ",     mc_config.ebitda_margin_std,      PF),
+            ("WACC μ",             mc_config.wacc_mean,              PF),
+            ("WACC σ",             mc_config.wacc_std,               PF),
+            ("Terminal Growth μ",   mc_config.terminal_growth_mean,   PF),
+            ("Terminal Growth σ",   mc_config.terminal_growth_std,    PF),
+            ("Exit Multiple μ",     mc_config.exit_multiple_mean,     XF),
+            ("Exit Multiple σ",     mc_config.exit_multiple_std,      XF),
+        ]
+        for label, val, fmt in params:
+            ws.cell(r,1,value=label).font = FN
+            cell = ws.cell(r,2,value=val)
+            cell.font = FN; cell.number_format = fmt
+            r += 1
+    else:
+        ws.cell(r,1,value="Iterations").font = FN
+        ws.cell(r,2,value=mc_result.iterations).font = FN
+        ws.cell(r,2).number_format = '#,##0'
+        r += 1
+    r += 1
+
+    # ── Section 2: Output Statistics ─────────────────────────────────
+    ws.cell(r,1,value="Output Statistics").font = FB; r += 1
     for k,v in mc_result.statistics.items():
         ws.cell(r,1,value=k).font = FN
         cell = ws.cell(r,2,value=v)
         cell.font = FN; cell.number_format = PF2 if "Per Share" in k else NF
         r += 1
-    r += 1; hist_start = r
-    ws.cell(r-1,1,value="Bin").font = FH; ws.cell(r-1,1).fill = FILL_HDR
-    ws.cell(r-1,2,value="Frequency").font = FH; ws.cell(r-1,2).fill = FILL_HDR
+    r += 1
+
+    # ── Section 3: Histogram ─────────────────────────────────────────
+    hist_start = r + 1
+    ws.cell(r,1,value="Bin").font = FH; ws.cell(r,1).fill = FILL_HDR
+    ws.cell(r,2,value="Frequency").font = FH; ws.cell(r,2).fill = FILL_HDR
+    r += 1
     hist_data = mc_result.histogram_data if hasattr(mc_result, 'histogram_data') and mc_result.histogram_data else {}
     bin_centers = hist_data.get("bin_centers", [])
     counts = hist_data.get("counts", [])
+    chart_anchor = f"D3"
     if bin_centers and counts:
         for bc, freq in zip(bin_centers, counts):
             ws.cell(r,1,value=bc).number_format = NF; ws.cell(r,1).font = FN
@@ -105,7 +141,29 @@ def build_monte_carlo(wb, mc_result):
         data = Reference(ws,min_col=2,min_row=hist_start-1,max_row=r-1)
         cats = Reference(ws,min_col=1,min_row=hist_start,max_row=r-1)
         chart.add_data(data,titles_from_data=True); chart.set_categories(cats)
-        chart.shape = 4; ws.add_chart(chart,f"D3")
+        chart.shape = 4; ws.add_chart(chart, chart_anchor)
+    r += 1
+
+    # ── Section 4: Driver Table (first 100 iterations) ───────────────
+    if hasattr(mc_result, 'driver_table') and mc_result.driver_table is not None and not mc_result.driver_table.empty:
+        ws.cell(r,1,value="Driver Table (Sample — First 100 Iterations)").font = FB; r += 1
+        dt = mc_result.driver_table
+        for j, cn in enumerate(dt.columns, 1):
+            ws.cell(r, j, value=cn).font = FH; ws.cell(r, j).fill = FILL_HDR
+            auto_col(ws, j, 16)
+        r += 1
+        for _, row in dt.iterrows():
+            for j, (cn, v) in enumerate(row.items(), 1):
+                cell = ws.cell(r, j, value=float(v) if isinstance(v, (int, float, np.floating, np.integer)) else v)
+                cell.font = FN
+                if cn in ("Revenue Growth", "EBITDA Margin", "WACC", "Terminal Growth"):
+                    cell.number_format = PF
+                elif cn == "Exit Multiple":
+                    cell.number_format = XF
+                else:
+                    cell.number_format = NF
+            r += 1
+
     fit_to_width(ws)
 
 

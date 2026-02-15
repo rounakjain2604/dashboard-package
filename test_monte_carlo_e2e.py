@@ -5,8 +5,8 @@ Tests the MC solution across a wide variety of input configurations to
 ensure correctness, consistency, and proper integration with the full
 pipeline.  Validates:
 
-  1. MC output structure (statistics, histogram, driver table)
-  2. Auto-sync of MC means from base-case assumptions (V7.0.0 fix)
+      1. MC output structure (statistics, histogram, driver table)
+      2. Auto-sync of MC means from base-case assumptions (V9.0.0 fix)
   3. Deterministic reproducibility with fixed seed
   4. Non-determinism with seed=None
   5. Sensitivity to every randomised driver

@@ -1127,7 +1127,7 @@ function App() {
     });
   }, []);
 
-  // ── V8: Auto-sync MC distribution means from base-case assumptions ──
+  // ── V9: Auto-sync MC distribution means from base-case assumptions ──
   // When the user changes core model inputs (forecast, WACC, valuation),
   // keep Monte Carlo distribution means aligned so analytics tabs always
   // reflect the current model.  Manual MC overrides in the sidebar are
@@ -2237,7 +2237,7 @@ function App() {
             <div className="header-title">IB-Grade DCF Engine</div>
             <div className="header-subtitle">Interactive Valuation Dashboard</div>
           </div>
-          <span style={{marginLeft:10,padding:'2px 8px',fontSize:11,fontWeight:700,borderRadius:6,background:'var(--gradient-primary)',color:'#fff',letterSpacing:0.5}}>V8</span>
+          <span style={{marginLeft:10,padding:'2px 8px',fontSize:11,fontWeight:700,borderRadius:6,background:'var(--gradient-primary)',color:'#fff',letterSpacing:0.5}}>V9</span>
         </div>
         <div className="header-actions">
           {results && (
