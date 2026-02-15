@@ -1,4 +1,4 @@
-# IB-Grade DCF Valuation Engine — V6.0.0
+# IB-Grade DCF Valuation Engine — V7.0.0
 
 **A fully automated, investment-banking-grade Discounted Cash Flow (DCF) valuation engine with an interactive React dashboard, formula-linked Excel export, and PDF memo generation.**
 
@@ -558,14 +558,14 @@ The config parser supports aliases for backward compatibility:
 |------|-------|----------|
 | **Excel Revenue Method** | Excel IS always uses CAGR formulas regardless of `revenue_method` (YoY and manual are not reflected in Excel formulas) | Medium |
 | **Excel Scenarios** | Excel does not contain scenario IS/BS — scenarios are value-only in the Scenarios tab | Low |
-| **Monte Carlo Defaults** | MC config defaults (wacc_mean=0.10, ebitda_margin_mean=0.20) may not match the base case for every company. Users must configure MC distribution parameters to match their model. | Low |
+| **Monte Carlo Defaults** | ~~Fixed in V7.0.0~~ — MC distribution means are now auto-synced from the base case. | ~~Low~~ |
 | **Comps Tab** | Requires `yfinance` installed and working internet for peer data. Falls back gracefully. | Low |
 | **PDF Memo** | Requires `reportlab` installed. Gracefully skipped if not available. | Low |
 
 ### Recommended Improvements
 
 1. **Excel YoY/Manual Revenue** — Extend `build_is()` in `sheets_core.py` to write YoY or manual growth formulas instead of always using CAGR
-2. **Auto-sync MC Parameters** — Auto-populate Monte Carlo distribution parameters from the base case (WACC, EBITDA margin, revenue growth) when the user hasn't explicitly set them
+2. ~~**Auto-sync MC Parameters**~~ — ✅ Completed in V7.0.0
 3. **Historical Tab in Excel** — Add a historical data sheet to the Excel workbook with VLOOKUP-based references
 4. **Multi-currency Support** — Currency conversion for international models
 5. **Unit Tests** — Add pytest fixtures for each pipeline step with known expected outputs
@@ -573,7 +573,26 @@ The config parser supports aliases for backward compatibility:
 
 ---
 
-## 10. V5.0.0 Changelog
+## 10. V7.0.0 Changelog
+
+### Bug Fixed in V7.0.0
+
+| # | Bug | Fix |
+|---|-----|-----|
+| 1 | **Analysis tabs in Excel not updating when dashboard assumptions change** — Monte Carlo distribution means (`revenue_growth_mean`, `ebitda_margin_mean`, `wacc_mean`, `terminal_growth_mean`, `exit_multiple_mean`) were independent inputs with hardcoded defaults (8% rev growth, 20% margin, 10% WACC, 2.5% TG, 10× exit). When a user changed core assumptions (revenue growth, margins, WACC inputs, terminal value params) in the dashboard, the MC simulation continued to centre on the old defaults, making the Monte Carlo tab in Excel appear stale/unchanged. | **Auto-sync MC means from base case.** Pipeline Step 11 now overwrites MC distribution means with the actual computed values before running the simulation: `revenue_growth_mean` ← `forecast.revenue_cagr`, `ebitda_margin_mean` ← `1 − COGS% − SGA% − Other OpEx%`, `wacc_mean` ← computed WACC from Step 8, `terminal_growth_mean` ← `valuation.terminal_growth_rate`, `exit_multiple_mean` ← `valuation.exit_ev_ebitda_multiple`. The frontend also auto-syncs the MC sidebar inputs via a `useEffect` that fires whenever any upstream assumption changes, so the MC config fields always display the current base-case values. Users can still override the means manually in the Monte Carlo sidebar section. |
+
+### Files Changed in V7.0.0
+
+| File | Change |
+|------|--------|
+| `src/dcf_engine/__init__.py` | Version bumped to `7.0.0` |
+| `src/dcf_engine/pipeline.py` | Step 11 now auto-syncs `cfg.monte_carlo.*_mean` fields from the computed base case before running the MC simulation |
+| `templates/dashboard.html` | Added `useEffect` hook that auto-syncs MC distribution means from upstream config values (forecast, WACC, valuation) whenever they change |
+| `README.md` | Updated to V7.0.0, added changelog, marked MC auto-sync TODO as completed |
+
+---
+
+## 11. V5.0.0 Changelog
 
 ### Bugs Fixed in V5.0.0
 
@@ -591,7 +610,7 @@ The config parser supports aliases for backward compatibility:
 
 ---
 
-## 11. V4.0.0 Changelog
+## 12. V4.0.0 Changelog
 
 ### Bugs Fixed in V4.0.0
 

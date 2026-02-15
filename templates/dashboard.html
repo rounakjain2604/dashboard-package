@@ -1127,6 +1127,72 @@ function App() {
     });
   }, []);
 
+  // ── V7: Auto-sync MC distribution means from base-case assumptions ──
+  // When the user changes core model inputs, keep Monte Carlo distribution
+  // means aligned so analytics tabs always reflect the current model.
+  useEffect(() => {
+    setConfig(prev => {
+      const fc = prev.forecast || {};
+      const wc = prev.wacc || {};
+      const vc = prev.valuation || {};
+      const mc = prev.monte_carlo || {};
+
+      const newRevMean  = fc.revenue_cagr ?? 0.08;
+      const newMargin   = 1.0 - (fc.cogs_pct_revenue ?? 0.33)
+                              - (fc.sga_pct_revenue ?? 0.20)
+                              - (fc.other_opex_pct_revenue ?? 0.05);
+      const newTG       = vc.terminal_growth_rate ?? 0.025;
+      const newExitMult = vc.exit_ev_ebitda_multiple ?? 10.0;
+
+      // Compute WACC approximation (CAPM cost of equity + after-tax cost of debt)
+      const rf  = wc.risk_free_rate ?? 0.042;
+      const erp = wc.equity_risk_premium ?? 0.055;
+      const beta = wc.beta ?? 1.1;
+      const sp  = wc.size_premium ?? 0;
+      const crp = wc.country_risk_premium ?? 0;
+      const ke  = rf + beta * erp + sp + crp;
+      const kdPre = rf + 0.02;  // approximate; backend uses synthetic rating
+      const tax = wc.tax_rate ?? fc.tax_rate ?? 0.25;
+      const kdPost = kdPre * (1 - tax);
+      const ew  = wc.target_equity_weight ?? 0.70;
+      const dw  = wc.target_debt_weight ?? 0.30;
+      const newWACC = ke * ew + kdPost * dw;
+
+      // Only update if any value actually changed to avoid infinite loops
+      if (Math.abs((mc.revenue_growth_mean ?? 0) - newRevMean) < 1e-8 &&
+          Math.abs((mc.ebitda_margin_mean ?? 0) - newMargin) < 1e-8 &&
+          Math.abs((mc.wacc_mean ?? 0) - newWACC) < 1e-8 &&
+          Math.abs((mc.terminal_growth_mean ?? 0) - newTG) < 1e-8 &&
+          Math.abs((mc.exit_multiple_mean ?? 0) - newExitMult) < 1e-8) {
+        return prev;  // no change → same reference → no re-render
+      }
+
+      const next = JSON.parse(JSON.stringify(prev));
+      next.monte_carlo.revenue_growth_mean  = newRevMean;
+      next.monte_carlo.ebitda_margin_mean   = newMargin;
+      next.monte_carlo.wacc_mean            = +newWACC.toFixed(6);
+      next.monte_carlo.terminal_growth_mean = newTG;
+      next.monte_carlo.exit_multiple_mean   = newExitMult;
+      return next;
+    });
+  }, [
+    config.forecast.revenue_cagr,
+    config.forecast.cogs_pct_revenue,
+    config.forecast.sga_pct_revenue,
+    config.forecast.other_opex_pct_revenue,
+    config.wacc.risk_free_rate,
+    config.wacc.equity_risk_premium,
+    config.wacc.beta,
+    config.wacc.size_premium,
+    config.wacc.country_risk_premium,
+    config.wacc.target_debt_weight,
+    config.wacc.target_equity_weight,
+    config.wacc.tax_rate,
+    config.forecast.tax_rate,
+    config.valuation.terminal_growth_rate,
+    config.valuation.exit_ev_ebitda_multiple,
+  ]);
+
   // Run the model
   const isFirstRun = useRef(true);
   const runModel = useCallback(async (autoRun = false) => {
