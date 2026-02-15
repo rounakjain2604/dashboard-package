@@ -42,6 +42,7 @@ app = Flask(
     static_folder=str(_BASE_DIR / "static"),
     template_folder=str(_BASE_DIR / "templates"),
 )
+app.json.sort_keys = False
 
 # Detect Vercel environment
 IS_VERCEL = bool(os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"))

@@ -1,4 +1,4 @@
-# IB-Grade DCF Valuation Engine — V5.0.0
+# IB-Grade DCF Valuation Engine — V6.0.0
 
 **A fully automated, investment-banking-grade Discounted Cash Flow (DCF) valuation engine with an interactive React dashboard, formula-linked Excel export, and PDF memo generation.**
 

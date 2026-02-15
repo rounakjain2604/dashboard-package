@@ -1062,8 +1062,8 @@ function DataTable({ data, columns, formatters = {}, totalRows = [], subtotalRow
 function HeatmapTable({ data, title }) {
   if (!data || data.length === 0) return null;
   const cols = Object.keys(data[0]);
-  const rowLabel = cols[0];
-  const valueCols = cols.slice(1);
+  const rowLabel = cols.find(c => c.includes('\u2193')) || cols.find(c => c.includes('\u2190') || c.includes('\u2192')) || cols[0];
+  const valueCols = cols.filter(c => c !== rowLabel);
 
   // Get all values for color scaling
   const allVals = data.flatMap(r => valueCols.map(c => r[c])).filter(v => v != null && !isNaN(v));
@@ -1113,15 +1113,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
-  const [configs, setConfigs] = useState([]);
-  const [dataFiles, setDataFiles] = useState([]);
   const [error, setError] = useState(null);
-
-  // Load available configs and data files on mount
-  useEffect(() => {
-    fetch('/api/configs').then(r => r.json()).then(setConfigs).catch(() => {});
-    fetch('/api/data-files').then(r => r.json()).then(setDataFiles).catch(() => {});
-  }, []);
 
   // Deep updater
   const updateConfig = useCallback((path, value) => {
@@ -1133,36 +1125,6 @@ function App() {
       obj[keys[keys.length - 1]] = value;
       return next;
     });
-  }, []);
-
-  // Load a preset config (merges all sections including base-year values)
-  const loadPreset = useCallback(async (filename) => {
-    try {
-      const res = await fetch(`/api/config/${filename}`);
-      const data = await res.json();
-      setConfig(prev => {
-        const next = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-        // Merge loaded config into defaults
-        if (data.forecast) Object.assign(next.forecast, data.forecast);
-        if (data.wacc) Object.assign(next.wacc, data.wacc);
-        if (data.valuation) Object.assign(next.valuation, data.valuation);
-        if (data.monte_carlo) Object.assign(next.monte_carlo, data.monte_carlo);
-        if (data.sensitivity) Object.assign(next.sensitivity, data.sensitivity);
-        if (data.company) {
-          next.company_name = data.company.name || next.company_name;
-          next.ticker = data.company.ticker || '';
-        }
-        // Merge base-year values and data file from preset
-        if (data.base_year_revenue != null) next.base_year_revenue = data.base_year_revenue;
-        if (data.base_cash != null) next.base_cash = data.base_cash;
-        if (data.base_ppe != null) next.base_ppe = data.base_ppe;
-        if (data.base_nwc != null) next.base_nwc = data.base_nwc;
-        if (data.base_retained_earnings != null) next.base_retained_earnings = data.base_retained_earnings;
-        if (data.base_common_stock != null) next.base_common_stock = data.base_common_stock;
-        if (data.data_file) next.data_file = data.data_file;
-        return next;
-      });
-    } catch (e) { console.error(e); }
   }, []);
 
   // Run the model
@@ -1233,39 +1195,6 @@ function App() {
     <div className="sidebar">
       {/* Run Button */}
       <div className="run-bar">
-        <div className="config-loader" style={{ flexDirection: 'column', gap: 4, display: 'flex' }}>
-          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>Preset Configuration</label>
-          <select onChange={e => e.target.value && loadPreset(e.target.value)} defaultValue="">
-            <option value="">Load preset config...</option>
-            {configs.map(c => <option key={c.filename} value={c.filename}>{c.name}</option>)}
-          </select>
-        </div>
-        <div className="config-loader" style={{ flexDirection: 'column', gap: 4, display: 'flex' }}>
-          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>Historical Data File</label>
-          <select value={config.data_file} onChange={async e => {
-            const file = e.target.value;
-            updateConfig('data_file', file);
-            if (!file) return;
-            try {
-              const r = await fetch(`/api/data-file-base-values/${encodeURIComponent(file)}`);
-              const vals = await r.json();
-              if (vals && !vals.error) {
-                setConfig(prev => {
-                  const next = JSON.parse(JSON.stringify(prev));
-                  next.data_file = file;
-                  if (vals.base_year_revenue) next.base_year_revenue = vals.base_year_revenue;
-                  if (vals.base_cash) next.base_cash = vals.base_cash;
-                  if (vals.base_ppe) next.base_ppe = vals.base_ppe;
-                  if (vals.base_nwc) next.base_nwc = vals.base_nwc;
-                  return next;
-                });
-              }
-            } catch (err) { console.warn('Could not auto-populate base values:', err); }
-          }}>
-            <option value="">Select data file...</option>
-            {dataFiles.map(f => <option key={f.filename} value={f.filename}>{f.name}</option>)}
-          </select>
-        </div>
         <button className="btn btn-primary" onClick={runModel} disabled={loading}>
           {loading ? <><span className="spinner"></span> Running Pipeline...</> : <>▶ Run DCF Model</>}
         </button>
@@ -2227,7 +2156,7 @@ function App() {
             <div className="header-title">IB-Grade DCF Engine</div>
             <div className="header-subtitle">Interactive Valuation Dashboard</div>
           </div>
-          <span style={{marginLeft:10,padding:'2px 8px',fontSize:11,fontWeight:700,borderRadius:6,background:'var(--gradient-primary)',color:'#fff',letterSpacing:0.5}}>V5</span>
+          <span style={{marginLeft:10,padding:'2px 8px',fontSize:11,fontWeight:700,borderRadius:6,background:'var(--gradient-primary)',color:'#fff',letterSpacing:0.5}}>V6</span>
         </div>
         <div className="header-actions">
           {results && (
