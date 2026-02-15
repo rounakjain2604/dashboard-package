@@ -225,6 +225,25 @@ def run_pipeline(
         cf_result.table["Ending Cash"].tolist() if cf_result else None
     )
 
+    # ── Step 6b: Auto-balance Year 0 retained earnings ───────────────
+    # For the BS to balance in Year 1+, the starting (Year 0) Balance
+    # Sheet must balance:  Assets = Liabilities + Equity.
+    # If the user hasn't provided base_retained_earnings that balances,
+    # auto-compute it:  RE = Cash + PPE + NWC − Debt − Common Stock
+    # (plus any goodwill, intangibles, other LT items if present).
+    _initial_debt = sum(t.beginning_balance for t in cfg.debt_tranches)
+    _implied_re = (base_cash + base_ppe + base_nwc
+                   - _initial_debt - base_common_stock)
+    if abs(base_retained_earnings - _implied_re) > 1.0:
+        logger.info(
+            "Auto-adjusting base_retained_earnings from %.2f to %.2f "
+            "to balance Year 0 BS (Cash %.0f + PPE %.0f + NWC %.0f "
+            "− Debt %.0f − CS %.0f)",
+            base_retained_earnings, _implied_re,
+            base_cash, base_ppe, base_nwc, _initial_debt, base_common_stock,
+        )
+        base_retained_earnings = _implied_re
+
     # ── Step 7: Balance Sheet ────────────────────────────────────────
     bs_result = _run_step(
         "Balance Sheet", build_balance_sheet, result,

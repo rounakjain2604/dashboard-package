@@ -1,4 +1,4 @@
-# IB-Grade DCF Valuation Engine — V4.0.0
+# IB-Grade DCF Valuation Engine — V5.0.0
 
 **A fully automated, investment-banking-grade Discounted Cash Flow (DCF) valuation engine with an interactive React dashboard, formula-linked Excel export, and PDF memo generation.**
 
@@ -573,7 +573,25 @@ The config parser supports aliases for backward compatibility:
 
 ---
 
-## 10. V4.0.0 Changelog
+## 10. V5.0.0 Changelog
+
+### Bugs Fixed in V5.0.0
+
+| # | Bug | Fix |
+|---|-----|-----|
+| 1 | **Year 0 BS doesn't balance when `base_retained_earnings` is wrong** — If the provided `base_retained_earnings` doesn't satisfy `Cash + PPE + NWC − Debt − Common Stock`, the BS cash-plug diverges from CF Ending Cash, causing a persistent BS Cash ≠ CF Cash mismatch across all projected years | Pipeline Step 6b now **auto-computes** the implied retained earnings from base values. If the supplied value differs by more than $1, it is overridden with a logged warning. This ensures Year 0 BS balances perfectly, eliminating the cash-plug divergence |
+| 2 | **Asian Street Eats config had `base_retained_earnings: 0`** — The sample config omitted a correct RE, causing a $128,000 BS/CF mismatch on every projected year | Updated to `base_retained_earnings: 128000` (= $25k cash + $100k PPE + $3k NWC) |
+
+### Tests Added in V5.0.0
+
+| # | Test | Coverage |
+|---|------|----------|
+| 1 | **`test_v5_cross_check.py`** — Comprehensive 17-category cross-check | Income Statement, Working Capital, Capex & DA, Debt Schedule (multi-tranche), IS Re-linking, Cash Flow, BS Cash == CF Cash, BS Balance, Auto RE, WACC, DCF, UFCF, Excel formulas, Scenarios, Tornado, Multi-Tranche debt, Excel vs Python values |
+| 2 | **Deliberately extreme inputs** — Revenue $7.78M, 28% tax, 0.85 beta, 15% dividend payout, two debt tranches, negative auto-RE | Ensures the engine handles edge cases and all figures cross-check to the penny |
+
+---
+
+## 11. V4.0.0 Changelog
 
 ### Bugs Fixed in V4.0.0
 

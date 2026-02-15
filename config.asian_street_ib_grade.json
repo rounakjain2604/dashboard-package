@@ -10,7 +10,7 @@
   "base_cash": 25000,
   "base_ppe": 100000,
   "base_nwc": 3000,
-  "base_retained_earnings": 0,
+  "base_retained_earnings": 128000,
   "base_common_stock": 0,
   "forecast": {
     "years": 5,
