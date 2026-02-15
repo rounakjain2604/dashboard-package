@@ -34,6 +34,11 @@ try:
 except ImportError:
     HAS_REPORTLAB = False
     logger.warning("reportlab not installed. PDF generation will be skipped.")
+    # Mock classes to prevent NameError if used in type hints or elsewhere
+    class colors:
+        HexColor = lambda x: None
+        white = None
+        grey = None
 
 
 # ── Colour palette ───────────────────────────────────────────────────

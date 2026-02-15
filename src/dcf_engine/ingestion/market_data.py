@@ -13,6 +13,12 @@ from typing import Optional, List, Dict
 import pandas as pd
 import requests
 
+try:
+    import yfinance as yf
+except ImportError:
+    yf = None
+    logger.warning("yfinance not installed. Market data features disabled.")
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,7 +40,8 @@ class MarketSnapshot:
 def fetch_risk_free_rate() -> Optional[float]:
     """Pull the latest 10-Year Treasury yield from FRED (no key needed for observations)."""
     try:
-        import yfinance as yf
+        if yf is None:
+            return None
         tnx = yf.Ticker("^TNX")
         hist = tnx.history(period="5d")
         if not hist.empty:
@@ -50,7 +57,8 @@ def fetch_risk_free_rate() -> Optional[float]:
 def fetch_beta(ticker: str) -> Optional[float]:
     """Pull beta for a given ticker via yfinance."""
     try:
-        import yfinance as yf
+        if yf is None:
+            return None
         info = yf.Ticker(ticker).info
         beta = info.get("beta")
         if beta is not None:
@@ -66,7 +74,8 @@ def fetch_company_snapshot(ticker: str) -> MarketSnapshot:
     """Pull key fundamentals for a single ticker via yfinance."""
     snap = MarketSnapshot()
     try:
-        import yfinance as yf
+        if yf is None:
+            return snap
         t = yf.Ticker(ticker)
         info = t.info
 
