@@ -208,6 +208,16 @@ def _build_config_from_payload(data: dict) -> DCFEngineConfig:
 
 # ── Routes ───────────────────────────────────────────────────────────
 
+@app.after_request
+def add_cache_headers(response):
+    """Prevent aggressive caching of HTML and API responses on Vercel."""
+    if response.content_type and ('text/html' in response.content_type or 'application/json' in response.content_type):
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+    return response
+
+
 @app.route("/")
 def index():
     return render_template("dashboard.html")
