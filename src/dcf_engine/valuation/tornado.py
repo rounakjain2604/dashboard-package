@@ -131,7 +131,7 @@ def _compute_equity(
     for yr in range(1, years + 1):
         revenue *= (1 + rev_growth)
         ebitda = revenue * margin
-        da = revenue * 0.04
+        da = revenue * capex_pct  # use capex_pct as proxy for D&A
         ebit = ebitda - da
         nopat = ebit * (1 - tax_rate)
         capex = revenue * capex_pct
@@ -144,6 +144,6 @@ def _compute_equity(
     gordon_tv = last_fcf * (1 + tg) / (wacc - tg)
     exit_tv = last_ebitda * exit_mult
     tv = (gordon_tv + exit_tv) / 2.0
-    pv_tv = tv / ((1 + wacc) ** (years - 0.5))
+    pv_tv = tv / ((1 + wacc) ** years)
 
     return pv_sum + pv_tv + cash - debt

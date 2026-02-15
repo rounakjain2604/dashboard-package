@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import traceback
 from dataclasses import asdict
 from pathlib import Path
@@ -32,7 +33,17 @@ logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s")
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__, static_folder="static", template_folder="templates")
+# Resolve paths relative to this file so it works both locally and on Vercel
+_BASE_DIR = Path(__file__).resolve().parent
+
+app = Flask(
+    __name__,
+    static_folder=str(_BASE_DIR / "static"),
+    template_folder=str(_BASE_DIR / "templates"),
+)
+
+# Detect Vercel environment
+IS_VERCEL = bool(os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"))
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
@@ -208,9 +219,16 @@ def api_run():
         data = request.get_json(force=True)
         cfg = _build_config_from_payload(data)
 
-        # Load historical data
+        # Cap Monte Carlo iterations on Vercel to avoid timeouts
+        if IS_VERCEL:
+            cfg.monte_carlo.iterations = min(cfg.monte_carlo.iterations, 2000)
+            cfg.wacc.use_live_data = False  # No external API calls on Vercel
+
+        # Load historical data — resolve relative to project root
         data_file = data.get("data_file", "data/asian_street_financials.csv")
-        hist_path = Path(data_file)
+        hist_path = _BASE_DIR / data_file
+        if not hist_path.exists():
+            hist_path = Path(data_file)  # fallback to CWD-relative
         if hist_path.exists():
             hist = pd.read_csv(hist_path)
         else:
@@ -391,7 +409,7 @@ def api_run():
 def api_list_configs():
     """List available config files."""
     configs = []
-    for p in Path(".").glob("config.*.json"):
+    for p in _BASE_DIR.glob("config.*.json"):
         configs.append({"filename": p.name, "name": p.stem.replace("config.", "").replace("_", " ").title()})
     return jsonify(configs)
 
@@ -399,7 +417,7 @@ def api_list_configs():
 @app.route("/api/config/<filename>", methods=["GET"])
 def api_load_config(filename: str):
     """Load a config file."""
-    path = Path(filename)
+    path = _BASE_DIR / filename
     if not path.exists():
         return jsonify({"error": "Not found"}), 404
     return jsonify(json.loads(path.read_text()))
@@ -409,9 +427,11 @@ def api_load_config(filename: str):
 def api_list_data_files():
     """List available CSV/XLSX data files."""
     files = []
-    for p in Path("data").glob("*"):
-        if p.suffix in (".csv", ".xlsx"):
-            files.append({"filename": str(p), "name": p.stem.replace("_", " ").title()})
+    data_dir = _BASE_DIR / "data"
+    if data_dir.exists():
+        for p in data_dir.glob("*"):
+            if p.suffix in (".csv", ".xlsx"):
+                files.append({"filename": f"data/{p.name}", "name": p.stem.replace("_", " ").title()})
     return jsonify(files)
 
 

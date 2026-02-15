@@ -30,8 +30,24 @@ from .valuation.monte_carlo import run_monte_carlo, MonteCarloResult
 from .valuation.sensitivity import build_sensitivity_tables, SensitivityResult
 from .valuation.tornado import build_tornado, TornadoResult
 from .comps.comps import build_comps, CompsResult
-from .output.excel_builder import build_excel
-from .output.pdf_memo import build_pdf_memo
+# Lazy-import heavy output modules to avoid import failures if optional
+# dependencies (reportlab, etc.) are not installed
+_build_excel = None
+_build_pdf_memo = None
+
+def _get_build_excel():
+    global _build_excel
+    if _build_excel is None:
+        from .output.excel_builder import build_excel as _be
+        _build_excel = _be
+    return _build_excel
+
+def _get_build_pdf_memo():
+    global _build_pdf_memo
+    if _build_pdf_memo is None:
+        from .output.pdf_memo import build_pdf_memo as _bpm
+        _build_pdf_memo = _bpm
+    return _build_pdf_memo
 
 logger = logging.getLogger(__name__)
 
@@ -278,6 +294,7 @@ def run_pipeline(
             cfg.forecast.capex_pct_revenue,
             cfg.forecast.depreciation_rate,
             cfg.valuation.cash, cfg.valuation.debt,
+            cfg.valuation.exit_ev_ebitda_multiple,
         )
         result.sensitivity = sens
 
@@ -320,7 +337,7 @@ def run_pipeline(
             _credit_spread = getattr(wacc_result, 'pre_tax_kd', 0.06) - (wacc_result.risk_free_rate if hasattr(wacc_result, 'risk_free_rate') else 0.04)
 
         excel_path = _run_step(
-            "Excel Output", build_excel, result,
+            "Excel Output", _get_build_excel(), result,
             output_excel, cfg,
             base_revenue=base_year_revenue,
             base_cash=base_cash,
@@ -341,7 +358,7 @@ def run_pipeline(
     # ── Step 16: PDF Output ──────────────────────────────────────────
     if output_pdf:
         pdf_path = _run_step(
-            "PDF Output", build_pdf_memo, result,
+            "PDF Output", _get_build_pdf_memo(), result,
             output_pdf, cfg,
             income_stmt=is_table,
             balance_sheet_table=bs_result.table if bs_result else None,

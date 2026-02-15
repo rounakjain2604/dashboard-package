@@ -103,7 +103,7 @@ def run_monte_carlo(
         exit_tv = last_ebitda * em
         blended_tv = (gordon_tv + exit_tv) / 2.0
 
-        terminal_df = 1.0 / ((1 + w) ** (projection_years - 0.5))
+        terminal_df = 1.0 / ((1 + w) ** projection_years)
         pv_tv = blended_tv * terminal_df
 
         ev = pv_sum + pv_tv

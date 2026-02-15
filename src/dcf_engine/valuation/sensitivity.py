@@ -40,6 +40,7 @@ def build_sensitivity_tables(
     da_pct: float = 0.04,
     cash: float = 0.0,
     debt: float = 0.0,
+    exit_mult: float = 10.0,
 ) -> SensitivityResult:
     """
     Build two 2D sensitivity tables.
@@ -64,7 +65,7 @@ def build_sensitivity_tables(
         for wi, w in enumerate(wacc_vals):
             ev = _quick_dcf(base_revenue, base_ebitda_margin, w, g,
                             projection_years, tax_rate, capex_pct, da_pct,
-                            base_revenue_growth, cash, debt)
+                            base_revenue_growth, cash, debt, exit_mult)
             tbl1.iloc[gi, wi] = ev
 
     tbl1.index.name = "Terminal Growth ↓ / WACC →"
@@ -85,7 +86,7 @@ def build_sensitivity_tables(
         for ri, r in enumerate(rev_vals):
             ev = _quick_dcf(base_revenue, m, base_wacc, base_terminal_growth,
                             projection_years, tax_rate, capex_pct, da_pct,
-                            r, cash, debt)
+                            r, cash, debt, exit_mult)
             tbl2.iloc[mi, ri] = ev
 
     tbl2.index.name = "EBITDA Margin ↓ / Rev Growth →"
@@ -112,6 +113,7 @@ def _quick_dcf(
     rev_growth: float,
     cash: float,
     debt: float,
+    exit_mult: float = 10.0,
 ) -> float:
     """Simplified DCF for sensitivity table cells."""
     wacc = max(wacc, tg + 0.005)
@@ -134,9 +136,9 @@ def _quick_dcf(
         last_ebitda = ebitda
 
     gordon_tv = last_fcf * (1 + tg) / (wacc - tg)
-    exit_tv = last_ebitda * 10.0
+    exit_tv = last_ebitda * exit_mult
     tv = (gordon_tv + exit_tv) / 2.0
-    pv_tv = tv / ((1 + wacc) ** (years - 0.5))
+    pv_tv = tv / ((1 + wacc) ** years)
 
     ev = pv_sum + pv_tv
     return ev + cash - debt

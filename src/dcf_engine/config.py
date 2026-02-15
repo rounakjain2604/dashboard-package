@@ -81,6 +81,7 @@ class ForecastConfig:
     # Capex
     capex_method: CapexMethod = "pct_revenue"
     capex_pct_revenue: float = 0.04
+    capex_fixed: float = 0.0                   # fixed annual capex
     capex_manual: Dict[int, float] = field(default_factory=dict)
 
     # Working Capital (days)
@@ -188,6 +189,22 @@ class CompanyInfo:
     report_date: str = ""
 
 
+# ── Config helpers ────────────────────────────────────────────────────
+import dataclasses as _dc
+
+def _alias(d: dict, old_key: str, new_key: str) -> None:
+    """Rename *old_key* → *new_key* in dict *d* if present (and new_key absent)."""
+    if old_key in d and new_key not in d:
+        d[new_key] = d.pop(old_key)
+
+def _filter_fields(cls, d: dict) -> dict:
+    """Return only keys that are valid fields of dataclass *cls*."""
+    if not d:
+        return {}
+    valid = {f.name for f in _dc.fields(cls)}
+    return {k: v for k, v in d.items() if k in valid}
+
+
 # ── Master Config ─────────────────────────────────────────────────────
 @dataclass
 class DCFEngineConfig:
@@ -232,16 +249,36 @@ class DCFEngineConfig:
 
     @classmethod
     def _from_dict(cls, d: dict) -> "DCFEngineConfig":
-        company = CompanyInfo(**d.get("company", {}))
-        forecast = ForecastConfig(**d.get("forecast", {}))
-        wacc = WACCConfig(**d.get("wacc", {}))
-        valuation = ValuationConfig(**d.get("valuation", {}))
-        mc = MonteCarloConfig(**d.get("monte_carlo", {}))
-        sens = SensitivityConfig(**d.get("sensitivity", {}))
-        comps = CompsConfig(**d.get("comps", {}))
-        tranches = [DebtTranche(**t) for t in d.get("debt_tranches", [])]
+        company = CompanyInfo(**_filter_fields(CompanyInfo, d.get("company", {})))
+
+        # Handle forecast aliases
+        fc = dict(d.get("forecast", {}))
+        _alias(fc, "years", "projection_years")
+        _alias(fc, "opex_pct_revenue", "sga_pct_revenue")
+        _alias(fc, "accrued_expenses_pct_revenue", "accrued_pct_revenue")
+        # Convert string keys in revenue_manual to ints
+        if "revenue_manual" in fc and isinstance(fc["revenue_manual"], dict):
+            fc["revenue_manual"] = {int(k): v for k, v in fc["revenue_manual"].items()}
+        if "capex_manual" in fc and isinstance(fc["capex_manual"], dict):
+            fc["capex_manual"] = {int(k): v for k, v in fc["capex_manual"].items()}
+        forecast = ForecastConfig(**_filter_fields(ForecastConfig, fc))
+
+        # Handle wacc aliases
+        wc = dict(d.get("wacc", {}))
+        _alias(wc, "market_risk_premium", "equity_risk_premium")
+        wacc = WACCConfig(**_filter_fields(WACCConfig, wc))
+
+        # Handle valuation aliases
+        vc = dict(d.get("valuation", {}))
+        _alias(vc, "terminal_value_blend_weight_gordon", "gordon_weight")
+        valuation = ValuationConfig(**_filter_fields(ValuationConfig, vc))
+
+        mc = MonteCarloConfig(**_filter_fields(MonteCarloConfig, d.get("monte_carlo", {})))
+        sens = SensitivityConfig(**_filter_fields(SensitivityConfig, d.get("sensitivity", {})))
+        comps = CompsConfig(**_filter_fields(CompsConfig, d.get("comps", {})))
+        tranches = [DebtTranche(**_filter_fields(DebtTranche, t)) for t in d.get("debt_tranches", [])]
         scenarios = {
-            k: ScenarioOverrides(**v) if isinstance(v, dict) else v
+            k: ScenarioOverrides(**_filter_fields(ScenarioOverrides, v)) if isinstance(v, dict) else v
             for k, v in d.get("scenarios", {}).items()
         }
         return cls(

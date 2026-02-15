@@ -48,6 +48,8 @@ def build_capex_da(
         # Capex
         if cfg.capex_method == "pct_revenue":
             capex = rev * cfg.capex_pct_revenue
+        elif cfg.capex_method == "fixed":
+            capex = getattr(cfg, 'capex_fixed', 0.0) or cfg.capex_manual.get(idx, 0.0)
         else:
             capex = cfg.capex_manual.get(idx, 0.0)
         capex *= scenario.capex_multiplier

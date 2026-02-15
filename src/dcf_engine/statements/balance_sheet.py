@@ -69,7 +69,7 @@ def build_balance_sheet(
         current_assets = cash + accounts_receivable + inventory + prepaid + other_ca
 
         # ── Non-Current Assets ───────────────────────────────────────
-        ppe_net = cd_row.get("Ending PP&E", 0.0)
+        ppe_net = cd_row.get("Ending PP&E (Net)", cd_row.get("Ending PP&E", 0.0))
         goodwill = base_goodwill
         intangibles = max(base_intangibles - is_row.get("Amortisation", 0.0) * idx, 0)
         other_lt_assets = base_other_lt_assets

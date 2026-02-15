@@ -55,16 +55,22 @@ def build_income_statement(
     hist_cogs_pct = _hist_ratio(hist_summary, "COGS", "Revenue", default=cfg.cogs_pct_revenue)
     hist_sga_pct = _hist_ratio(hist_summary, "SGA", "Revenue", default=cfg.sga_pct_revenue)
 
+    # Apply revenue_multiplier once to the base (not compounded each year)
+    revenue = revenue * scenario.revenue_multiplier
+
     for idx in range(1, cfg.projection_years + 1):
         # ── Revenue ──────────────────────────────────────────────────
         growth = _revenue_growth(cfg, scenario, idx)
-        revenue = revenue * (1 + growth) * scenario.revenue_multiplier
+        revenue = revenue * (1 + growth)
 
         # ── COGS ─────────────────────────────────────────────────────
         cogs_pct = cfg.cogs_pct_revenue
         if cfg.cogs_yoy and idx <= len(cfg.cogs_yoy):
             cogs_pct = cfg.cogs_yoy[idx - 1]
-        cogs = revenue * cogs_pct
+
+        # Apply margin shift to COGS (lower COGS = higher margin)
+        margin_shift = scenario.margin_delta_bps / 10_000
+        cogs = revenue * cogs_pct * (1 - margin_shift)
 
         gross_profit = revenue - cogs
         gross_margin = gross_profit / revenue if revenue else 0
@@ -74,12 +80,6 @@ def build_income_statement(
 
         # ── Other OpEx ───────────────────────────────────────────────
         other_opex = revenue * cfg.other_opex_pct_revenue
-
-        # ── Margin delta from scenario ───────────────────────────────
-        margin_shift = scenario.margin_delta_bps / 10_000
-        # Apply margin shift to COGS (lower COGS = higher margin)
-        cogs = cogs * (1 - margin_shift)
-        gross_profit = revenue - cogs
 
         # ── EBITDA ───────────────────────────────────────────────────
         ebitda = gross_profit - sga - other_opex
@@ -111,7 +111,7 @@ def build_income_statement(
         rows.append({
             "year_index": idx,
             "Revenue": revenue,
-            "Revenue Growth": growth * scenario.revenue_multiplier - (1 - scenario.revenue_multiplier),
+            "Revenue Growth": growth,
             "COGS": cogs,
             "Gross Profit": gross_profit,
             "Gross Margin": gross_margin,

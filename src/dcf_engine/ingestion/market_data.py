@@ -13,13 +13,13 @@ from typing import Optional, List, Dict
 import pandas as pd
 import requests
 
+logger = logging.getLogger(__name__)
+
 try:
     import yfinance as yf
 except ImportError:
     yf = None
     logger.warning("yfinance not installed. Market data features disabled.")
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -111,7 +111,8 @@ def fetch_equity_risk_premium() -> Optional[float]:
         resp = requests.get(url, timeout=10)
         if resp.ok:
             # Parse the page for US ERP — this is fragile, so we fall back
-            tables = pd.read_html(resp.text, match="United States")
+            from io import StringIO
+            tables = pd.read_html(StringIO(resp.text), match="United States")
             if tables:
                 for tbl in tables:
                     for col in tbl.columns:
