@@ -43,6 +43,7 @@ def build_balance_sheet(
     rows = []
     checks = []
     retained_earnings = base_retained_earnings
+    cumulative_amortisation = 0.0
 
     for idx in range(1, len(income_stmt) + 1):
         is_row = income_stmt[income_stmt["year_index"] == idx].iloc[0]
@@ -71,7 +72,8 @@ def build_balance_sheet(
         # ── Non-Current Assets ───────────────────────────────────────
         ppe_net = cd_row.get("Ending PP&E (Net)", cd_row.get("Ending PP&E", 0.0))
         goodwill = base_goodwill
-        intangibles = max(base_intangibles - is_row.get("Amortisation", 0.0) * idx, 0)
+        cumulative_amortisation += is_row.get("Amortisation", 0.0)
+        intangibles = max(base_intangibles - cumulative_amortisation, 0)
         other_lt_assets = base_other_lt_assets
         non_current_assets = ppe_net + goodwill + intangibles + other_lt_assets
 

@@ -152,6 +152,13 @@ def build_assumptions(wb, cfg, base_rev, base_cash, base_ppe, base_nwc, base_re,
     _inp(A["intangibles"], "Intangibles (Net)", 0, NF)
     _inp(A["olt_assets"], "Other Long-Term Assets", 0, NF)
     _inp(A["olt_liab"], "Other Long-Term Liabilities", 0, NF)
+
+    # ── Capex Method ─────────────────────────────────────────────────
+    _sec(61, "CAPEX METHOD")
+    ws.cell(A["capex_method"], 1, value="Capex Method").font = FN
+    c_cm = ws.cell(A["capex_method"], 2, value=f.capex_method)
+    c_cm.font = FI; c_cm.fill = FILL_INP
+    _inp(A["capex_fixed"], "Capex Fixed (Annual)", f.capex_fixed, NF)
     fit_to_width(ws)
 
 
@@ -260,7 +267,7 @@ def build_capex_da(wb, n):
             ws[f"{c}2"] = f"={ar('bppe')}"
         else:
             ws[f"{c}2"] = f"={pc}7"
-        ws[f"{c}3"] = f"='Income Statement'!{c}{IS['Rev']}*{ar('capex_pct')}"
+        ws[f"{c}3"] = f"=IF({ar('capex_method')}=\"fixed\",{ar('capex_fixed')},'Income Statement'!{c}{IS['Rev']}*{ar('capex_pct')})"
         ws[f"{c}4"] = f"={c}2*{ar('dep_rate')}"
         ws[f"{c}5"] = f"={c}3*{ar('dep_rate')}*0.5"
         ws[f"{c}6"] = f"={c}4+{c}5"

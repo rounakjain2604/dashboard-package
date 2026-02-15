@@ -48,6 +48,8 @@ A = {
     "debt_bal": 51, "debt_rate": 52, "debt_amort": 53, "debt_maturity": 54,
     # Other Balance Sheet Items
     "goodwill": 57, "intangibles": 58, "olt_assets": 59, "olt_liab": 60,
+    # Capex Method (for fixed vs pct_revenue)
+    "capex_method": 62, "capex_fixed": 63,
 }
 
 def ar(key):

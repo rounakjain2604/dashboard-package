@@ -258,9 +258,29 @@ def run_pipeline(
         s_cogs = s_is.table["COGS"].tolist()
         s_wc = build_working_capital(s_rev, s_cogs, cfg.forecast, overrides, base_nwc, base_cash)
         s_cd = build_capex_da(s_rev, cfg.forecast, overrides, base_ppe)
+
+        # Re-link D&A and Interest into the scenario IS (mirrors Step 5)
+        s_is_table = s_is.table
+        _ds_table = ds_result.table if ds_result else pd.DataFrame()
+        for _si in range(len(s_is_table)):
+            _yr = s_is_table.loc[_si, "year_index"]
+            _cd_r = s_cd.table[s_cd.table["year_index"] == _yr]
+            if not _cd_r.empty:
+                _dep = float(_cd_r.iloc[0].get("Depreciation", 0))
+                s_is_table.loc[_si, "Depreciation"] = _dep
+                s_is_table.loc[_si, "Total D&A"] = _dep + s_is_table.loc[_si, "Amortisation"]
+            if not _ds_table.empty:
+                _ds_r = _ds_table[_ds_table["year_index"] == _yr]
+                if not _ds_r.empty:
+                    s_is_table.loc[_si, "Interest Expense"] = float(_ds_r.iloc[0].get("Interest Expense", 0))
+            s_is_table.loc[_si, "EBIT"] = s_is_table.loc[_si, "EBITDA"] - s_is_table.loc[_si, "Total D&A"]
+            s_is_table.loc[_si, "EBT"] = s_is_table.loc[_si, "EBIT"] - s_is_table.loc[_si, "Interest Expense"]
+            s_is_table.loc[_si, "Tax Expense"] = max(s_is_table.loc[_si, "EBT"] * cfg.forecast.tax_rate, 0)
+            s_is_table.loc[_si, "Net Income"] = s_is_table.loc[_si, "EBT"] - s_is_table.loc[_si, "Tax Expense"]
+
         s_cf = build_cash_flow_statement(
-            s_is.table, s_wc.table, s_cd.table,
-            ds_result.table if ds_result else pd.DataFrame(),
+            s_is_table, s_wc.table, s_cd.table,
+            _ds_table,
             cfg.forecast.tax_rate, base_cash, cfg.forecast.dividend_payout_ratio,
         )
         s_fcf = s_cf.fcf_table.copy()
@@ -297,10 +317,13 @@ def run_pipeline(
 
     # ── Step 11: Monte Carlo ─────────────────────────────────────────
     if result.dcf:
+        _actual_ebitda_margin = (1.0 - cfg.forecast.cogs_pct_revenue
+                                 - cfg.forecast.sga_pct_revenue
+                                 - cfg.forecast.other_opex_pct_revenue)
         mc_result = _run_step(
             "Monte Carlo", run_monte_carlo, result,
             base_year_revenue,
-            cfg.forecast.cogs_pct_revenue,  # approximate EBITDA margin
+            _actual_ebitda_margin,
             wacc_result.wacc if wacc_result else 0.10,
             cfg.valuation.terminal_growth_rate,
             cfg.valuation.exit_ev_ebitda_multiple,
@@ -311,6 +334,7 @@ def run_pipeline(
             cfg.forecast.depreciation_rate,
             cfg.valuation.cash, cfg.valuation.debt,
             cfg.valuation.fully_diluted_shares,
+            cfg.valuation.gordon_weight,
         )
         result.monte_carlo = mc_result
 
@@ -328,6 +352,7 @@ def run_pipeline(
             cfg.forecast.depreciation_rate,
             cfg.valuation.cash, cfg.valuation.debt,
             cfg.valuation.exit_ev_ebitda_multiple,
+            cfg.valuation.gordon_weight,
         )
         result.sensitivity = sens
 
@@ -345,6 +370,8 @@ def run_pipeline(
             cfg.forecast.capex_pct_revenue,
             cfg.forecast.projection_years,
             0.20, cfg.valuation.cash, cfg.valuation.debt,
+            cfg.forecast.depreciation_rate,
+            cfg.valuation.gordon_weight,
         )
         result.tornado = tornado
 

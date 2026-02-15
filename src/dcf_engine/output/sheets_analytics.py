@@ -91,8 +91,11 @@ def build_monte_carlo(wb, mc_result):
     r += 1; hist_start = r
     ws.cell(r-1,1,value="Bin").font = FH; ws.cell(r-1,1).fill = FILL_HDR
     ws.cell(r-1,2,value="Frequency").font = FH; ws.cell(r-1,2).fill = FILL_HDR
-    if hasattr(mc_result,'histogram') and mc_result.histogram:
-        for bc, freq in mc_result.histogram:
+    hist_data = mc_result.histogram_data if hasattr(mc_result, 'histogram_data') and mc_result.histogram_data else {}
+    bin_centers = hist_data.get("bin_centers", [])
+    counts = hist_data.get("counts", [])
+    if bin_centers and counts:
+        for bc, freq in zip(bin_centers, counts):
             ws.cell(r,1,value=bc).number_format = NF; ws.cell(r,1).font = FN
             ws.cell(r,2,value=freq).number_format = NF; ws.cell(r,2).font = FN
             r += 1
@@ -126,9 +129,9 @@ def build_tornado(wb, tornado_result):
     chart = BarChart(); chart.type = "bar"
     chart.title = "Impact on Equity Value"; chart.style = 10
     chart.width = 20; chart.height = 12
-    low = Reference(ws,min_col=6,min_row=2,max_row=r-1)
-    high = Reference(ws,min_col=7,min_row=2,max_row=r-1)
-    cats = Reference(ws,min_col=2,min_row=3,max_row=r-1)
+    low = Reference(ws,min_col=5,min_row=2,max_row=r-1)
+    high = Reference(ws,min_col=6,min_row=2,max_row=r-1)
+    cats = Reference(ws,min_col=1,min_row=3,max_row=r-1)
     chart.add_data(low,titles_from_data=True); chart.add_data(high,titles_from_data=True)
     chart.set_categories(cats); ws.add_chart(chart,f"A{r+1}")
     fit_to_width(ws)

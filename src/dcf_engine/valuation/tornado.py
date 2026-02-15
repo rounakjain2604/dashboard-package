@@ -34,6 +34,8 @@ def build_tornado(
     swing_pct: float = 0.20,
     cash: float = 0.0,
     debt: float = 0.0,
+    da_pct: float = 0.04,
+    gordon_weight: float = 0.50,
 ) -> TornadoResult:
     """
     Build tornado chart data by swinging each driver ±swing_pct.
@@ -70,14 +72,14 @@ def build_tornado(
         low_eq = _compute_equity(
             base_revenue, base_ebitda_margin, base_wacc, base_terminal_growth,
             base_exit_multiple, base_revenue_growth, base_tax_rate, base_capex_pct,
-            projection_years, cash, debt,
+            projection_years, cash, debt, da_pct, gordon_weight,
             override={driver_name: low_input}
         )
 
         high_eq = _compute_equity(
             base_revenue, base_ebitda_margin, base_wacc, base_terminal_growth,
             base_exit_multiple, base_revenue_growth, base_tax_rate, base_capex_pct,
-            projection_years, cash, debt,
+            projection_years, cash, debt, da_pct, gordon_weight,
             override={driver_name: high_input}
         )
 
@@ -109,6 +111,8 @@ def _compute_equity(
     years: int,
     cash: float,
     debt: float,
+    da_pct: float = 0.04,
+    gordon_weight: float = 0.50,
     override: Dict[str, float] | None = None,
 ) -> float:
     """Quick DCF with one driver overridden."""
@@ -131,7 +135,7 @@ def _compute_equity(
     for yr in range(1, years + 1):
         revenue *= (1 + rev_growth)
         ebitda = revenue * margin
-        da = revenue * capex_pct  # use capex_pct as proxy for D&A
+        da = revenue * da_pct
         ebit = ebitda - da
         nopat = ebit * (1 - tax_rate)
         capex = revenue * capex_pct
@@ -143,7 +147,7 @@ def _compute_equity(
 
     gordon_tv = last_fcf * (1 + tg) / (wacc - tg)
     exit_tv = last_ebitda * exit_mult
-    tv = (gordon_tv + exit_tv) / 2.0
-    pv_tv = tv / ((1 + wacc) ** years)
+    tv = gordon_tv * gordon_weight + exit_tv * (1 - gordon_weight)
+    pv_tv = tv / ((1 + wacc) ** (years - 0.5))  # mid-year consistency
 
     return pv_sum + pv_tv + cash - debt

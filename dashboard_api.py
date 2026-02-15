@@ -79,11 +79,20 @@ def _build_config_from_payload(data: dict) -> DCFEngineConfig:
     )
 
     fc = data.get("forecast", {})
+    # Parse revenue_manual (string keys from JSON → int keys)
+    rev_manual_raw = fc.get("revenue_manual", {})
+    revenue_manual = {int(k): float(v) for k, v in rev_manual_raw.items()} if rev_manual_raw else {}
+
+    # Parse capex_manual (string keys from JSON → int keys)
+    capex_manual_raw = fc.get("capex_manual", {})
+    capex_manual = {int(k): float(v) for k, v in capex_manual_raw.items()} if capex_manual_raw else {}
+
     forecast = ForecastConfig(
         projection_years=int(fc.get("projection_years", 5)),
         revenue_method=fc.get("revenue_method", "cagr"),
         revenue_cagr=float(fc.get("revenue_cagr", 0.08)),
         revenue_yoy=[float(x) for x in fc.get("revenue_yoy", [0.08, 0.07, 0.06, 0.05, 0.05])],
+        revenue_manual=revenue_manual,
         cogs_pct_revenue=float(fc.get("cogs_pct_revenue", 0.45)),
         sga_pct_revenue=float(fc.get("sga_pct_revenue", 0.20)),
         other_opex_pct_revenue=float(fc.get("other_opex_pct_revenue", 0.05)),
@@ -91,11 +100,15 @@ def _build_config_from_payload(data: dict) -> DCFEngineConfig:
         amortisation_pct_revenue=float(fc.get("amortisation_pct_revenue", 0.005)),
         capex_method=fc.get("capex_method", "pct_revenue"),
         capex_pct_revenue=float(fc.get("capex_pct_revenue", 0.04)),
+        capex_fixed=float(fc.get("capex_fixed", 0.0)),
+        capex_manual=capex_manual,
         dso=float(fc.get("dso", 45)),
         dio=float(fc.get("dio", 50)),
         dpo=float(fc.get("dpo", 40)),
         prepaid_pct_revenue=float(fc.get("prepaid_pct_revenue", 0.005)),
         accrued_pct_revenue=float(fc.get("accrued_pct_revenue", 0.01)),
+        other_current_assets_pct_revenue=float(fc.get("other_current_assets_pct_revenue", 0.005)),
+        other_current_liabilities_pct_revenue=float(fc.get("other_current_liabilities_pct_revenue", 0.005)),
         tax_rate=float(fc.get("tax_rate", 0.25)),
         dividend_payout_ratio=float(fc.get("dividend_payout_ratio", 0.0)),
     )

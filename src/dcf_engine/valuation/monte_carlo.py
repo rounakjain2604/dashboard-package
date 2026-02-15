@@ -40,6 +40,7 @@ def run_monte_carlo(
     cash: float = 0.0,
     debt: float = 0.0,
     shares: float = 1_000_000.0,
+    gordon_weight: float = 0.50,
 ) -> MonteCarloResult:
     """
     Run Monte Carlo simulation.
@@ -98,12 +99,12 @@ def run_monte_carlo(
             last_fcf = fcf
             last_ebitda = ebitda
 
-        # Terminal value (blended 50/50)
+        # Terminal value (blended using gordon_weight)
         gordon_tv = last_fcf * (1 + tg) / max(w - tg, 1e-6)
         exit_tv = last_ebitda * em
-        blended_tv = (gordon_tv + exit_tv) / 2.0
+        blended_tv = gordon_tv * gordon_weight + exit_tv * (1 - gordon_weight)
 
-        terminal_df = 1.0 / ((1 + w) ** projection_years)
+        terminal_df = 1.0 / ((1 + w) ** (projection_years - 0.5))  # mid-year consistency
         pv_tv = blended_tv * terminal_df
 
         ev = pv_sum + pv_tv
