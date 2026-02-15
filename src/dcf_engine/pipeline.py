@@ -367,26 +367,20 @@ def run_pipeline(
                                  - cfg.forecast.other_opex_pct_revenue)
         _actual_wacc = wacc_result.wacc if wacc_result else 0.10
 
-        # ── V7: Auto-sync MC distribution means from base case ───────
-        # When the user changes core assumptions (revenue growth, margins,
-        # WACC inputs, TV params) in the dashboard, the MC distribution
-        # means must track those changes so the simulation stays centred
-        # on the current base case.  Previously, MC means were independent
-        # inputs that defaulted to hardcoded values (8% rev growth, 20%
-        # margin, 10% WACC …), causing the MC / analytics tabs in Excel
-        # to appear "stale" after assumption changes.
-        cfg.monte_carlo.revenue_growth_mean  = cfg.forecast.revenue_cagr
-        cfg.monte_carlo.ebitda_margin_mean   = _actual_ebitda_margin
-        cfg.monte_carlo.wacc_mean            = _actual_wacc
+        # V7 auto-sync: overwrite MC distribution means with actual
+        # computed base-case values so the simulation centres on the
+        # current assumptions, not stale defaults.
+        cfg.monte_carlo.revenue_growth_mean = cfg.forecast.revenue_cagr
+        cfg.monte_carlo.ebitda_margin_mean = _actual_ebitda_margin
+        cfg.monte_carlo.wacc_mean = _actual_wacc
         cfg.monte_carlo.terminal_growth_mean = cfg.valuation.terminal_growth_rate
-        cfg.monte_carlo.exit_multiple_mean   = cfg.valuation.exit_ev_ebitda_multiple
+        cfg.monte_carlo.exit_multiple_mean = cfg.valuation.exit_ev_ebitda_multiple
         logger.info(
-            "MC means auto-synced: rev_g=%.2f%% margin=%.1f%% wacc=%.2f%% "
-            "tg=%.2f%% exit_m=%.1fx",
-            cfg.monte_carlo.revenue_growth_mean * 100,
-            cfg.monte_carlo.ebitda_margin_mean * 100,
-            cfg.monte_carlo.wacc_mean * 100,
-            cfg.monte_carlo.terminal_growth_mean * 100,
+            "MC means auto-synced: rev_g=%.3f, margin=%.3f, wacc=%.3f, tg=%.3f, exit_m=%.1f",
+            cfg.monte_carlo.revenue_growth_mean,
+            cfg.monte_carlo.ebitda_margin_mean,
+            cfg.monte_carlo.wacc_mean,
+            cfg.monte_carlo.terminal_growth_mean,
             cfg.monte_carlo.exit_multiple_mean,
         )
 
