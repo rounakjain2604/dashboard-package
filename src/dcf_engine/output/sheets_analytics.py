@@ -283,7 +283,7 @@ def build_monte_carlo(wb, mc_result, mc_config=None, n=5):
 
     # Column headers
     _hdrs = [
-        ("#", 6), ("Rev Growth", 14), ("EBITDA Margin", 14),
+        ("#", 14), ("Rev Growth", 14), ("EBITDA Margin", 14),
         ("Terminal Growth", 14), ("WACC", 14), ("Exit Multiple", 14),
         ("PV of FCFs", 16), ("PV of TV", 16),
         ("Equity Value", 16), ("Per Share", 14),
@@ -303,21 +303,21 @@ def build_monte_carlo(wb, mc_result, mc_config=None, n=5):
 
         # Col B: Revenue Growth ~ N(μ, σ) clipped [-20%, 50%]
         ws.cell(row, 2).value = (
-            f'=MAX(-0.2,MIN(0.5,NORM.INV(RAND(),$B$4,$B$5)))'
+            f'=MAX(-0.2,MIN(0.5,_xlfn.NORM.INV(RAND(),$B$4,$B$5)))'
         )
         ws.cell(row, 2).font = FN
         ws.cell(row, 2).number_format = PF
 
         # Col C: EBITDA Margin ~ N(μ, σ) clipped [1%, 60%]
         ws.cell(row, 3).value = (
-            f'=MAX(0.01,MIN(0.6,NORM.INV(RAND(),$B$6,$B$7)))'
+            f'=MAX(0.01,MIN(0.6,_xlfn.NORM.INV(RAND(),$B$6,$B$7)))'
         )
         ws.cell(row, 3).font = FN
         ws.cell(row, 3).number_format = PF
 
         # Col D: Terminal Growth ~ N(μ, σ) clipped [0%, 5%]
         ws.cell(row, 4).value = (
-            f'=MAX(0,MIN(0.05,NORM.INV(RAND(),$B$10,$B$11)))'
+            f'=MAX(0,MIN(0.05,_xlfn.NORM.INV(RAND(),$B$10,$B$11)))'
         )
         ws.cell(row, 4).font = FN
         ws.cell(row, 4).number_format = PF
@@ -325,14 +325,14 @@ def build_monte_carlo(wb, mc_result, mc_config=None, n=5):
         # Col E: WACC ~ N(μ, σ) clipped [3%, 30%], forced > TG+1%
         ws.cell(row, 5).value = (
             f'=MAX(D{row}+0.01,'
-            f'MAX(0.03,MIN(0.3,NORM.INV(RAND(),$B$8,$B$9))))'
+            f'MAX(0.03,MIN(0.3,_xlfn.NORM.INV(RAND(),$B$8,$B$9))))'
         )
         ws.cell(row, 5).font = FN
         ws.cell(row, 5).number_format = PF
 
         # Col F: Exit Multiple ~ N(μ, σ) clipped [3x, 25x]
         ws.cell(row, 6).value = (
-            f'=MAX(3,MIN(25,NORM.INV(RAND(),$B$12,$B$13)))'
+            f'=MAX(3,MIN(25,_xlfn.NORM.INV(RAND(),$B$12,$B$13)))'
         )
         ws.cell(row, 6).font = FN
         ws.cell(row, 6).number_format = XF

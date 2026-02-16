@@ -1,4 +1,4 @@
-# IB-Grade DCF Valuation Engine — V10.0.0
+# IB-Grade DCF Valuation Engine — V12.0.0
 
 **A fully automated, investment-banking-grade Discounted Cash Flow (DCF) valuation engine with an interactive React dashboard, formula-linked Excel export, and PDF memo generation.**
 
@@ -573,7 +573,27 @@ The config parser supports aliases for backward compatibility:
 
 ---
 
-## 10. V10.0.0 Changelog
+## 10. V12.0.0 Changelog
+
+### Bug Fixed in V12.0.0
+
+| # | Bug | Fix |
+|---|-----|-----|
+| 1 | **Monte Carlo Excel tab produced `#NAME?` errors on all 1,000 simulation rows** — The `NORM.INV` function used by openpyxl to generate random normal draws was not recognised by Excel because the OOXML format requires the `_xlfn.` prefix for functions introduced in Excel 2010+ (functions with dots in their names). This caused all five driver columns (Revenue Growth, EBITDA Margin, Terminal Growth, WACC, Exit Multiple) to show `#NAME?`, which cascaded into every downstream cell: PV of FCFs, PV of TV, Equity Value, Per Share, all output statistics (Mean, Median, P10–P90), and the histogram frequency bins. | **Prefixed `NORM.INV` with `_xlfn.`** in all five `NORM.INV(RAND(),μ,σ)` formula templates (Cols B–F, rows 67–1066). All simulation, statistics, and histogram formulas now evaluate correctly. Verified via COM automation: zero formula errors across all 1,000 rows, and row-level formula verification matches Python's MC computation to $0.00 precision. |
+| 2 | **Monte Carlo histogram bin centers displayed `###` in Excel** — The simulation table header set Column A width to 6 (for the `#` iteration counter), overriding the initial width. Histogram bin center values (e.g. 1,461,310) couldn't render in 6-char-wide cells. | **Increased Column A width** from 6 to 14 so both iteration numbers and histogram bin centers display correctly. |
+
+### Files Changed in V12.0.0
+
+| File | Change |
+|------|--------|
+| `src/dcf_engine/__init__.py` | Version bumped to `12.0.0` |
+| `src/dcf_engine/output/sheets_analytics.py` | Fixed `NORM.INV` → `_xlfn.NORM.INV` in all 5 MC simulation columns; increased Column A width from 6 to 14 |
+| `templates/dashboard.html` | Updated dashboard tracker badge from `V11` to `V12` |
+| `README.md` | Updated to V12.0.0, added changelog |
+
+---
+
+## 11. V10.0.0 Changelog
 
 ### Changes in V10.0.0
 
@@ -596,7 +616,7 @@ The config parser supports aliases for backward compatibility:
 
 ---
 
-## 11. V9.0.0 Changelog
+## 12. V9.0.0 Changelog
 
 ### Bug Fixed in V9.0.0
 
@@ -615,7 +635,7 @@ The config parser supports aliases for backward compatibility:
 
 ---
 
-## 12. V5.0.0 Changelog
+## 13. V5.0.0 Changelog
 
 ### Bugs Fixed in V5.0.0
 
@@ -633,7 +653,7 @@ The config parser supports aliases for backward compatibility:
 
 ---
 
-## 13. V4.0.0 Changelog
+## 14. V4.0.0 Changelog
 
 ### Bugs Fixed in V4.0.0
 
