@@ -5,7 +5,7 @@ from datetime import datetime
 from openpyxl.chart import BarChart, Reference
 from openpyxl.utils import get_column_letter as CL
 from .excel_formats import *
-from .sheets_core import BS
+from .sheets_core import BS, WR
 
 
 def build_scenarios(wb, scenario_comparison):
@@ -75,94 +75,311 @@ def _apply_heatmap(ws, start_row, end_row, start_col, num_cols):
                 ws.cell(r,c).fill = PatternFill("solid",fgColor=f"{min(red,255):02X}{min(green,255):02X}55")
 
 
-def build_monte_carlo(wb, mc_result, mc_config=None):
+def build_monte_carlo(wb, mc_result, mc_config=None, n=5):
+    """Write formula-linked Monte Carlo simulation tab.
+
+    Creates 1,000 live iterations using NORM.INV(RAND(),...) formulas
+    linked to the Assumptions and WACC sheets.  Press F9 in Excel to
+    resimulate with fresh random draws.
+    """
     ws = wb.create_sheet("Monte Carlo")
     ws.sheet_properties.tabColor = "7030A0"
-    if mc_result is None:
-        ws.cell(1,1,value="No Monte Carlo data").font = FN; return
-    ws.cell(1,1,value="Monte Carlo Simulation").font = FK
-    auto_col(ws,1,22); auto_col(ws,2,16); auto_col(ws,3,16)
 
-    # ── Section 1: Simulation Parameters ─────────────────────────────
-    r = 3
-    ws.cell(r,1,value="Simulation Parameters").font = FB; r += 1
-    if mc_config is not None:
-        params = [
-            ("Iterations",          mc_config.iterations,             '#,##0'),
-            ("Revenue Growth μ",    mc_config.revenue_growth_mean,    PF),
-            ("Revenue Growth σ",    mc_config.revenue_growth_std,     PF),
-            ("EBITDA Margin μ",     mc_config.ebitda_margin_mean,     PF),
-            ("EBITDA Margin σ",     mc_config.ebitda_margin_std,      PF),
-            ("WACC μ",             mc_config.wacc_mean,              PF),
-            ("WACC σ",             mc_config.wacc_std,               PF),
-            ("Terminal Growth μ",   mc_config.terminal_growth_mean,   PF),
-            ("Terminal Growth σ",   mc_config.terminal_growth_std,    PF),
-            ("Exit Multiple μ",     mc_config.exit_multiple_mean,     XF),
-            ("Exit Multiple σ",     mc_config.exit_multiple_std,      XF),
-        ]
-        for label, val, fmt in params:
-            ws.cell(r,1,value=label).font = FN
-            cell = ws.cell(r,2,value=val)
-            cell.font = FN; cell.number_format = fmt
-            r += 1
-    else:
-        ws.cell(r,1,value="Iterations").font = FN
-        ws.cell(r,2,value=mc_result.iterations).font = FN
-        ws.cell(r,2).number_format = '#,##0'
-        r += 1
-    r += 1
+    if mc_config is None and mc_result is None:
+        ws.cell(1, 1, value="No Monte Carlo data").font = FN
+        return
 
-    # ── Section 2: Output Statistics ─────────────────────────────────
-    ws.cell(r,1,value="Output Statistics").font = FB; r += 1
-    for k,v in mc_result.statistics.items():
-        ws.cell(r,1,value=k).font = FN
-        cell = ws.cell(r,2,value=v)
-        cell.font = FN; cell.number_format = PF2 if "Per Share" in k else NF
-        r += 1
-    r += 1
+    # Fallback: static output when no config is available (should not
+    # happen in normal operation since cfg.monte_carlo always exists)
+    if mc_config is None:
+        ws.cell(1, 1, value="No Monte Carlo config — static data only").font = FN
+        fit_to_width(ws)
+        return
 
-    # ── Section 3: Histogram ─────────────────────────────────────────
-    hist_start = r + 1
-    ws.cell(r,1,value="Bin").font = FH; ws.cell(r,1).fill = FILL_HDR
-    ws.cell(r,2,value="Frequency").font = FH; ws.cell(r,2).fill = FILL_HDR
-    r += 1
-    hist_data = mc_result.histogram_data if hasattr(mc_result, 'histogram_data') and mc_result.histogram_data else {}
-    bin_centers = hist_data.get("bin_centers", [])
-    counts = hist_data.get("counts", [])
-    chart_anchor = f"D3"
-    if bin_centers and counts:
-        for bc, freq in zip(bin_centers, counts):
-            ws.cell(r,1,value=bc).number_format = NF; ws.cell(r,1).font = FN
-            ws.cell(r,2,value=freq).number_format = NF; ws.cell(r,2).font = FN
-            r += 1
-        chart = BarChart(); chart.type = "col"
-        chart.title = "Equity Value Distribution"; chart.y_axis.title = "Frequency"
-        chart.style = 10; chart.width = 20; chart.height = 12
-        data = Reference(ws,min_col=2,min_row=hist_start-1,max_row=r-1)
-        cats = Reference(ws,min_col=1,min_row=hist_start,max_row=r-1)
-        chart.add_data(data,titles_from_data=True); chart.set_categories(cats)
-        chart.shape = 4; ws.add_chart(chart, chart_anchor)
-    r += 1
+    ITERS = 1000  # capped for formula-based simulation
 
-    # ── Section 4: Driver Table (first 100 iterations) ───────────────
-    if hasattr(mc_result, 'driver_table') and mc_result.driver_table is not None and not mc_result.driver_table.empty:
-        ws.cell(r,1,value="Driver Table (Sample — First 100 Iterations)").font = FB; r += 1
-        dt = mc_result.driver_table
-        for j, cn in enumerate(dt.columns, 1):
-            ws.cell(r, j, value=cn).font = FH; ws.cell(r, j).fill = FILL_HDR
-            auto_col(ws, j, 16)
-        r += 1
-        for _, row in dt.iterrows():
-            for j, (cn, v) in enumerate(row.items(), 1):
-                cell = ws.cell(r, j, value=float(v) if isinstance(v, (int, float, np.floating, np.integer)) else v)
-                cell.font = FN
-                if cn in ("Revenue Growth", "EBITDA Margin", "WACC", "Terminal Growth"):
-                    cell.number_format = PF
-                elif cn == "Exit Multiple":
-                    cell.number_format = XF
-                else:
-                    cell.number_format = NF
-            r += 1
+    # ── Column widths ────────────────────────────────────────────
+    auto_col(ws, 1, 24)
+    auto_col(ws, 2, 16)
+    auto_col(ws, 3, 16)
+
+    # ── Title ────────────────────────────────────────────────────
+    ws.cell(1, 1, value="Monte Carlo Simulation (Live Excel)").font = FK
+    ws.cell(2, 1,
+            value="Press F9 to resimulate  \u00b7  "
+                  "All parameters auto-linked to Assumptions & WACC"
+            ).font = Font(name="Verdana", size=8, italic=True, color="666666")
+
+    # ── Section 1: Simulation Parameters (rows 3-23) ────────────
+    ws.cell(3, 1, value="Simulation Parameters").font = FB
+
+    # (row, label, value, is_formula, number_format, is_editable_input)
+    _params = [
+        (4,  "Revenue Growth \u03bc",
+             f"={ar('rev_cagr')}", True, PF, False),
+        (5,  "Revenue Growth \u03c3",
+             mc_config.revenue_growth_std, False, PF, True),
+        (6,  "EBITDA Margin \u03bc",
+             f"=1-{ar('cogs_pct')}-{ar('sga_pct')}-{ar('oopex_pct')}",
+             True, PF, False),
+        (7,  "EBITDA Margin \u03c3",
+             mc_config.ebitda_margin_std, False, PF, True),
+        (8,  "WACC \u03bc",
+             f"=WACC!$B${WR['WACC']}", True, PF, False),
+        (9,  "WACC \u03c3",
+             mc_config.wacc_std, False, PF, True),
+        (10, "Terminal Growth \u03bc",
+             f"={ar('tg')}", True, PF, False),
+        (11, "Terminal Growth \u03c3",
+             mc_config.terminal_growth_std, False, PF, True),
+        (12, "Exit Multiple \u03bc",
+             f"={ar('exit_m')}", True, XF, False),
+        (13, "Exit Multiple \u03c3",
+             mc_config.exit_multiple_std, False, XF, True),
+        (14, "Base Revenue",
+             f"={ar('brev')}", True, NF, False),
+        (15, "Tax Rate",
+             f"={ar('tax')}", True, PF, False),
+        (16, "Capex % Revenue",
+             f"={ar('capex_pct')}", True, PF, False),
+        (17, "D&A Rate (% of Rev)",
+             f"={ar('dep_rate')}", True, PF, False),
+        (18, "Cash (Equity Bridge)",
+             f"={ar('cash')}", True, NF, False),
+        (19, "Debt (Equity Bridge)",
+             f"={ar('debt')}", True, NF, False),
+        (20, "Shares Outstanding",
+             f"={ar('shares')}", True, NF, False),
+        (21, "Gordon Weight",
+             f"={ar('gw')}", True, PF, False),
+        (22, "Projection Years",
+             n, False, '#,##0', False),
+        (23, "Iterations (Formula)",
+             ITERS, False, '#,##0', False),
+    ]
+
+    for row, label, val, _is_formula, fmt, is_input in _params:
+        ws.cell(row, 1, value=label).font = FN
+        c = ws.cell(row, 2)
+        c.value = val
+        c.number_format = fmt
+        if is_input:
+            c.font = FI
+            c.fill = FILL_INP
+        else:
+            c.font = FN
+
+    # ── Pre-build formula fragments ──────────────────────────────
+    # Inline array constants for SUMPRODUCT, e.g. {1,2,3,4,5}
+    years_arr = ",".join(str(i) for i in range(1, n + 1))
+    # Mid-year discount exponents, e.g. {0.5,1.5,2.5,3.5,4.5}
+    midyear_arr = ",".join(str(round(i - 0.5, 1)) for i in range(1, n + 1))
+    tv_disc_exp = round(n - 0.5, 1)  # e.g. 4.5 for n=5
+
+    # Simulation table row range
+    SIM_HDR = 66
+    SIM_START = 67
+    SIM_END = SIM_START + ITERS - 1   # 1066
+    eq_range = f"$I${SIM_START}:$I${SIM_END}"  # equity values column
+
+    # ── Section 2: Output Statistics (rows 25-39) ────────────────
+    ws.cell(25, 1, value="Output Statistics (Live)").font = FB
+
+    _stats = [
+        (26, "Mean",             f"=AVERAGE({eq_range})", NF),
+        (27, "Median",           f"=MEDIAN({eq_range})", NF),
+        (28, "Std Dev",          f"=STDEV({eq_range})", NF),
+        (29, "P10",              f"=PERCENTILE({eq_range},0.1)", NF),
+        (30, "P25",              f"=PERCENTILE({eq_range},0.25)", NF),
+        (31, "P50",              f"=PERCENTILE({eq_range},0.5)", NF),
+        (32, "P75",              f"=PERCENTILE({eq_range},0.75)", NF),
+        (33, "P90",              f"=PERCENTILE({eq_range},0.9)", NF),
+        (34, "Min",              f"=MIN({eq_range})", NF),
+        (35, "Max",              f"=MAX({eq_range})", NF),
+        (36, "Per Share Mean",
+             f"=IF($B$20=0,0,AVERAGE({eq_range})/$B$20)", PF2),
+        (37, "Per Share Median",
+             f"=IF($B$20=0,0,MEDIAN({eq_range})/$B$20)", PF2),
+        (38, "Per Share P10",
+             f"=IF($B$20=0,0,PERCENTILE({eq_range},0.1)/$B$20)", PF2),
+        (39, "Per Share P90",
+             f"=IF($B$20=0,0,PERCENTILE({eq_range},0.9)/$B$20)", PF2),
+    ]
+    for row, label, formula, fmt in _stats:
+        ws.cell(row, 1, value=label).font = FN
+        c = ws.cell(row, 2)
+        c.value = formula
+        c.font = FN
+        c.number_format = fmt
+
+    # ── Section 3: Histogram (rows 41-63) ────────────────────────
+    HIST_BINS = 20
+    ws.cell(41, 1, value="Distribution").font = FB
+
+    # Helper cells for bin bounds (placed in cols E-J of row 41)
+    ws.cell(41, 5, value="min:").font = Font(
+        name="Verdana", size=8, color="999999")
+    ws.cell(41, 6).value = f"=MIN({eq_range})"
+    ws.cell(41, 6).number_format = NF
+    ws.cell(41, 6).font = FN
+    ws.cell(41, 7, value="max:").font = Font(
+        name="Verdana", size=8, color="999999")
+    ws.cell(41, 8).value = f"=MAX({eq_range})"
+    ws.cell(41, 8).number_format = NF
+    ws.cell(41, 8).font = FN
+    ws.cell(41, 9, value="width:").font = Font(
+        name="Verdana", size=8, color="999999")
+    ws.cell(41, 10).value = f"=(H41-F41)/{HIST_BINS}"
+    ws.cell(41, 10).number_format = NF
+    ws.cell(41, 10).font = FN
+
+    # Histogram headers
+    ws.cell(42, 1, value="Bin Center").font = FH
+    ws.cell(42, 1).fill = FILL_HDR
+    ws.cell(42, 2, value="Frequency").font = FH
+    ws.cell(42, 2).fill = FILL_HDR
+
+    for bi in range(HIST_BINS):
+        br = 43 + bi
+        # Bin center = min + (bi + 0.5) * width
+        ws.cell(br, 1).value = f"=$F$41+({bi}+0.5)*$J$41"
+        ws.cell(br, 1).number_format = NF
+        ws.cell(br, 1).font = FN
+        # Frequency via COUNTIFS
+        lo = f"$F$41+{bi}*$J$41"
+        hi = f"$F$41+{bi + 1}*$J$41"
+        if bi < HIST_BINS - 1:
+            ws.cell(br, 2).value = (
+                f'=COUNTIFS({eq_range},">="&({lo}),'
+                f'{eq_range},"<"&({hi}))'
+            )
+        else:
+            ws.cell(br, 2).value = f'=COUNTIFS({eq_range},">="&({lo}))'
+        ws.cell(br, 2).number_format = NF
+        ws.cell(br, 2).font = FN
+
+    hist_end = 43 + HIST_BINS - 1   # row 62
+
+    # Bar chart of histogram
+    chart = BarChart()
+    chart.type = "col"
+    chart.title = "Equity Value Distribution (Live \u2014 F9 to Refresh)"
+    chart.y_axis.title = "Frequency"
+    chart.x_axis.title = "Equity Value"
+    chart.style = 10
+    chart.width = 20
+    chart.height = 12
+    data = Reference(ws, min_col=2, min_row=42, max_row=hist_end)
+    cats = Reference(ws, min_col=1, min_row=43, max_row=hist_end)
+    chart.add_data(data, titles_from_data=True)
+    chart.set_categories(cats)
+    chart.shape = 4
+    ws.add_chart(chart, "D3")
+
+    # ── Section 4: Simulation Table (rows 65-1066) ───────────────
+    ws.cell(65, 1,
+            value=f"Simulation Table ({ITERS:,} Iterations "
+                  f"\u2014 Press F9 to Resimulate)").font = FB
+
+    # Column headers
+    _hdrs = [
+        ("#", 6), ("Rev Growth", 14), ("EBITDA Margin", 14),
+        ("Terminal Growth", 14), ("WACC", 14), ("Exit Multiple", 14),
+        ("PV of FCFs", 16), ("PV of TV", 16),
+        ("Equity Value", 16), ("Per Share", 14),
+    ]
+    for j, (h, w) in enumerate(_hdrs, 1):
+        ws.cell(SIM_HDR, j, value=h).font = FH
+        ws.cell(SIM_HDR, j).fill = FILL_HDR
+        auto_col(ws, j, w)
+
+    # ── Write 1,000 formula-based iteration rows ─────────────────
+    for i in range(ITERS):
+        row = SIM_START + i
+
+        # Col A: iteration number
+        ws.cell(row, 1, value=i + 1).font = FN
+        ws.cell(row, 1).number_format = '#,##0'
+
+        # Col B: Revenue Growth ~ N(μ, σ) clipped [-20%, 50%]
+        ws.cell(row, 2).value = (
+            f'=MAX(-0.2,MIN(0.5,NORM.INV(RAND(),$B$4,$B$5)))'
+        )
+        ws.cell(row, 2).font = FN
+        ws.cell(row, 2).number_format = PF
+
+        # Col C: EBITDA Margin ~ N(μ, σ) clipped [1%, 60%]
+        ws.cell(row, 3).value = (
+            f'=MAX(0.01,MIN(0.6,NORM.INV(RAND(),$B$6,$B$7)))'
+        )
+        ws.cell(row, 3).font = FN
+        ws.cell(row, 3).number_format = PF
+
+        # Col D: Terminal Growth ~ N(μ, σ) clipped [0%, 5%]
+        ws.cell(row, 4).value = (
+            f'=MAX(0,MIN(0.05,NORM.INV(RAND(),$B$10,$B$11)))'
+        )
+        ws.cell(row, 4).font = FN
+        ws.cell(row, 4).number_format = PF
+
+        # Col E: WACC ~ N(μ, σ) clipped [3%, 30%], forced > TG+1%
+        ws.cell(row, 5).value = (
+            f'=MAX(D{row}+0.01,'
+            f'MAX(0.03,MIN(0.3,NORM.INV(RAND(),$B$8,$B$9))))'
+        )
+        ws.cell(row, 5).font = FN
+        ws.cell(row, 5).number_format = PF
+
+        # Col F: Exit Multiple ~ N(μ, σ) clipped [3x, 25x]
+        ws.cell(row, 6).value = (
+            f'=MAX(3,MIN(25,NORM.INV(RAND(),$B$12,$B$13)))'
+        )
+        ws.cell(row, 6).font = FN
+        ws.cell(row, 6).number_format = XF
+
+        # Col G: PV of projected FCFs (SUMPRODUCT over n years)
+        #   k = (margin − da_pct)·(1−tax) + da_pct − capex_pct
+        #   FCF_yr = base_rev · (1+g)^yr · k
+        #   PV_yr  = FCF_yr / (1+w)^(yr−0.5)
+        pv_formula = (
+            f"=SUMPRODUCT($B$14"
+            f"*((C{row}-$B$17)*(1-$B$15)+$B$17-$B$16)"
+            f"*(1+B{row})^{{{years_arr}}}"
+            f"/((1+E{row})^{{{midyear_arr}}}))"
+        )
+        ws.cell(row, 7).value = pv_formula
+        ws.cell(row, 7).font = FN
+        ws.cell(row, 7).number_format = NF
+
+        # Col H: PV of blended Terminal Value
+        #   Gordon TV = last_FCF·(1+tg) / max(w−tg, 1e-6)
+        #   Exit   TV = last_EBITDA · exit_mult
+        #   PV TV     = (Gordon·gw + Exit·(1−gw)) / (1+w)^(n−0.5)
+        tv_formula = (
+            f"=(($B$14*(1+B{row})^{n}"
+            f"*((C{row}-$B$17)*(1-$B$15)+$B$17-$B$16)"
+            f"*(1+D{row})/MAX(E{row}-D{row},0.000001))*$B$21"
+            f"+($B$14*(1+B{row})^{n}*C{row}*F{row})*(1-$B$21))"
+            f"/((1+E{row})^{tv_disc_exp})"
+        )
+        ws.cell(row, 8).value = tv_formula
+        ws.cell(row, 8).font = FN
+        ws.cell(row, 8).number_format = NF
+
+        # Col I: Equity Value = PV FCFs + PV TV + Cash − Debt
+        ws.cell(row, 9).value = f"=G{row}+H{row}+$B$18-$B$19"
+        ws.cell(row, 9).font = FN
+        ws.cell(row, 9).number_format = NF
+
+        # Col J: Per Share
+        ws.cell(row, 10).value = f"=IF($B$20=0,0,I{row}/$B$20)"
+        ws.cell(row, 10).font = FN
+        ws.cell(row, 10).number_format = PF2
+
+        # Alternate row shading for readability
+        if i % 2 == 1:
+            for col in range(1, 11):
+                ws.cell(row, col).fill = FILL_ALT
 
     fit_to_width(ws)
 

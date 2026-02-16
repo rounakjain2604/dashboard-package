@@ -74,7 +74,7 @@ def build_excel(
     # ── Value-Based Analytics ────────────────────────────────────────
     build_scenarios(wb, scenario_comparison)
     build_sensitivity(wb, sensitivity_result)
-    build_monte_carlo(wb, monte_carlo_result, cfg.monte_carlo)
+    build_monte_carlo(wb, monte_carlo_result, cfg.monte_carlo, n)
     build_tornado(wb, tornado_result)
     build_comps(wb, comps_result)
     build_checks(wb, n)
