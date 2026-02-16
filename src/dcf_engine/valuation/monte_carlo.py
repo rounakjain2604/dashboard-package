@@ -41,6 +41,9 @@ def run_monte_carlo(
     debt: float = 0.0,
     shares: float = 1_000_000.0,
     gordon_weight: float = 0.50,
+    discount_convention: str = "mid_year",
+    minority_interest: float = 0.0,
+    preferred_stock: float = 0.0,
 ) -> MonteCarloResult:
     """
     Run Monte Carlo simulation.
@@ -94,7 +97,10 @@ def run_monte_carlo(
             nopat = ebit * (1 - tax_rate)
             capex = revenue * capex_pct
             fcf = nopat + da - capex
-            df = 1.0 / ((1 + w) ** (yr - 0.5))  # mid-year
+            if discount_convention == "mid_year":
+                df = 1.0 / ((1 + w) ** (yr - 0.5))
+            else:
+                df = 1.0 / ((1 + w) ** yr)
             pv_sum += fcf * df
             last_fcf = fcf
             last_ebitda = ebitda
@@ -104,11 +110,14 @@ def run_monte_carlo(
         exit_tv = last_ebitda * em
         blended_tv = gordon_tv * gordon_weight + exit_tv * (1 - gordon_weight)
 
-        terminal_df = 1.0 / ((1 + w) ** (projection_years - 0.5))  # mid-year consistency
+        if discount_convention == "mid_year":
+            terminal_df = 1.0 / ((1 + w) ** (projection_years - 0.5))
+        else:
+            terminal_df = 1.0 / ((1 + w) ** projection_years)
         pv_tv = blended_tv * terminal_df
 
         ev = pv_sum + pv_tv
-        equity = ev + cash - debt
+        equity = ev + cash - debt - minority_interest - preferred_stock
         equity_values[i] = equity
 
     # ── Statistics ────────────────────────────────────────────────────

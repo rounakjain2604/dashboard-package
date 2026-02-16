@@ -106,6 +106,7 @@ def run_pipeline(
     base_nwc: float = 0.0,
     base_retained_earnings: float = 0.0,
     base_common_stock: float = 0.0,
+    base_intangibles: float = 0.0,
     output_excel: Optional[str] = None,
     output_pdf: Optional[str] = None,
 ) -> PipelineResult:
@@ -177,7 +178,7 @@ def run_pipeline(
     # ── Step 5: Link D&A and Interest back to IS ─────────────────────
     # Also cap amortisation at remaining intangible balance (matching
     # the Excel formula: MIN(Rev*amort_pct, prior_intangibles)).
-    _remaining_intangibles = 0.0  # default; no intangibles on BS
+    _remaining_intangibles = base_intangibles  # use caller-supplied base intangibles
     if cd_result and ds_result:
         for idx in range(len(is_table)):
             yr = is_table.loc[idx, "year_index"]
@@ -254,6 +255,7 @@ def run_pipeline(
         dividend_payout_ratio=cfg.forecast.dividend_payout_ratio,
         base_retained_earnings=base_retained_earnings,
         base_common_stock=base_common_stock,
+        base_intangibles=base_intangibles,
         cf_ending_cash=cf_ending_cash,
     )
     result.balance_sheet = bs_result
@@ -298,7 +300,7 @@ def run_pipeline(
         # Re-link D&A and Interest into the scenario IS (mirrors Step 5)
         s_is_table = s_is.table
         _ds_table = ds_result.table if ds_result else pd.DataFrame()
-        _s_remaining_intangibles = 0.0  # same cap as Step 5
+        _s_remaining_intangibles = base_intangibles  # same cap as Step 5
         for _si in range(len(s_is_table)):
             _yr = s_is_table.loc[_si, "year_index"]
             _cd_r = s_cd.table[s_cd.table["year_index"] == _yr]
@@ -399,6 +401,9 @@ def run_pipeline(
             cfg.valuation.cash, cfg.valuation.debt,
             cfg.valuation.fully_diluted_shares,
             cfg.valuation.gordon_weight,
+            cfg.valuation.discount_convention,
+            cfg.valuation.minority_interest,
+            cfg.valuation.preferred_stock,
         )
         result.monte_carlo = mc_result
 
@@ -417,6 +422,7 @@ def run_pipeline(
             cfg.valuation.cash, cfg.valuation.debt,
             cfg.valuation.exit_ev_ebitda_multiple,
             cfg.valuation.gordon_weight,
+            cfg.valuation.discount_convention,
         )
         result.sensitivity = sens
 
@@ -436,6 +442,7 @@ def run_pipeline(
             0.20, cfg.valuation.cash, cfg.valuation.debt,
             cfg.forecast.depreciation_rate,
             cfg.valuation.gordon_weight,
+            cfg.valuation.discount_convention,
         )
         result.tornado = tornado
 

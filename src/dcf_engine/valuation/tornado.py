@@ -36,6 +36,7 @@ def build_tornado(
     debt: float = 0.0,
     da_pct: float = 0.04,
     gordon_weight: float = 0.50,
+    discount_convention: str = "mid_year",
 ) -> TornadoResult:
     """
     Build tornado chart data by swinging each driver ±swing_pct.
@@ -73,14 +74,16 @@ def build_tornado(
             base_revenue, base_ebitda_margin, base_wacc, base_terminal_growth,
             base_exit_multiple, base_revenue_growth, base_tax_rate, base_capex_pct,
             projection_years, cash, debt, da_pct, gordon_weight,
-            override={driver_name: low_input}
+            override={driver_name: low_input},
+            discount_convention=discount_convention,
         )
 
         high_eq = _compute_equity(
             base_revenue, base_ebitda_margin, base_wacc, base_terminal_growth,
             base_exit_multiple, base_revenue_growth, base_tax_rate, base_capex_pct,
             projection_years, cash, debt, da_pct, gordon_weight,
-            override={driver_name: high_input}
+            override={driver_name: high_input},
+            discount_convention=discount_convention,
         )
 
         # For WACC and Tax Rate, higher input → lower equity
@@ -114,6 +117,7 @@ def _compute_equity(
     da_pct: float = 0.04,
     gordon_weight: float = 0.50,
     override: Dict[str, float] | None = None,
+    discount_convention: str = "mid_year",
 ) -> float:
     """Quick DCF with one driver overridden."""
     o = override or {}
@@ -140,7 +144,10 @@ def _compute_equity(
         nopat = ebit * (1 - tax_rate)
         capex = revenue * capex_pct
         fcf = nopat + da - capex
-        df = 1.0 / ((1 + wacc) ** (yr - 0.5))
+        if discount_convention == "mid_year":
+            df = 1.0 / ((1 + wacc) ** (yr - 0.5))
+        else:
+            df = 1.0 / ((1 + wacc) ** yr)
         pv_sum += fcf * df
         last_fcf = fcf
         last_ebitda = ebitda
@@ -148,6 +155,9 @@ def _compute_equity(
     gordon_tv = last_fcf * (1 + tg) / (wacc - tg)
     exit_tv = last_ebitda * exit_mult
     tv = gordon_tv * gordon_weight + exit_tv * (1 - gordon_weight)
-    pv_tv = tv / ((1 + wacc) ** (years - 0.5))  # mid-year consistency
+    if discount_convention == "mid_year":
+        pv_tv = tv / ((1 + wacc) ** (years - 0.5))
+    else:
+        pv_tv = tv / ((1 + wacc) ** years)
 
     return pv_sum + pv_tv + cash - debt

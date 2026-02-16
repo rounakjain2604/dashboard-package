@@ -268,6 +268,7 @@ def api_run():
         base_nwc = float(data.get("base_nwc", 0))
         base_retained_earnings = float(data.get("base_retained_earnings", 0))
         base_common_stock = float(data.get("base_common_stock", 0))
+        base_intangibles = float(data.get("base_intangibles", 0))
 
         # Auto-detect base year values from historical data if not provided
         if base_year_revenue == 0 and not hist.empty:
@@ -299,6 +300,7 @@ def api_run():
             base_nwc=base_nwc,
             base_retained_earnings=base_retained_earnings,
             base_common_stock=base_common_stock,
+            base_intangibles=base_intangibles,
         )
 
         # ── Serialize results ────────────────────────────────────
@@ -457,6 +459,7 @@ def api_export_excel():
         base_nwc = float(data.get("base_nwc", 0))
         base_retained_earnings = float(data.get("base_retained_earnings", 0))
         base_common_stock = float(data.get("base_common_stock", 0))
+        base_intangibles = float(data.get("base_intangibles", 0))
 
         # Auto-detect from historical
         if base_year_revenue == 0 and not hist.empty:
@@ -493,6 +496,7 @@ def api_export_excel():
             base_nwc=base_nwc,
             base_retained_earnings=base_retained_earnings,
             base_common_stock=base_common_stock,
+            base_intangibles=base_intangibles,
             output_excel=excel_path,
         )
 

@@ -42,6 +42,7 @@ def build_sensitivity_tables(
     debt: float = 0.0,
     exit_mult: float = 10.0,
     gordon_weight: float = 0.50,
+    discount_convention: str = "mid_year",
 ) -> SensitivityResult:
     """
     Build two 2D sensitivity tables.
@@ -67,7 +68,7 @@ def build_sensitivity_tables(
             ev = _quick_dcf(base_revenue, base_ebitda_margin, w, g,
                             projection_years, tax_rate, capex_pct, da_pct,
                             base_revenue_growth, cash, debt, exit_mult,
-                            gordon_weight)
+                            gordon_weight, discount_convention)
             tbl1.iloc[gi, wi] = ev
 
     tbl1.index.name = "Terminal Growth ↓ / WACC →"
@@ -88,7 +89,8 @@ def build_sensitivity_tables(
         for ri, r in enumerate(rev_vals):
             ev = _quick_dcf(base_revenue, m, base_wacc, base_terminal_growth,
                             projection_years, tax_rate, capex_pct, da_pct,
-                            r, cash, debt, exit_mult, gordon_weight)
+                            r, cash, debt, exit_mult, gordon_weight,
+                            discount_convention)
             tbl2.iloc[mi, ri] = ev
 
     tbl2.index.name = "EBITDA Margin ↓ / Rev Growth →"
@@ -117,6 +119,7 @@ def _quick_dcf(
     debt: float,
     exit_mult: float = 10.0,
     gordon_weight: float = 0.50,
+    discount_convention: str = "mid_year",
 ) -> float:
     """Simplified DCF for sensitivity table cells."""
     wacc = max(wacc, tg + 0.005)
@@ -133,7 +136,10 @@ def _quick_dcf(
         nopat = ebit * (1 - tax)
         capex = revenue * capex_pct
         fcf = nopat + da - capex
-        df = 1.0 / ((1 + wacc) ** (yr - 0.5))
+        if discount_convention == "mid_year":
+            df = 1.0 / ((1 + wacc) ** (yr - 0.5))
+        else:
+            df = 1.0 / ((1 + wacc) ** yr)
         pv_sum += fcf * df
         last_fcf = fcf
         last_ebitda = ebitda
@@ -141,7 +147,10 @@ def _quick_dcf(
     gordon_tv = last_fcf * (1 + tg) / (wacc - tg)
     exit_tv = last_ebitda * exit_mult
     tv = gordon_tv * gordon_weight + exit_tv * (1 - gordon_weight)
-    pv_tv = tv / ((1 + wacc) ** (years - 0.5))  # mid-year consistency
+    if discount_convention == "mid_year":
+        pv_tv = tv / ((1 + wacc) ** (years - 0.5))
+    else:
+        pv_tv = tv / ((1 + wacc) ** years)
 
     ev = pv_sum + pv_tv
     return ev + cash - debt
