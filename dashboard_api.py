@@ -28,6 +28,7 @@ from src.dcf_engine.config import (
     DebtTranche,
     ScenarioOverrides,
 )
+from src.dcf_engine import __version__ as ENGINE_VERSION
 from src.dcf_engine.pipeline import run_pipeline
 
 logging.basicConfig(level=logging.INFO,
@@ -237,6 +238,13 @@ def add_cache_headers(response):
 @app.route("/")
 def index():
     return render_template("dashboard.html")
+
+
+@app.route("/api/version", methods=["GET"])
+def api_version():
+    """Return backend engine version for UI badge display."""
+    major = str(ENGINE_VERSION).split(".")[0] if ENGINE_VERSION else "0"
+    return jsonify({"version": ENGINE_VERSION, "badge": f"V{major}"})
 
 
 @app.route("/api/run", methods=["POST"])

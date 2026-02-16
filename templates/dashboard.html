@@ -1115,6 +1115,7 @@ function App() {
   const [exporting, setExporting] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [error, setError] = useState(null);
+  const [appVersion, setAppVersion] = useState('V13');
 
   // Deep updater
   const updateConfig = useCallback((path, value) => {
@@ -1208,6 +1209,15 @@ function App() {
     config.valuation.terminal_growth_rate,
     config.valuation.exit_ev_ebitda_multiple,
   ]);
+
+  useEffect(() => {
+    fetch('/api/version')
+      .then(r => r.json())
+      .then(v => {
+        if (v && v.badge) setAppVersion(v.badge);
+      })
+      .catch(() => {});
+  }, []);
 
   // Run the model
   const isFirstRun = useRef(true);
@@ -2238,7 +2248,7 @@ function App() {
             <div className="header-title">IB-Grade DCF Engine</div>
             <div className="header-subtitle">Interactive Valuation Dashboard</div>
           </div>
-          <span style={{marginLeft:10,padding:'2px 8px',fontSize:11,fontWeight:700,borderRadius:6,background:'var(--gradient-primary)',color:'#fff',letterSpacing:0.5}}>V13</span>
+          <span style={{marginLeft:10,padding:'2px 8px',fontSize:11,fontWeight:700,borderRadius:6,background:'var(--gradient-primary)',color:'#fff',letterSpacing:0.5}}>{appVersion}</span>
         </div>
         <div className="header-actions">
           {results && (
