@@ -514,14 +514,18 @@ def api_export_excel():
 
 @app.route("/api/configs", methods=["GET"])
 def api_list_configs():
-    """List available config files."""
+    """List available config files (searches root and configs/ folder)."""
     configs = []
     for p in _BASE_DIR.glob("config.*.json"):
         configs.append({"filename": p.name, "name": p.stem.replace("config.", "").replace("_", " ").title()})
+    configs_dir = _BASE_DIR / "configs"
+    if configs_dir.exists():
+        for p in configs_dir.glob("config.*.json"):
+            configs.append({"filename": f"configs/{p.name}", "name": p.stem.replace("config.", "").replace("_", " ").title()})
     return jsonify(configs)
 
 
-@app.route("/api/config/<filename>", methods=["GET"])
+@app.route("/api/config/<path:filename>", methods=["GET"])
 def api_load_config(filename: str):
     """Load a config file."""
     path = _BASE_DIR / filename

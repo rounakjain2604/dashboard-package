@@ -12,3 +12,7 @@ venv.bak/
 .idea/
 .vscode/
 *.log
+dist/
+*.xlsx
+*.pdf
+~$*

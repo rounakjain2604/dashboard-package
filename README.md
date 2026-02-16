@@ -1,4 +1,4 @@
-# IB-Grade DCF Valuation Engine — V9.0.0
+# IB-Grade DCF Valuation Engine — V10.0.0
 
 **A fully automated, investment-banking-grade Discounted Cash Flow (DCF) valuation engine with an interactive React dashboard, formula-linked Excel export, and PDF memo generation.**
 
@@ -197,7 +197,7 @@ The dashboard will be available at **http://localhost:5050**.
 
 | File | Purpose |
 |------|---------|
-| `__init__.py` | Version (`4.0.0`) |
+| `__init__.py` | Version (`10.0.0`) |
 | `config.py` | All configuration dataclasses (`DCFEngineConfig`, `ForecastConfig`, `WACCConfig`, etc.) with JSON serialisation and alias handling |
 | `pipeline.py` | 16-step orchestrator — the heart of the engine |
 | `main.py` | CLI entry point (`python -m src.dcf_engine.main`) |
@@ -573,7 +573,30 @@ The config parser supports aliases for backward compatibility:
 
 ---
 
-## 10. V9.0.0 Changelog
+## 10. V10.0.0 Changelog
+
+### Changes in V10.0.0
+
+| # | Change | Details |
+|---|--------|---------|
+| 1 | **Dashboard typography and compact layout refresh** | Migrated dashboard UI to Verdana/Consolas system fonts, removed external Google Fonts dependency, and tightened spacing/padding across inputs, cards, tabs, and tables for a professional compact presentation. |
+| 2 | **Excel Balance Sheet totals label fix** | Fixed missing label lines in exported Balance Sheet caused by row-key collision in `build_bs()` label map. `TOTAL ASSETS`, `TOTAL LIABILITIES`, and related total labels now render correctly. |
+| 3 | **Release tracker update in dashboard** | Updated the dashboard tracker badge from `V9` to `V10`. |
+| 4 | **Client delivery packaging workflow** | Added `package_for_client.bat` and `CLIENT_README.md` for deterministic packaging of shippable artifacts into `dist/dcf_engine_v10/`. |
+
+### Files Changed in V10.0.0
+
+| File | Change |
+|------|--------|
+| `src/dcf_engine/__init__.py` | Version bumped to `10.0.0` |
+| `templates/dashboard.html` | Updated UI typography/layout and dashboard tracker badge to `V10` |
+| `src/dcf_engine/output/sheets_valuation.py` | Fixed BS label row-key collisions so total lines render in exported Excel |
+| `package_for_client.bat` | Added client packaging script with V10 dist path |
+| `CLIENT_README.md` | Added client-facing delivery README (V10) |
+
+---
+
+## 11. V9.0.0 Changelog
 
 ### Bug Fixed in V9.0.0
 
@@ -592,7 +615,7 @@ The config parser supports aliases for backward compatibility:
 
 ---
 
-## 11. V5.0.0 Changelog
+## 12. V5.0.0 Changelog
 
 ### Bugs Fixed in V5.0.0
 
@@ -610,7 +633,7 @@ The config parser supports aliases for backward compatibility:
 
 ---
 
-## 12. V4.0.0 Changelog
+## 13. V4.0.0 Changelog
 
 ### Bugs Fixed in V4.0.0
 

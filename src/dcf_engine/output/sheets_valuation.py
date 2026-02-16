@@ -22,19 +22,19 @@ def build_bs(wb, n):
         BS["Prep"]:"Prepayments", BS["OCA"]:"Other Current Assets",
         BS["Cash"]:"Cash & Cash Equivalents", BS["CA"]:"Total Current Assets",
         BS["TA"]:"TOTAL ASSETS",
-        14:"",
+        15:"",
         BS["CS"]:"Share Capital", BS["RE"]:"Retained Earnings",
         BS["TE"]:"Total Equity",
-        18:"",
+        19:"",
         BS["LTD"]:"Long-Term Borrowings", BS["OLL"]:"Other Non-Current Liabilities",
         BS["NCL"]:"Total Non-Current Liabilities",
-        22:"",
+        23:"",
         BS["AP"]:"Trade & Other Payables", BS["Accr"]:"Accrued Liabilities",
         BS["CurD"]:"Current Portion of Borrowings",
         BS["OCL"]:"Other Current Liabilities", BS["CL"]:"Total Current Liabilities",
         BS["TL"]:"TOTAL LIABILITIES",
         BS["TLE"]:"TOTAL EQUITY & LIABILITIES",
-        29:"", BS["Chk"]:"Balance Check (A-E-L)", BS["Stat"]:"Status",
+        31:"", BS["Chk"]:"Balance Check (A-E-L)", BS["Stat"]:"Status",
     }
     bolds = {BS["NCA"],BS["CA"],BS["TA"],BS["TE"],BS["NCL"],BS["CL"],BS["TL"],BS["TLE"],BS["Chk"]}
     for r,lbl in labels.items():

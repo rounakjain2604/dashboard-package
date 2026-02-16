@@ -14,9 +14,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
-<!-- Google Fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<!-- System fonts: Verdana + Consolas — no external dependency -->
 
 <style>
 /* ── CSS Variables & Reset ──────────────────────────────── */
@@ -49,20 +47,20 @@
   --radius: 12px;
   --radius-sm: 8px;
   --radius-lg: 16px;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-serif: 'Source Serif 4', Georgia, serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Verdana', 'Segoe UI', Geneva, sans-serif;
+  --font-serif: 'Verdana', Geneva, sans-serif;
+  --font-mono: 'Consolas', 'Courier New', monospace;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-html { font-size: 14px; }
+html { font-size: 13px; }
 
 body {
   font-family: var(--font-sans);
   background: radial-gradient(circle at top, #faf7f0 0%, var(--bg-primary) 45%, #efe8db 100%);
   color: var(--text-primary);
-  line-height: 1.6;
+  line-height: 1.45;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -76,7 +74,7 @@ body {
 /* ── Layout ──────────────────────────────────── */
 .app-container {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: 340px 1fr;
   grid-template-rows: auto 1fr;
   min-height: 100vh;
 }
@@ -86,7 +84,7 @@ body {
   grid-column: 1 / -1;
   background: rgba(245, 240, 230, 0.92);
   border-bottom: 1px solid var(--border);
-  padding: 16px 32px;
+  padding: 10px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -99,27 +97,27 @@ body {
 .header-brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
 }
 
 .header-logo {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   background: #272727;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 13px;
   letter-spacing: 0.5px;
   color: white;
   box-shadow: var(--shadow-card);
 }
 
 .header-title {
-  font-size: 22px;
-  font-family: var(--font-serif);
+  font-size: 17px;
+  font-family: var(--font-sans);
   font-weight: 700;
   color: #1f1f1f;
   letter-spacing: -0.2px;
@@ -170,14 +168,14 @@ body {
   background: var(--bg-secondary);
   border-right: 1px solid var(--border);
   overflow-y: auto;
-  padding: 20px;
-  height: calc(100vh - 72px);
+  padding: 14px;
+  height: calc(100vh - 56px);
   position: sticky;
-  top: 72px;
+  top: 56px;
 }
 
 .sidebar-section {
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .section-header {
@@ -185,11 +183,11 @@ body {
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  padding: 10px 14px;
+  padding: 7px 12px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   transition: all 0.2s;
   user-select: none;
 }
@@ -205,13 +203,13 @@ body {
 }
 
 .section-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
   flex-shrink: 0;
 }
 
@@ -231,9 +229,9 @@ body {
 .section-toggle.open { transform: rotate(180deg); }
 
 .section-body {
-  padding: 4px 0;
+  padding: 2px 0;
   display: grid;
-  gap: 8px;
+  gap: 5px;
 }
 
 .section-body.collapsed { display: none; }
@@ -241,10 +239,10 @@ body {
 /* ── Input Fields ──────────────────────────────────── */
 .input-group {
   display: grid;
-  grid-template-columns: 1fr 110px;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
+  grid-template-columns: 1fr 100px;
+  align-items: start;
+  gap: 6px;
+  padding: 3px 6px;
 }
 
 .input-group.wide {
@@ -255,9 +253,12 @@ body {
   font-size: 12px;
   color: var(--text-secondary);
   font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+  padding-top: 2px;
 }
 
 .input-label .unit {
@@ -273,9 +274,9 @@ select {
   border: 1px solid var(--border);
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 12px;
-  padding: 7px 10px;
-  border-radius: 6px;
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 5px;
   outline: none;
   transition: all 0.2s;
   width: 100%;
@@ -290,12 +291,12 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
 
 /* ── Buttons ──────────────────────────────────── */
 .btn {
-  padding: 10px 20px;
+  padding: 8px 16px;
   border: none;
   border-radius: var(--radius-sm);
   font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
   display: inline-flex;
@@ -362,25 +363,25 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 14px;
-  margin-bottom: 20px;
+  padding: 10px;
+  margin-bottom: 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .run-bar .btn-primary {
   width: 100%;
   justify-content: center;
-  padding: 12px;
-  font-size: 14px;
+  padding: 10px;
+  font-size: 13px;
 }
 
 .run-bar .btn-export {
   width: 100%;
   justify-content: center;
-  padding: 10px;
-  font-size: 13px;
+  padding: 8px;
+  font-size: 12px;
 }
 
 .config-loader {
@@ -396,16 +397,16 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
 /* ── Main Content ──────────────────────────────────── */
 .main-content {
   overflow-y: auto;
-  padding: 24px;
-  height: calc(100vh - 72px);
+  padding: 18px;
+  height: calc(100vh - 56px);
 }
 
 /* ── Tab Navigation ──────────────────────────────────── */
 .tab-nav {
   display: flex;
-  gap: 4px;
-  margin-bottom: 24px;
-  padding: 4px;
+  gap: 3px;
+  margin-bottom: 18px;
+  padding: 3px;
   background: var(--bg-secondary);
   border-radius: var(--radius);
   border: 1px solid var(--border);
@@ -413,13 +414,13 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
 }
 
 .tab-btn {
-  padding: 8px 16px;
+  padding: 6px 14px;
   border: none;
   background: transparent;
   color: var(--text-muted);
   font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   cursor: pointer;
   border-radius: var(--radius-sm);
   transition: all 0.2s;
@@ -440,16 +441,16 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
 /* ── KPI Cards ──────────────────────────────────── */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .kpi-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 14px;
   position: relative;
   overflow: hidden;
   transition: all 0.3s;
@@ -485,10 +486,10 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
 }
 
 .kpi-value {
-  font-size: 24px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 700;
   font-family: var(--font-mono);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
   line-height: 1.2;
 }
 
@@ -502,8 +503,8 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
 /* ── Chart Cards ──────────────────────────────────── */
 .chart-grid {
   display: grid;
-  gap: 20px;
-  margin-bottom: 24px;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
 .chart-grid.cols-2 { grid-template-columns: 1fr 1fr; }
@@ -513,7 +514,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 16px;
   transition: all 0.3s;
 }
 
@@ -523,9 +524,9 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
 }
 
 .chart-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   color: var(--text-primary);
   display: flex;
   align-items: center;
@@ -565,9 +566,9 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
 .data-table th {
   background: #f4ede1;
   color: #5a4c3d;
-  font-weight: 600;
+  font-weight: 700;
   text-align: right;
-  padding: 10px 12px;
+  padding: 6px 10px;
   border-bottom: 2px solid var(--border);
   white-space: nowrap;
   position: sticky;
@@ -577,7 +578,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
 .data-table th:first-child { text-align: left; }
 
 .data-table td {
-  padding: 8px 12px;
+  padding: 5px 10px;
   border-bottom: 1px solid #e2d9ca;
   text-align: right;
   white-space: nowrap;
@@ -616,14 +617,14 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
 .heatmap-table th {
   background: #f4ede1;
   color: #5a4c3d;
-  font-weight: 600;
-  padding: 10px 14px;
+  font-weight: 700;
+  padding: 6px 10px;
   text-align: center;
   border: 1px solid var(--border);
 }
 
 .heatmap-table td {
-  padding: 10px 14px;
+  padding: 6px 10px;
   text-align: center;
   border: 1px solid var(--border);
   font-weight: 500;
@@ -797,7 +798,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 14px;
+  padding: 10px;
   text-align: center;
   box-shadow: 0 1px 2px rgba(33, 29, 21, 0.04);
 }
@@ -811,7 +812,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
 }
 
 .wacc-item-value {
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 700;
   font-family: var(--font-mono);
 }
@@ -947,7 +948,7 @@ function ChartComponent({ type, data, options, className = '' }) {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { labels: { color: '#5f564c', font: { family: 'Inter', size: 11 } } },
+          legend: { labels: { color: '#5f564c', font: { family: 'Verdana', size: 10 } } },
           tooltip: {
             backgroundColor: '#fffdf8',
             titleColor: '#1f1f1f',
@@ -955,14 +956,14 @@ function ChartComponent({ type, data, options, className = '' }) {
             borderColor: '#d8d0c1',
             borderWidth: 1,
             cornerRadius: 8,
-            padding: 12,
-            titleFont: { family: 'Inter', weight: 600, size: 12 },
-            bodyFont: { family: 'JetBrains Mono', size: 11 },
+            padding: 10,
+            titleFont: { family: 'Verdana', weight: 600, size: 11 },
+            bodyFont: { family: 'Consolas', size: 10 },
           },
         },
         scales: {
-          x: { ticks: { color: '#7b7268', font: { family: 'Inter', size: 11 } }, grid: { color: 'rgba(216,208,193,0.75)' }, border: { color: '#d8d0c1' } },
-          y: { ticks: { color: '#7b7268', font: { family: 'JetBrains Mono', size: 11 } }, grid: { color: 'rgba(216,208,193,0.75)' }, border: { color: '#d8d0c1' } },
+          x: { ticks: { color: '#7b7268', font: { family: 'Verdana', size: 10 } }, grid: { color: 'rgba(216,208,193,0.75)' }, border: { color: '#d8d0c1' } },
+          y: { ticks: { color: '#7b7268', font: { family: 'Consolas', size: 10 } }, grid: { color: 'rgba(216,208,193,0.75)' }, border: { color: '#d8d0c1' } },
         },
         ...options,
       },
@@ -1127,7 +1128,7 @@ function App() {
     });
   }, []);
 
-  // ── V9: Auto-sync MC distribution means from base-case assumptions ──
+  // ── V10 tracker: Auto-sync MC distribution means from base-case assumptions ──
   // When the user changes core model inputs (forecast, WACC, valuation),
   // keep Monte Carlo distribution means aligned so analytics tabs always
   // reflect the current model.  Manual MC overrides in the sidebar are
@@ -2082,7 +2083,7 @@ function App() {
               plugins: { legend: { position: 'top' } },
               scales: {
                 x: { ticks: { callback: v => typeof v === 'number' ? fmt.usd(v) : v } },
-                y: { ticks: { font: { size: 11, family: 'Inter' }, align: 'start' } },
+                y: { ticks: { font: { size: 10, family: 'Verdana' }, align: 'start' } },
               },
             }} />
           </div>
@@ -2208,7 +2209,7 @@ function App() {
             plugins: { legend: { position: 'top' } },
             scales: {
               x: { ticks: { callback: v => fmt.usd(v) } },
-              y: { ticks: { font: { size: 11, family: 'Inter' }, align: 'start' } },
+              y: { ticks: { font: { size: 10, family: 'Verdana' }, align: 'start' } },
             },
           }} />
         </div>
@@ -2237,7 +2238,7 @@ function App() {
             <div className="header-title">IB-Grade DCF Engine</div>
             <div className="header-subtitle">Interactive Valuation Dashboard</div>
           </div>
-          <span style={{marginLeft:10,padding:'2px 8px',fontSize:11,fontWeight:700,borderRadius:6,background:'var(--gradient-primary)',color:'#fff',letterSpacing:0.5}}>V9</span>
+          <span style={{marginLeft:10,padding:'2px 8px',fontSize:11,fontWeight:700,borderRadius:6,background:'var(--gradient-primary)',color:'#fff',letterSpacing:0.5}}>V10</span>
         </div>
         <div className="header-actions">
           {results && (
