@@ -544,10 +544,11 @@ body {
 
 .distribution-legend-item .legend-stats {
   display: grid;
-  grid-template-columns: auto auto auto;
+  grid-template-columns: repeat(4, max-content);
   gap: 4px 12px;
   font-size: 11px;
   padding-left: 14px;
+  align-items: baseline;
 }
 
 .distribution-legend-item .legend-stat-label {
