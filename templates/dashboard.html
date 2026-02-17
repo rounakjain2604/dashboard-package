@@ -245,6 +245,42 @@ body {
 .sidebar-export-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
 .sidebar-export-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* Settings highlight button in sidebar */
+.nav-item.settings-highlight {
+  background: var(--text-primary);
+  color: #fff;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  margin-top: 4px;
+}
+.nav-item.settings-highlight:hover {
+  background: #333;
+  color: #fff;
+}
+.nav-item.settings-highlight .nav-icon { opacity: 1; }
+
+/* Header settings button */
+.header-settings-btn {
+  padding: 7px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition);
+}
+.header-settings-btn:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
 /* ── MAIN CONTENT ─────────────────────────── */
 .main-content {
   overflow-y: auto;
@@ -1538,7 +1574,7 @@ function App() {
         </div>
         <div className="sidebar-nav-section">
           <div className="sidebar-nav-label">Configuration</div>
-          <button className={`nav-item ${showSettings ? 'active' : ''}`}
+          <button className={`nav-item settings-highlight ${showSettings ? 'active' : ''}`}
             onClick={() => setShowSettings(true)}>
             <span className="nav-icon">⚙</span>
             Model Settings
@@ -2478,6 +2514,7 @@ function App() {
             <div className="subtitle">{config.company_name} · {config.currency}</div>
           </div>
           <div className="main-header-right">
+            <button className="header-settings-btn" onClick={() => setShowSettings(true)}>⚙ Assumptions</button>
             <span className="version-badge">{appVersion}</span>
             {results && (
               <span className="status-chip success">
