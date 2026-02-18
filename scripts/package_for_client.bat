@@ -5,7 +5,7 @@ REM  Creates a clean /dist folder with only deliverable files
 REM ============================================================
 setlocal
 
-set DIST=dist\dcf_engine_v10
+set DIST=dist\dcf_engine_v13
 
 echo.
 echo ── Cleaning previous build...
@@ -51,6 +51,8 @@ copy /y "api\index.py"                   "%DIST%\api\" >nul
 
 echo ── Copying documentation...
 copy /y "CLIENT_README.md"               "%DIST%\README.md" >nul
+copy /y "IB_Grade_DCF_Engine_Client_Document.docx" "%DIST%\" >nul
+copy /y "generate_client_doc.py"           "%DIST%\" >nul
 
 echo.
 echo ============================================================
@@ -63,6 +65,7 @@ echo    data\         Sample financial data
 echo    configs\      Preset configurations
 echo    api\          Vercel serverless entry
 echo    README.md     Client-facing documentation
+echo    IB_Grade_DCF_Engine_Client_Document.docx  Full product guide
 echo ============================================================
 echo.
 pause

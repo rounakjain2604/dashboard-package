@@ -1,0 +1,2288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IB-Grade DCF Engine — Interactive Dashboard</title>
+
+<!-- React 18 -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Chart.js 4 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+<!-- System fonts: Verdana + Consolas — no external dependency -->
+
+<style>
+/* ── CSS Variables & Reset ──────────────────────────────── */
+:root {
+  --bg-primary: #f5f2ea;
+  --bg-secondary: #efe9dd;
+  --bg-card: #fbf9f4;
+  --bg-card-hover: #f6f1e7;
+  --bg-input: #ffffff;
+  --border: #d8d0c1;
+  --border-focus: #4d4d4d;
+  --text-primary: #1f1f1f;
+  --text-secondary: #4f4a42;
+  --text-muted: #7b7268;
+  --accent-blue: #3f5f74;
+  --accent-cyan: #4b7f7a;
+  --accent-green: #4f7d52;
+  --accent-emerald: #34d399;
+  --accent-red: #9d524e;
+  --accent-amber: #9b7442;
+  --accent-purple: #6e5f7d;
+  --accent-pink: #9f6f7d;
+  --gradient-primary: linear-gradient(135deg, #2f2f2f 0%, #565656 100%);
+  --gradient-success: linear-gradient(135deg, #4f7d52 0%, #4b7f7a 100%);
+  --gradient-danger: linear-gradient(135deg, #9d524e 0%, #9b7442 100%);
+  --shadow-lg: 0 20px 40px rgba(36, 31, 23, 0.08);
+  --shadow-card: 0 6px 16px rgba(48, 40, 29, 0.06);
+  --shadow-glow-blue: 0 0 0 rgba(0,0,0,0);
+  --shadow-glow-green: 0 0 0 rgba(0,0,0,0);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --font-sans: 'Verdana', 'Segoe UI', Geneva, sans-serif;
+  --font-serif: 'Verdana', Geneva, sans-serif;
+  --font-mono: 'Consolas', 'Courier New', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { font-size: 13px; }
+
+body {
+  font-family: var(--font-sans);
+  background: radial-gradient(circle at top, #faf7f0 0%, var(--bg-primary) 45%, #efe8db 100%);
+  color: var(--text-primary);
+  line-height: 1.45;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Scrollbar ──────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-blue); }
+
+/* ── Layout ──────────────────────────────────── */
+.app-container {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+
+/* ── Header ──────────────────────────────────── */
+.header {
+  grid-column: 1 / -1;
+  background: rgba(245, 240, 230, 0.92);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-logo {
+  width: 36px;
+  height: 36px;
+  background: #272727;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  color: white;
+  box-shadow: var(--shadow-card);
+}
+
+.header-title {
+  font-size: 17px;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  color: #1f1f1f;
+  letter-spacing: -0.2px;
+}
+
+.header-subtitle {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.header-status {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  padding: 6px 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.header-status.running {
+  color: var(--accent-amber);
+  border-color: var(--accent-amber);
+  animation: pulse 1.5s infinite;
+}
+
+.header-status.success {
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Sidebar (Inputs) ──────────────────────────────────── */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 14px;
+  height: calc(100vh - 56px);
+  position: sticky;
+  top: 56px;
+}
+
+.sidebar-section {
+  margin-bottom: 14px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 7px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.section-header:hover {
+  border-color: #bcae99;
+  background: var(--bg-card-hover);
+}
+
+.section-header.active {
+  border-color: #a9987f;
+  box-shadow: inset 0 0 0 1px #d6c6ae;
+}
+
+.section-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.section-label {
+  font-weight: 600;
+  font-size: 13px;
+  flex: 1;
+  margin-left: 10px;
+}
+
+.section-toggle {
+  font-size: 16px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+
+.section-toggle.open { transform: rotate(180deg); }
+
+.section-body {
+  padding: 2px 0;
+  display: grid;
+  gap: 5px;
+}
+
+.section-body.collapsed { display: none; }
+
+/* ── Input Fields ──────────────────────────────────── */
+.input-group {
+  display: grid;
+  grid-template-columns: 1fr 100px;
+  align-items: start;
+  gap: 6px;
+  padding: 3px 6px;
+}
+
+.input-group.wide {
+  grid-template-columns: 1fr;
+}
+
+.input-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+  padding-top: 2px;
+}
+
+.input-label .unit {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 400;
+}
+
+input[type="number"],
+input[type="text"],
+select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  outline: none;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+input:focus, select:focus {
+  border-color: #8f7d66;
+  box-shadow: 0 0 0 2px rgba(143, 125, 102, 0.18);
+}
+
+input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
+
+/* ── Buttons ──────────────────────────────────── */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.3px;
+}
+
+.btn-primary {
+  background: #2b2b2b;
+  color: white;
+  box-shadow: 0 4px 12px rgba(20, 20, 20, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  background: #1f1f1f;
+  box-shadow: 0 8px 20px rgba(20, 20, 20, 0.22);
+}
+
+.btn-primary:active { transform: translateY(0); }
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-export {
+  background: var(--gradient-success);
+  color: white;
+  box-shadow: 0 4px 12px rgba(79, 125, 82, 0.2);
+}
+
+.btn-export:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(79, 125, 82, 0.25);
+  filter: brightness(1.05);
+}
+
+.btn-export:active { transform: translateY(0); }
+
+.btn-export:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent-blue);
+  background: var(--bg-card-hover);
+}
+
+.btn-sm { padding: 6px 12px; font-size: 11px; }
+
+.run-bar {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.run-bar .btn-primary {
+  width: 100%;
+  justify-content: center;
+  padding: 10px;
+  font-size: 13px;
+}
+
+.run-bar .btn-export {
+  width: 100%;
+  justify-content: center;
+  padding: 8px;
+  font-size: 12px;
+}
+
+.config-loader {
+  display: flex;
+  gap: 6px;
+}
+
+.config-loader select {
+  flex: 1;
+  font-family: var(--font-sans);
+}
+
+/* ── Main Content ──────────────────────────────────── */
+.main-content {
+  overflow-y: auto;
+  padding: 18px;
+  height: calc(100vh - 56px);
+}
+
+/* ── Tab Navigation ──────────────────────────────────── */
+.tab-nav {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 18px;
+  padding: 3px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+
+.tab-btn.active {
+  background: #2e2e2e;
+  color: white;
+  box-shadow: 0 2px 8px rgba(36, 31, 23, 0.2);
+}
+
+/* ── KPI Cards ──────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.kpi-card:hover {
+  border-color: #c8bba8;
+  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.kpi-card.blue::before { background: var(--gradient-primary); }
+.kpi-card.green::before { background: var(--gradient-success); }
+.kpi-card.amber::before { background: linear-gradient(135deg, var(--accent-amber), var(--accent-pink)); }
+.kpi-card.purple::before { background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); }
+
+.kpi-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.kpi-value {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.kpi-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-family: var(--font-mono);
+}
+
+/* ── Chart Cards ──────────────────────────────────── */
+.chart-grid {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.chart-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.chart-grid.cols-1 { grid-template-columns: 1fr; }
+
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  transition: all 0.3s;
+}
+
+.chart-card:hover {
+  border-color: #c8bba8;
+  box-shadow: var(--shadow-card);
+}
+
+.chart-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-title .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+}
+
+.chart-container.tall { height: 400px; }
+.chart-container.short { height: 250px; }
+
+/* ── Data Tables ──────────────────────────────────── */
+.data-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+.data-table th {
+  background: #f4ede1;
+  color: #5a4c3d;
+  font-weight: 700;
+  text-align: right;
+  padding: 6px 10px;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+}
+
+.data-table th:first-child { text-align: left; }
+
+.data-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid #e2d9ca;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.data-table td:first-child {
+  text-align: left;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+
+.data-table tr:hover td {
+  background: #f6efe4;
+}
+
+.data-table .row-total td {
+  font-weight: 700;
+  border-top: 2px solid var(--accent-blue);
+  color: var(--accent-green);
+}
+
+.data-table .row-subtotal td {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ── Heatmap Table ──────────────────────────────────── */
+.heatmap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+.heatmap-table th {
+  background: #f4ede1;
+  color: #5a4c3d;
+  font-weight: 700;
+  padding: 6px 10px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+.heatmap-table td {
+  padding: 6px 10px;
+  text-align: center;
+  border: 1px solid var(--border);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.heatmap-table td:first-child {
+  background: #f4ede1;
+  color: #5a4c3d;
+  font-weight: 600;
+}
+
+/* ── Empty State ──────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 80px;
+  margin-bottom: 24px;
+  opacity: 0.3;
+}
+
+.empty-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.empty-desc {
+  color: var(--text-muted);
+  max-width: 400px;
+  line-height: 1.8;
+}
+
+/* ── Waterfall Bridge ──────────────────────────────────── */
+.bridge-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 280px;
+  padding: 20px 0;
+}
+
+.bridge-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.bridge-bar .bar {
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  width: 60%;
+  transition: all 0.3s;
+}
+
+.bridge-bar .bar-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 6px;
+  line-height: 1.2;
+}
+
+.bridge-bar .bar-value {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* ── Loading Spinner ──────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Football Field ──────────────────────────────────── */
+.football-field {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.ff-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 100px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.ff-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.ff-bar-track {
+  height: 28px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ff-bar {
+  height: 100%;
+  border-radius: 4px;
+  position: absolute;
+  transition: all 0.5s;
+}
+
+.ff-value {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 1200px) {
+  .app-container { grid-template-columns: 340px 1fr; }
+  .chart-grid.cols-2 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .app-container { grid-template-columns: 1fr; }
+  .sidebar { height: auto; position: static; max-height: none; }
+}
+
+/* ── Scenario Badges ──────────────────────────────────── */
+.scenario-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.scenario-badge.base { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+.scenario-badge.bull { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+.scenario-badge.bear { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+
+/* ── WACC Waterfall ──────────────────────────────────── */
+.wacc-card {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.wacc-item {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(33, 29, 21, 0.04);
+}
+
+.wacc-item-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.wacc-item-value {
+  font-size: 17px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+{% raw %}
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+// ── Formatting Helpers ──────────────────────────────────
+const fmt = {
+  usd: (v) => {
+    if (v == null || isNaN(v)) return '—';
+    const abs = Math.abs(v);
+    if (abs >= 1e9) return `$${(v/1e9).toFixed(2)}B`;
+    if (abs >= 1e6) return `$${(v/1e6).toFixed(2)}M`;
+    if (abs >= 1e3) return `$${(v/1e3).toFixed(1)}K`;
+    return `$${v.toFixed(0)}`;
+  },
+  num: (v, d=0) => v == null || isNaN(v) ? '—' : v.toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d}),
+  pct: (v, d=1) => v == null || isNaN(v) ? '—' : `${(v*100).toFixed(d)}%`,
+  x: (v) => v == null || isNaN(v) ? '—' : `${v.toFixed(1)}x`,
+};
+
+// ── Default Config State ──────────────────────────────────
+const DEFAULT_CONFIG = {
+  company_name: "Target Company",
+  ticker: "",
+  industry: "",
+  currency: "USD",
+  analyst_name: "Dashboard User",
+  data_file: "data/asian_street_financials.csv",
+  base_year_revenue: 1175357,
+  base_cash: 25000,
+  base_ppe: 100000,
+  base_nwc: 3000,
+  base_retained_earnings: 0,
+  base_common_stock: 0,
+  forecast: {
+    projection_years: 5,
+    revenue_method: "cagr",
+    revenue_cagr: 0.08,
+    revenue_yoy: [0.08, 0.07, 0.06, 0.05, 0.05],
+    cogs_pct_revenue: 0.33,
+    sga_pct_revenue: 0.20,
+    other_opex_pct_revenue: 0.05,
+    depreciation_rate: 0.10,
+    amortisation_pct_revenue: 0.005,
+    capex_method: "pct_revenue",
+    capex_pct_revenue: 0.04,
+    capex_fixed: 0,
+    capex_manual: {},
+    revenue_manual: {},
+    dso: 45,
+    dio: 50,
+    dpo: 40,
+    prepaid_pct_revenue: 0.005,
+    accrued_pct_revenue: 0.01,
+    tax_rate: 0.25,
+    dividend_payout_ratio: 0.0,
+  },
+  wacc: {
+    risk_free_rate: 0.042,
+    equity_risk_premium: 0.055,
+    beta: 1.1,
+    size_premium: 0.0,
+    country_risk_premium: 0.0,
+    target_debt_weight: 0.30,
+    target_equity_weight: 0.70,
+    interest_coverage_ratio: 5.0,
+    tax_rate: 0.25,
+    use_live_data: false,
+  },
+  valuation: {
+    terminal_growth_rate: 0.025,
+    exit_ev_ebitda_multiple: 10.0,
+    discount_convention: "mid_year",
+    gordon_weight: 0.50,
+    cash: 0,
+    debt: 0,
+    minority_interest: 0,
+    preferred_stock: 0,
+    fully_diluted_shares: 1000000,
+    gdp_growth_cap: 0.035,
+    terminal_spread_floor_bps: 50,
+  },
+  monte_carlo: {
+    iterations: 10000,
+    revenue_growth_mean: 0.08,       // synced from forecast.revenue_cagr
+    revenue_growth_std: 0.03,
+    ebitda_margin_mean: 0.42,        // synced: 1 - 0.33 - 0.20 - 0.05
+    ebitda_margin_std: 0.05,
+    wacc_mean: 0.09,                 // synced from WACC inputs
+    wacc_std: 0.02,
+    terminal_growth_mean: 0.025,     // synced from valuation
+    terminal_growth_std: 0.01,
+    exit_multiple_mean: 10.0,        // synced from valuation
+    exit_multiple_std: 2.0,
+    seed: null,
+  },
+  sensitivity: {
+    wacc_range: [-0.02, -0.01, 0, 0.01, 0.02],
+    terminal_growth_range: [-0.01, -0.005, 0, 0.005, 0.01],
+    revenue_growth_range: [-0.03, -0.015, 0, 0.015, 0.03],
+    ebitda_margin_range: [-0.05, -0.025, 0, 0.025, 0.05],
+  },
+  debt_tranches: [],
+  scenarios: {
+    Base: { name: "Base", revenue_multiplier: 1.0, margin_delta_bps: 0, capex_multiplier: 1.0, working_capital_days_delta: 0 },
+    Bull: { name: "Bull", revenue_multiplier: 1.10, margin_delta_bps: 200, capex_multiplier: 0.95, working_capital_days_delta: -3 },
+    Bear: { name: "Bear", revenue_multiplier: 0.90, margin_delta_bps: -200, capex_multiplier: 1.05, working_capital_days_delta: 4 },
+  },
+  peer_tickers: [],
+};
+
+// ── Chart Component ──────────────────────────────────
+function ChartComponent({ type, data, options, className = '' }) {
+  const canvasRef = useRef(null);
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    if (!canvasRef.current || !data) return;
+    if (chartRef.current) chartRef.current.destroy();
+    const ctx = canvasRef.current.getContext('2d');
+    chartRef.current = new Chart(ctx, {
+      type,
+      data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#5f564c', font: { family: 'Verdana', size: 10 } } },
+          tooltip: {
+            backgroundColor: '#fffdf8',
+            titleColor: '#1f1f1f',
+            bodyColor: '#5f564c',
+            borderColor: '#d8d0c1',
+            borderWidth: 1,
+            cornerRadius: 8,
+            padding: 10,
+            titleFont: { family: 'Verdana', weight: 600, size: 11 },
+            bodyFont: { family: 'Consolas', size: 10 },
+          },
+        },
+        scales: {
+          x: { ticks: { color: '#7b7268', font: { family: 'Verdana', size: 10 } }, grid: { color: 'rgba(216,208,193,0.75)' }, border: { color: '#d8d0c1' } },
+          y: { ticks: { color: '#7b7268', font: { family: 'Consolas', size: 10 } }, grid: { color: 'rgba(216,208,193,0.75)' }, border: { color: '#d8d0c1' } },
+        },
+        ...options,
+      },
+    });
+
+    return () => { if (chartRef.current) chartRef.current.destroy(); };
+  }, [type, data, options]);
+
+  return <canvas ref={canvasRef} className={className} />;
+}
+
+// ── Input Field Component ──────────────────────────────────
+function InputField({ label, unit, value, onChange, type = 'number', step, min, max, pct, options: selectOptions }) {
+  // pct: display as whole-number percentage (8 for 8%), store as decimal (0.08)
+  const displayValue = pct ? +(value * 100).toFixed(4) : value;
+  const handleChange = (e) => {
+    const raw = parseFloat(e.target.value) || 0;
+    onChange(pct ? raw / 100 : raw);
+  };
+  if (selectOptions) {
+    return (
+      <div className="input-group">
+        <label className="input-label">{label} {unit && <span className="unit">({unit})</span>}</label>
+        <select value={value} onChange={e => onChange(e.target.value)}>
+          {selectOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+      </div>
+    );
+  }
+  return (
+    <div className="input-group">
+      <label className="input-label">{label} {unit && <span className="unit">({unit})</span>}</label>
+      <input type={type} value={type === 'number' ? displayValue : value} step={step || 'any'} min={min} max={max}
+        onChange={type === 'number' ? handleChange : e => onChange(e.target.value)} />
+    </div>
+  );
+}
+
+// ── Collapsible Section ──────────────────────────────────
+function Section({ icon, color, label, children, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="sidebar-section">
+      <div className={`section-header ${open ? 'active' : ''}`} onClick={() => setOpen(!open)}>
+        <div className="section-icon" style={{ background: `${color}22`, color }}>{icon}</div>
+        <span className="section-label">{label}</span>
+        <span className={`section-toggle ${open ? 'open' : ''}`}>▼</span>
+      </div>
+      <div className={`section-body ${open ? '' : 'collapsed'}`}>{children}</div>
+    </div>
+  );
+}
+
+// ── KPI Card ──────────────────────────────────
+function KpiCard({ label, value, sub, color = 'blue' }) {
+  return (
+    <div className={`kpi-card ${color}`}>
+      <div className="kpi-label">{label}</div>
+      <div className="kpi-value" style={{ color: color === 'green' ? 'var(--accent-green)' : color === 'amber' ? 'var(--accent-amber)' : color === 'purple' ? 'var(--accent-purple)' : 'var(--accent-cyan)' }}>{value}</div>
+      {sub && <div className="kpi-sub">{sub}</div>}
+    </div>
+  );
+}
+
+// ── Data Table Component ──────────────────────────────────
+function DataTable({ data, columns, formatters = {}, totalRows = [], subtotalRows = [] }) {
+  if (!data || data.length === 0) return <div style={{ color: 'var(--text-muted)', padding: 20, textAlign: 'center' }}>No data</div>;
+  const cols = columns || Object.keys(data[0]);
+  return (
+    <div className="data-table-wrap">
+      <table className="data-table">
+        <thead>
+          <tr>{cols.map(c => <th key={c}>{c}</th>)}</tr>
+        </thead>
+        <tbody>
+          {data.map((row, i) => {
+            const firstCol = String(row[cols[0]] || '');
+            const isTotal = totalRows.some(t => firstCol.includes(t));
+            const isSub = subtotalRows.some(t => firstCol.includes(t));
+            return (
+              <tr key={i} className={isTotal ? 'row-total' : isSub ? 'row-subtotal' : ''}>
+                {cols.map(c => {
+                  const v = row[c];
+                  const formatter = formatters[c];
+                  return <td key={c}>{formatter ? formatter(v) : (typeof v === 'number' ? fmt.num(v, v % 1 !== 0 ? 2 : 0) : String(v ?? ''))}</td>;
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ── Sensitivity Heatmap ──────────────────────────────────
+function HeatmapTable({ data, title }) {
+  if (!data || data.length === 0) return null;
+  const cols = Object.keys(data[0]);
+  const rowLabel = cols.find(c => c.includes('\u2193')) || cols.find(c => c.includes('\u2190') || c.includes('\u2192')) || cols[0];
+  const valueCols = cols.filter(c => c !== rowLabel);
+
+  // Get all values for color scaling
+  const allVals = data.flatMap(r => valueCols.map(c => r[c])).filter(v => v != null && !isNaN(v));
+  const minV = Math.min(...allVals);
+  const maxV = Math.max(...allVals);
+  const range = maxV - minV || 1;
+
+  const getColor = (v) => {
+    if (v == null || isNaN(v)) return 'transparent';
+    const ratio = (v - minV) / range;
+    if (ratio > 0.6) return `rgba(16, 185, 129, ${0.15 + ratio * 0.35})`;
+    if (ratio > 0.4) return `rgba(59, 130, 246, ${0.1 + ratio * 0.2})`;
+    return `rgba(239, 68, 68, ${0.15 + (1 - ratio) * 0.35})`;
+  };
+
+  return (
+    <div>
+      {title && <div className="chart-title"><span className="dot" style={{ background: 'var(--accent-cyan)' }}></span>{title}</div>}
+      <div className="data-table-wrap">
+        <table className="heatmap-table">
+          <thead><tr><th>{rowLabel}</th>{valueCols.map(c => <th key={c}>{c}</th>)}</tr></thead>
+          <tbody>
+            {data.map((row, i) => (
+              <tr key={i}>
+                <td>{typeof row[rowLabel] === 'number' ? fmt.pct(row[rowLabel]) : row[rowLabel]}</td>
+                {valueCols.map(c => (
+                  <td key={c} style={{ background: getColor(row[c]), color: 'var(--text-primary)' }}>
+                    {fmt.usd(row[c])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+
+// ════════════════════════════════════════════════════
+// ██   MAIN APP COMPONENT
+// ════════════════════════════════════════════════════
+function App() {
+  const [config, setConfig] = useState(JSON.parse(JSON.stringify(DEFAULT_CONFIG)));
+  const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [error, setError] = useState(null);
+  const [appVersion, setAppVersion] = useState('V13');
+
+  // Deep updater
+  const updateConfig = useCallback((path, value) => {
+    setConfig(prev => {
+      const next = JSON.parse(JSON.stringify(prev));
+      const keys = path.split('.');
+      let obj = next;
+      for (let i = 0; i < keys.length - 1; i++) obj = obj[keys[i]];
+      obj[keys[keys.length - 1]] = value;
+      return next;
+    });
+  }, []);
+
+  // ── V13 tracker: Auto-sync MC distribution means from base-case assumptions ──
+  // When the user changes core model inputs (forecast, WACC, valuation),
+  // keep Monte Carlo distribution means aligned so analytics tabs always
+  // reflect the current model.  Manual MC overrides in the sidebar are
+  // preserved until the next upstream assumption change.
+  useEffect(() => {
+    setConfig(prev => {
+      const fc = prev.forecast || {};
+      const wc = prev.wacc || {};
+      const vc = prev.valuation || {};
+      const mc = prev.monte_carlo || {};
+
+      const newRevMean  = fc.revenue_cagr ?? 0.08;
+      const newMargin   = 1.0 - (fc.cogs_pct_revenue ?? 0.33)
+                              - (fc.sga_pct_revenue ?? 0.20)
+                              - (fc.other_opex_pct_revenue ?? 0.05);
+      const newTG       = vc.terminal_growth_rate ?? 0.025;
+      const newExitMult = vc.exit_ev_ebitda_multiple ?? 10.0;
+
+      // Compute WACC (CAPM cost of equity + after-tax cost of debt)
+      const rf  = wc.risk_free_rate ?? 0.042;
+      const erp = wc.equity_risk_premium ?? 0.055;
+      const beta = wc.beta ?? 1.1;
+      const sp  = wc.size_premium ?? 0;
+      const crp = wc.country_risk_premium ?? 0;
+      const ke  = rf + beta * erp + sp + crp;
+      // Use synthetic credit spread from Damodaran grid (approximation)
+      const icr = wc.interest_coverage_ratio ?? 5.0;
+      let spread = 0.02;
+      if (icr > 8.5) spread = 0.01;
+      else if (icr > 6.5) spread = 0.012;
+      else if (icr > 5.5) spread = 0.015;
+      else if (icr > 4.25) spread = 0.02;
+      else if (icr > 3.0) spread = 0.025;
+      else if (icr > 2.5) spread = 0.035;
+      else if (icr > 2.0) spread = 0.045;
+      else if (icr > 1.5) spread = 0.06;
+      else spread = 0.08;
+      const kdPre = rf + spread;
+      const tax = wc.tax_rate ?? fc.tax_rate ?? 0.25;
+      const kdPost = kdPre * (1 - tax);
+      const ew  = wc.target_equity_weight ?? 0.70;
+      const dw  = wc.target_debt_weight ?? 0.30;
+      const newWACC = ke * ew + kdPost * dw;
+
+      // Only update if any value actually changed to avoid infinite loops
+      if (Math.abs((mc.revenue_growth_mean ?? 0) - newRevMean) < 1e-8 &&
+          Math.abs((mc.ebitda_margin_mean ?? 0) - newMargin) < 1e-8 &&
+          Math.abs((mc.wacc_mean ?? 0) - newWACC) < 1e-8 &&
+          Math.abs((mc.terminal_growth_mean ?? 0) - newTG) < 1e-8 &&
+          Math.abs((mc.exit_multiple_mean ?? 0) - newExitMult) < 1e-8) {
+        return prev;  // no change → same reference → no re-render
+      }
+
+      const next = JSON.parse(JSON.stringify(prev));
+      next.monte_carlo.revenue_growth_mean  = newRevMean;
+      next.monte_carlo.ebitda_margin_mean   = +newMargin.toFixed(6);
+      next.monte_carlo.wacc_mean            = +newWACC.toFixed(6);
+      next.monte_carlo.terminal_growth_mean = newTG;
+      next.monte_carlo.exit_multiple_mean   = newExitMult;
+      return next;
+    });
+  }, [
+    config.forecast.revenue_cagr,
+    config.forecast.cogs_pct_revenue,
+    config.forecast.sga_pct_revenue,
+    config.forecast.other_opex_pct_revenue,
+    config.wacc.risk_free_rate,
+    config.wacc.equity_risk_premium,
+    config.wacc.beta,
+    config.wacc.size_premium,
+    config.wacc.country_risk_premium,
+    config.wacc.target_debt_weight,
+    config.wacc.target_equity_weight,
+    config.wacc.tax_rate,
+    config.wacc.interest_coverage_ratio,
+    config.forecast.tax_rate,
+    config.valuation.terminal_growth_rate,
+    config.valuation.exit_ev_ebitda_multiple,
+  ]);
+
+  useEffect(() => {
+    fetch('/api/version')
+      .then(r => r.json())
+      .then(v => {
+        if (v && v.badge) setAppVersion(v.badge);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Run the model
+  const isFirstRun = useRef(true);
+  const runModel = useCallback(async (autoRun = false) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setResults(data);
+        if (!autoRun) setActiveTab('overview');
+      } else {
+        setError(data.error || 'Pipeline failed');
+      }
+    } catch (e) {
+      setError(e.message);
+    }
+    setLoading(false);
+  }, [config]);
+
+  // Auto-rerun model when config changes (debounced 800ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      runModel(isFirstRun.current ? false : true);
+      isFirstRun.current = false;
+    }, isFirstRun.current ? 100 : 800);
+    return () => clearTimeout(timer);
+  }, [runModel]);
+
+  // Export to Excel
+  const exportExcel = useCallback(async () => {
+    setExporting(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/export-excel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Export failed');
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const companyName = (config.company_name || 'DCF_Model').replace(/\s+/g, '_');
+      a.download = `${companyName}_IB_Grade_Model.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      setError(e.message);
+    }
+    setExporting(false);
+  }, [config]);
+
+  // ── Sidebar ──────────────────────────────────
+  const renderSidebar = () => (
+    <div className="sidebar">
+      {/* Run Button */}
+      <div className="run-bar">
+        <button className="btn btn-primary" onClick={runModel} disabled={loading}>
+          {loading ? <><span className="spinner"></span> Running Pipeline...</> : <>▶ Run DCF Model</>}
+        </button>
+        <button className="btn btn-export" onClick={exportExcel} disabled={loading || !results} title="Export fully formula-linked IB-grade Excel workbook">
+          {exporting ? <><span className="spinner"></span> Exporting...</> : <>📥 Export to Excel</>}
+        </button>
+      </div>
+
+      {/* Company */}
+      <Section icon="🏢" color="#3b82f6" label="Company Info" defaultOpen={false}>
+        <InputField label="Company Name" value={config.company_name} type="text"
+          onChange={v => updateConfig('company_name', v)} />
+        <InputField label="Ticker" value={config.ticker} type="text"
+          onChange={v => updateConfig('ticker', v)} />
+        <InputField label="Industry" value={config.industry} type="text"
+          onChange={v => updateConfig('industry', v)} />
+      </Section>
+
+      {/* Base Year */}
+      <Section icon="📊" color="#06b6d4" label="Base Year Values" defaultOpen={true}>
+        <InputField label="Revenue" unit="$" value={config.base_year_revenue}
+          onChange={v => updateConfig('base_year_revenue', v)} />
+        <InputField label="Cash" unit="$" value={config.base_cash}
+          onChange={v => updateConfig('base_cash', v)} />
+        <InputField label="PP&E" unit="$" value={config.base_ppe}
+          onChange={v => updateConfig('base_ppe', v)} />
+        <InputField label="Net Working Capital" unit="$" value={config.base_nwc}
+          onChange={v => updateConfig('base_nwc', v)} />
+        <InputField label="Retained Earnings" unit="$" value={config.base_retained_earnings}
+          onChange={v => updateConfig('base_retained_earnings', v)} />
+        <InputField label="Common Stock" unit="$" value={config.base_common_stock}
+          onChange={v => updateConfig('base_common_stock', v)} />
+      </Section>
+
+      {/* Forecast */}
+      <Section icon="📈" color="#10b981" label="Forecast Assumptions" defaultOpen={true}>
+        <InputField label="Projection Years" value={config.forecast.projection_years}
+          onChange={v => updateConfig('forecast.projection_years', v)} min={1} max={10} step={1} />
+        <InputField label="Revenue Method" value={config.forecast.revenue_method}
+          onChange={v => updateConfig('forecast.revenue_method', v)}
+          options={[{value:'cagr',label:'CAGR'},{value:'yoy',label:'Year-over-Year'},{value:'manual',label:'Manual'}]} />
+        <InputField label="Revenue CAGR" unit="%" value={config.forecast.revenue_cagr}
+          onChange={v => updateConfig('forecast.revenue_cagr', v)} step={0.5} pct />
+        <InputField label="COGS % Revenue" unit="%" value={config.forecast.cogs_pct_revenue}
+          onChange={v => updateConfig('forecast.cogs_pct_revenue', v)} step={1} pct />
+        <InputField label="SG&A % Revenue" unit="%" value={config.forecast.sga_pct_revenue}
+          onChange={v => updateConfig('forecast.sga_pct_revenue', v)} step={1} pct />
+        <InputField label="Other OpEx %" unit="%" value={config.forecast.other_opex_pct_revenue}
+          onChange={v => updateConfig('forecast.other_opex_pct_revenue', v)} step={0.5} pct />
+        <InputField label="Tax Rate" unit="%" value={config.forecast.tax_rate}
+          onChange={v => updateConfig('forecast.tax_rate', v)} step={1} pct />
+        <InputField label="Capex Method" value={config.forecast.capex_method}
+          onChange={v => updateConfig('forecast.capex_method', v)}
+          options={[{value:'pct_revenue',label:'% of Revenue'},{value:'fixed',label:'Fixed Amount'}]} />
+        <InputField label="Capex % Revenue" unit="%" value={config.forecast.capex_pct_revenue}
+          onChange={v => updateConfig('forecast.capex_pct_revenue', v)} step={0.5} pct />
+        <InputField label="Depreciation Rate" unit="%" value={config.forecast.depreciation_rate}
+          onChange={v => updateConfig('forecast.depreciation_rate', v)} step={1} pct />
+        <InputField label="Amort % Rev" unit="%" value={config.forecast.amortisation_pct_revenue}
+          onChange={v => updateConfig('forecast.amortisation_pct_revenue', v)} step={0.1} pct />
+        <InputField label="Dividend Payout" unit="%" value={config.forecast.dividend_payout_ratio}
+          onChange={v => updateConfig('forecast.dividend_payout_ratio', v)} step={1} pct />
+      </Section>
+
+      {/* Working Capital */}
+      <Section icon="🔄" color="#f59e0b" label="Working Capital" defaultOpen={false}>
+        <InputField label="DSO" unit="days" value={config.forecast.dso}
+          onChange={v => updateConfig('forecast.dso', v)} step={1} />
+        <InputField label="DIO" unit="days" value={config.forecast.dio}
+          onChange={v => updateConfig('forecast.dio', v)} step={1} />
+        <InputField label="DPO" unit="days" value={config.forecast.dpo}
+          onChange={v => updateConfig('forecast.dpo', v)} step={1} />
+        <InputField label="Prepaid % Rev" unit="%" value={config.forecast.prepaid_pct_revenue}
+          onChange={v => updateConfig('forecast.prepaid_pct_revenue', v)} step={0.1} pct />
+        <InputField label="Accrued % Rev" unit="%" value={config.forecast.accrued_pct_revenue}
+          onChange={v => updateConfig('forecast.accrued_pct_revenue', v)} step={0.1} pct />
+      </Section>
+
+      {/* WACC */}
+      <Section icon="⚖️" color="#8b5cf6" label="WACC" defaultOpen={false}>
+        <InputField label="Risk-Free Rate" unit="%" value={config.wacc.risk_free_rate}
+          onChange={v => updateConfig('wacc.risk_free_rate', v)} step={0.1} pct />
+        <InputField label="Equity Risk Premium" unit="%" value={config.wacc.equity_risk_premium}
+          onChange={v => updateConfig('wacc.equity_risk_premium', v)} step={0.5} pct />
+        <InputField label="Beta" value={config.wacc.beta}
+          onChange={v => updateConfig('wacc.beta', v)} step={0.05} />
+        <InputField label="Size Premium" unit="%" value={config.wacc.size_premium}
+          onChange={v => updateConfig('wacc.size_premium', v)} step={0.5} pct />
+        <InputField label="Country Risk" unit="%" value={config.wacc.country_risk_premium}
+          onChange={v => updateConfig('wacc.country_risk_premium', v)} step={0.5} pct />
+        <InputField label="Debt Weight" unit="%" value={config.wacc.target_debt_weight}
+          onChange={v => { updateConfig('wacc.target_debt_weight', v); updateConfig('wacc.target_equity_weight', 1 - v); }} step={5} pct />
+        <InputField label="Int Coverage" unit="x" value={config.wacc.interest_coverage_ratio}
+          onChange={v => updateConfig('wacc.interest_coverage_ratio', v)} step={0.5} />
+        <InputField label="Tax Rate" unit="%" value={config.wacc.tax_rate}
+          onChange={v => updateConfig('wacc.tax_rate', v)} step={1} pct />
+      </Section>
+
+      {/* Valuation */}
+      <Section icon="💎" color="#ec4899" label="Valuation" defaultOpen={false}>
+        <InputField label="Terminal Growth" unit="%" value={config.valuation.terminal_growth_rate}
+          onChange={v => updateConfig('valuation.terminal_growth_rate', v)} step={0.5} pct />
+        <InputField label="Exit EV/EBITDA" unit="x" value={config.valuation.exit_ev_ebitda_multiple}
+          onChange={v => updateConfig('valuation.exit_ev_ebitda_multiple', v)} step={0.5} />
+        <InputField label="Discount Method" value={config.valuation.discount_convention}
+          onChange={v => updateConfig('valuation.discount_convention', v)}
+          options={[{value:'mid_year',label:'Mid-Year'},{value:'end_period',label:'End Period'}]} />
+        <InputField label="Gordon Weight" unit="%" value={config.valuation.gordon_weight}
+          onChange={v => updateConfig('valuation.gordon_weight', v)} step={5} pct />
+        <InputField label="Cash (bridge)" unit="$" value={config.valuation.cash}
+          onChange={v => updateConfig('valuation.cash', v)} />
+        <InputField label="Debt (bridge)" unit="$" value={config.valuation.debt}
+          onChange={v => {
+            // Set debt AND auto-compute WACC capital structure weights
+            setConfig(prev => {
+              const next = JSON.parse(JSON.stringify(prev));
+              next.valuation.debt = v;
+              const shares = next.valuation.fully_diluted_shares || 1000000;
+              const lastPrice = (results && results.dcf) ? results.dcf.price_blended : 1;
+              const equityMV = shares * Math.max(lastPrice, 0.01);
+              const debtW = v > 0 ? v / (v + equityMV) : 0;
+              next.wacc.target_debt_weight = Math.round(debtW * 1000) / 1000;
+              next.wacc.target_equity_weight = Math.round((1 - debtW) * 1000) / 1000;
+              return next;
+            });
+          }} />
+        <InputField label="Shares Outstanding" value={config.valuation.fully_diluted_shares}
+          onChange={v => updateConfig('valuation.fully_diluted_shares', v)} />
+        <InputField label="GDP Growth Cap" unit="%" value={config.valuation.gdp_growth_cap}
+          onChange={v => updateConfig('valuation.gdp_growth_cap', v)} step={0.5} pct />
+        <InputField label="TV Spread Floor" unit="bps" value={config.valuation.terminal_spread_floor_bps}
+          onChange={v => updateConfig('valuation.terminal_spread_floor_bps', v)} step={10} />
+      </Section>
+
+      {/* Monte Carlo */}
+      <Section icon="🎲" color="#06b6d4" label="Monte Carlo" defaultOpen={false}>
+        <InputField label="Iterations" value={config.monte_carlo.iterations}
+          onChange={v => updateConfig('monte_carlo.iterations', v)} step={1000} />
+        <InputField label="Rev Growth μ" unit="%" value={config.monte_carlo.revenue_growth_mean}
+          onChange={v => updateConfig('monte_carlo.revenue_growth_mean', v)} step={0.5} pct />
+        <InputField label="Rev Growth σ" unit="%" value={config.monte_carlo.revenue_growth_std}
+          onChange={v => updateConfig('monte_carlo.revenue_growth_std', v)} step={0.5} pct />
+        <InputField label="EBITDA Margin μ" unit="%" value={config.monte_carlo.ebitda_margin_mean}
+          onChange={v => updateConfig('monte_carlo.ebitda_margin_mean', v)} step={0.5} pct />
+        <InputField label="EBITDA Margin σ" unit="%" value={config.monte_carlo.ebitda_margin_std}
+          onChange={v => updateConfig('monte_carlo.ebitda_margin_std', v)} step={0.5} pct />
+        <InputField label="WACC μ" unit="%" value={config.monte_carlo.wacc_mean}
+          onChange={v => updateConfig('monte_carlo.wacc_mean', v)} step={0.5} pct />
+        <InputField label="WACC σ" unit="%" value={config.monte_carlo.wacc_std}
+          onChange={v => updateConfig('monte_carlo.wacc_std', v)} step={0.5} pct />
+        <InputField label="TG μ" unit="%" value={config.monte_carlo.terminal_growth_mean}
+          onChange={v => updateConfig('monte_carlo.terminal_growth_mean', v)} step={0.5} pct />
+        <InputField label="TG σ" unit="%" value={config.monte_carlo.terminal_growth_std}
+          onChange={v => updateConfig('monte_carlo.terminal_growth_std', v)} step={0.5} pct />
+        <InputField label="Exit Multiple μ" unit="x" value={config.monte_carlo.exit_multiple_mean}
+          onChange={v => updateConfig('monte_carlo.exit_multiple_mean', v)} step={0.5} />
+        <InputField label="Exit Multiple σ" unit="x" value={config.monte_carlo.exit_multiple_std}
+          onChange={v => updateConfig('monte_carlo.exit_multiple_std', v)} step={0.5} />
+      </Section>
+
+      {/* Scenarios */}
+      <Section icon="🎯" color="#ef4444" label="Scenarios" defaultOpen={false}>
+        {Object.entries(config.scenarios).map(([name, s]) => (
+          <div key={name} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: name === 'Bull' ? 'var(--accent-green)' : name === 'Bear' ? 'var(--accent-red)' : 'var(--accent-blue)', marginBottom: 4, padding: '0 8px' }}>
+              {name} Case
+            </div>
+            <InputField label="Rev Multiplier" unit="x" value={s.revenue_multiplier}
+              onChange={v => updateConfig(`scenarios.${name}.revenue_multiplier`, v)} step={0.01} />
+            <InputField label="Margin Δ" unit="bps" value={s.margin_delta_bps}
+              onChange={v => updateConfig(`scenarios.${name}.margin_delta_bps`, v)} step={25} />
+            <InputField label="Capex Multiplier" unit="x" value={s.capex_multiplier || 1}
+              onChange={v => updateConfig(`scenarios.${name}.capex_multiplier`, v)} step={0.01} />
+            <InputField label="WC Days Δ" unit="days" value={s.working_capital_days_delta || 0}
+              onChange={v => updateConfig(`scenarios.${name}.working_capital_days_delta`, v)} step={1} />
+          </div>
+        ))}
+      </Section>
+    </div>
+  );
+
+  // ── TABS ──────────────────────────────────
+  const TABS = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'income', label: 'Income Statement' },
+    { id: 'balance', label: 'Balance Sheet' },
+    { id: 'cashflow', label: 'Cash Flow' },
+    { id: 'wacc_tab', label: 'WACC' },
+    { id: 'dcf', label: 'DCF' },
+    { id: 'scenarios', label: 'Scenarios' },
+    { id: 'sensitivity', label: 'Sensitivity' },
+    { id: 'montecarlo', label: 'Monte Carlo' },
+    { id: 'tornado', label: 'Tornado' },
+  ];
+
+  // ── Render Tab Content ──────────────────────────────────
+  const renderContent = () => {
+    if (!results) {
+      return (
+        <div className="empty-state">
+          <div className="empty-icon">📊</div>
+          <div className="empty-title">IB-Grade DCF Engine</div>
+          <div className="empty-desc">
+            Configure your model assumptions in the sidebar, then click <strong>Run DCF Model</strong> to generate
+            a full 3-statement model with DCF valuation, Monte Carlo simulation, sensitivity analysis, and more.
+          </div>
+        </div>
+      );
+    }
+
+    switch (activeTab) {
+      case 'overview': return renderOverview();
+      case 'income': return renderIncomeStatement();
+      case 'balance': return renderBalanceSheet();
+      case 'cashflow': return renderCashFlow();
+      case 'wacc_tab': return renderWACC();
+      case 'dcf': return renderDCF();
+      case 'scenarios': return renderScenarios();
+      case 'sensitivity': return renderSensitivity();
+      case 'montecarlo': return renderMonteCarlo();
+      case 'tornado': return renderTornado();
+      default: return null;
+    }
+  };
+
+  // ── OVERVIEW TAB ──────────────────────────────────
+  const renderOverview = () => {
+    const d = results.dcf || {};
+    const w = results.wacc || {};
+    const is = results.income_statement || [];
+    const lastYear = is.length > 0 ? is[is.length - 1] : {};
+
+    return (
+      <>
+        {/* KPI Strip */}
+        <div className="kpi-grid">
+          <KpiCard label="Enterprise Value" value={fmt.usd(d.ev_blended)} sub={`Gordon: ${fmt.usd(d.ev_gordon)}`} color="blue" />
+          <KpiCard label="Equity Value" value={fmt.usd(d.equity_blended)} sub={`Price/Share: ${fmt.usd(d.price_blended)}`} color="green" />
+          <KpiCard label="WACC" value={fmt.pct(w.wacc)} sub={`Rating: ${w.synthetic_rating || 'N/A'}`} color="purple" />
+          <KpiCard label="TV % of EV" value={fmt.pct(d.tv_pct_of_ev)} sub={`Implied Exit: ${fmt.x(d.implied_exit_multiple_from_gordon)}`} color="amber" />
+          <KpiCard label={`Yr ${config.forecast.projection_years} Revenue`} value={fmt.usd(lastYear['Revenue'])} sub={`Growth: ${fmt.pct(lastYear['Revenue Growth'])}`} color="blue" />
+          <KpiCard label={`Yr ${config.forecast.projection_years} EBITDA`} value={fmt.usd(lastYear['EBITDA'])} sub={`Margin: ${fmt.pct(lastYear['EBITDA Margin'])}`} color="green" />
+        </div>
+
+        {/* Charts */}
+        <div className="chart-grid cols-2">
+          {/* Revenue & EBITDA Chart */}
+          <div className="chart-card">
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-blue)'}}></span>Revenue & EBITDA Projection</div>
+            <div className="chart-container">
+              <ChartComponent type="bar" data={{
+                labels: is.map(r => `Yr ${r.year_index}`),
+                datasets: [
+                  { label: 'Revenue', data: is.map(r => r['Revenue']), backgroundColor: 'rgba(59,130,246,0.7)', borderRadius: 4, order: 2 },
+                  { label: 'EBITDA', data: is.map(r => r['EBITDA']), backgroundColor: 'rgba(16,185,129,0.7)', borderRadius: 4, order: 2 },
+                  { label: 'Net Income', data: is.map(r => r['Net Income']), type: 'line', borderColor: '#f59e0b', backgroundColor: 'transparent', pointBackgroundColor: '#f59e0b', borderWidth: 2, tension: 0.3, order: 1 },
+                ],
+              }} options={{
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { ticks: { callback: v => fmt.usd(v) } } },
+              }} />
+            </div>
+          </div>
+
+          {/* Margin Chart */}
+          <div className="chart-card">
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-green)'}}></span>Margin Analysis</div>
+            <div className="chart-container">
+              <ChartComponent type="line" data={{
+                labels: is.map(r => `Yr ${r.year_index}`),
+                datasets: [
+                  { label: 'Gross Margin', data: is.map(r => r['Gross Margin']), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3 },
+                  { label: 'EBITDA Margin', data: is.map(r => r['EBITDA Margin']), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 },
+                  { label: 'Net Margin', data: is.map(r => r['Net Income'] / r['Revenue']), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.3 },
+                ],
+              }} options={{
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { ticks: { callback: v => fmt.pct(v) } } },
+              }} />
+            </div>
+          </div>
+
+          {/* FCF Chart */}
+          {results.fcf_table && (
+            <div className="chart-card">
+              <div className="chart-title"><span className="dot" style={{background:'var(--accent-cyan)'}}></span>Free Cash Flow</div>
+              <div className="chart-container">
+                <ChartComponent type="bar" data={{
+                  labels: results.fcf_table.map(r => `Yr ${r.year_index}`),
+                  datasets: [
+                    { label: 'Unlevered FCF', data: results.fcf_table.map(r => r['Unlevered FCF']), backgroundColor: 'rgba(6,182,212,0.7)', borderRadius: 4 },
+                    { label: 'Levered FCF', data: results.fcf_table.map(r => r['Levered FCF']), backgroundColor: 'rgba(139,92,246,0.7)', borderRadius: 4 },
+                  ],
+                }} options={{
+                  plugins: { legend: { position: 'bottom' } },
+                  scales: { y: { ticks: { callback: v => fmt.usd(v) } } },
+                }} />
+              </div>
+            </div>
+          )}
+
+          {/* EV Bridge */}
+          {results.dcf && (
+            <div className="chart-card">
+              <div className="chart-title"><span className="dot" style={{background:'var(--accent-purple)'}}></span>Equity Bridge (Blended)</div>
+              <div className="chart-container">
+                <ChartComponent type="bar" data={{
+                  labels: ['PV of FCFs', 'PV of TV', 'Enterprise Value', '+ Cash', '- Debt', 'Equity Value'],
+                  datasets: [{
+                    data: [
+                      d.ev_blended - d.pv_blended,
+                      d.pv_blended,
+                      d.ev_blended,
+                      config.valuation.cash,
+                      -config.valuation.debt,
+                      d.equity_blended,
+                    ],
+                    backgroundColor: [
+                      'rgba(59,130,246,0.7)',
+                      'rgba(139,92,246,0.7)',
+                      'rgba(6,182,212,0.7)',
+                      'rgba(16,185,129,0.7)',
+                      'rgba(239,68,68,0.7)',
+                      'rgba(245,158,11,0.7)',
+                    ],
+                    borderRadius: 4,
+                  }],
+                }} options={{
+                  plugins: { legend: { display: false } },
+                  scales: { y: { ticks: { callback: v => fmt.usd(v) } } },
+                }} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Timings */}
+        {results.timings && (
+          <div className="chart-card" style={{ marginTop: 16 }}>
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-amber)'}}></span>Pipeline Execution Timings</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {Object.entries(results.timings).map(([k, v]) => (
+                <div key={k} style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 6, padding: '6px 12px', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{k}:</span> <span style={{ color: 'var(--accent-green)' }}>{v.toFixed(3)}s</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Errors */}
+        {results.errors && results.errors.length > 0 && (
+          <div className="chart-card" style={{ marginTop: 16, borderColor: 'var(--accent-red)' }}>
+            <div className="chart-title" style={{ color: 'var(--accent-red)' }}>⚠ Pipeline Warnings</div>
+            {results.errors.map((e, i) => (
+              <div key={i} style={{ fontSize: 12, color: 'var(--accent-red)', padding: '4px 0', fontFamily: 'var(--font-mono)' }}>{e}</div>
+            ))}
+          </div>
+        )}
+      </>
+    );
+  };
+
+  // ── INCOME STATEMENT TAB ──────────────────────────────────
+  const renderIncomeStatement = () => {
+    const is = results.income_statement || [];
+    if (!is.length) return <div style={{color:'var(--text-muted)',padding:40}}>No data</div>;
+
+    const displayCols = ['', 'Revenue', 'Revenue Growth', 'COGS', 'Gross Profit', 'Gross Margin',
+      'SGA', 'Other OpEx', 'EBITDA', 'EBITDA Margin', 'Depreciation', 'Amortisation',
+      'Total D&A', 'EBIT', 'Interest Expense', 'EBT', 'Tax Expense', 'Net Income'];
+
+    // Pivot to rows
+    const metrics = displayCols.slice(1);
+    const years = is.map(r => r.year_index);
+    const pivoted = metrics.map(m => {
+      const row = { Metric: m };
+      is.forEach(r => {
+        const v = r[m];
+        if (m.includes('Margin') || m.includes('Growth')) {
+          row[`Yr ${r.year_index}`] = v != null ? fmt.pct(v) : '—';
+        } else {
+          row[`Yr ${r.year_index}`] = v != null ? fmt.num(v, 0) : '—';
+        }
+      });
+      return row;
+    });
+
+    return (
+      <>
+        <div className="chart-grid cols-2">
+          <div className="chart-card">
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-blue)'}}></span>Revenue Waterfall</div>
+            <div className="chart-container">
+              <ChartComponent type="bar" data={{
+                labels: is.map(r => `Yr ${r.year_index}`),
+                datasets: [
+                  { label: 'Revenue', data: is.map(r => r['Revenue']), backgroundColor: 'rgba(59,130,246,0.8)', borderRadius: 4 },
+                  { label: 'COGS', data: is.map(r => -r['COGS']), backgroundColor: 'rgba(239,68,68,0.6)', borderRadius: 4 },
+                  { label: 'Gross Profit', data: is.map(r => r['Gross Profit']), type: 'line', borderColor: '#10b981', pointBackgroundColor: '#10b981', borderWidth: 2, tension: 0.3, fill: false },
+                ],
+              }} options={{
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { stacked: false, ticks: { callback: v => fmt.usd(v) } } },
+              }} />
+            </div>
+          </div>
+
+          <div className="chart-card">
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-green)'}}></span>P&L Breakdown</div>
+            <div className="chart-container">
+              <ChartComponent type="bar" data={{
+                labels: is.map(r => `Yr ${r.year_index}`),
+                datasets: [
+                  { label: 'COGS', data: is.map(r => r['COGS']), backgroundColor: 'rgba(239,68,68,0.7)', stack: 'stack' },
+                  { label: 'SG&A', data: is.map(r => r['SGA']), backgroundColor: 'rgba(245,158,11,0.7)', stack: 'stack' },
+                  { label: 'Other OpEx', data: is.map(r => r['Other OpEx']), backgroundColor: 'rgba(139,92,246,0.7)', stack: 'stack' },
+                  { label: 'D&A', data: is.map(r => r['Total D&A']), backgroundColor: 'rgba(100,116,139,0.7)', stack: 'stack' },
+                  { label: 'Tax', data: is.map(r => r['Tax Expense']), backgroundColor: 'rgba(236,72,153,0.7)', stack: 'stack' },
+                  { label: 'Net Income', data: is.map(r => r['Net Income']), backgroundColor: 'rgba(16,185,129,0.7)', stack: 'stack' },
+                ],
+              }} options={{
+                plugins: { legend: { position: 'bottom' } },
+                scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: v => fmt.usd(v) } } },
+              }} />
+            </div>
+          </div>
+        </div>
+
+        <div className="chart-card" style={{ marginTop: 20 }}>
+          <div className="chart-title"><span className="dot" style={{background:'var(--accent-cyan)'}}></span>Income Statement</div>
+          <DataTable data={pivoted} columns={['Metric', ...years.map(y => `Yr ${y}`)]}
+            totalRows={['Net Income', 'EBITDA', 'Gross Profit']}
+            subtotalRows={['EBIT', 'EBT', 'Total D&A']} />
+        </div>
+      </>
+    );
+  };
+
+  // ── BALANCE SHEET TAB (IFRS / IAS 1) ──────────────────────────────
+  const renderBalanceSheet = () => {
+    const bs = results.balance_sheet || [];
+    if (!bs.length) return <div style={{color:'var(--text-muted)',padding:40}}>No data</div>;
+
+    return (
+      <>
+        <div className="chart-grid cols-2">
+          <div className="chart-card">
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-blue)'}}></span>Assets Composition</div>
+            <div className="chart-container">
+              <ChartComponent type="bar" data={{
+                labels: bs.map(r => `Yr ${r.year_index}`),
+                datasets: [
+                  { label: 'PP&E', data: bs.map(r => r['Property, Plant & Equipment']), backgroundColor: 'rgba(139,92,246,0.7)', stack: 's' },
+                  { label: 'Inventories', data: bs.map(r => r['Inventories']), backgroundColor: 'rgba(245,158,11,0.7)', stack: 's' },
+                  { label: 'Receivables', data: bs.map(r => r['Trade & Other Receivables']), backgroundColor: 'rgba(59,130,246,0.7)', stack: 's' },
+                  { label: 'Cash', data: bs.map(r => r['Cash & Cash Equivalents']), backgroundColor: 'rgba(16,185,129,0.7)', stack: 's' },
+                  { label: 'Other', data: bs.map(r => (r['Total Assets'] || 0) - (r['Property, Plant & Equipment']||0) - (r['Inventories']||0) - (r['Trade & Other Receivables']||0) - (r['Cash & Cash Equivalents']||0)), backgroundColor: 'rgba(100,116,139,0.5)', stack: 's' },
+                ],
+              }} options={{
+                plugins: { legend: { position: 'bottom' } },
+                scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: v => fmt.usd(v) } } },
+              }} />
+            </div>
+          </div>
+
+          <div className="chart-card">
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-purple)'}}></span>Equity & Liabilities</div>
+            <div className="chart-container">
+              <ChartComponent type="bar" data={{
+                labels: bs.map(r => `Yr ${r.year_index}`),
+                datasets: [
+                  { label: 'Equity', data: bs.map(r => r['Total Equity']), backgroundColor: 'rgba(16,185,129,0.7)', stack: 's' },
+                  { label: 'Borrowings', data: bs.map(r => (r['Long-Term Borrowings']||0) + (r['Current Portion of Borrowings']||0)), backgroundColor: 'rgba(236,72,153,0.7)', stack: 's' },
+                  { label: 'Payables', data: bs.map(r => r['Trade & Other Payables']), backgroundColor: 'rgba(239,68,68,0.7)', stack: 's' },
+                  { label: 'Other Liab', data: bs.map(r => (r['Total Liabilities']||0) - (r['Trade & Other Payables']||0) - (r['Long-Term Borrowings']||0) - (r['Current Portion of Borrowings']||0)), backgroundColor: 'rgba(100,116,139,0.5)', stack: 's' },
+                ],
+              }} options={{
+                plugins: { legend: { position: 'bottom' } },
+                scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: v => fmt.usd(v) } } },
+              }} />
+            </div>
+          </div>
+        </div>
+
+        <div className="chart-card" style={{ marginTop: 20 }}>
+          <div className="chart-title"><span className="dot" style={{background:'var(--accent-cyan)'}}></span>Statement of Financial Position (IFRS / IAS 1)</div>
+          {(() => {
+            // IFRS-ordered sections with separators
+            const ifrsOrder = [
+              // Non-current assets
+              'Property, Plant & Equipment', 'Goodwill', 'Intangible Assets',
+              'Other Non-Current Assets', 'Non-Current Assets',
+              // Current assets
+              'Inventories', 'Trade & Other Receivables', 'Prepayments',
+              'Other Current Assets', 'Cash & Cash Equivalents', 'Current Assets',
+              // Total Assets
+              'Total Assets',
+              // Equity
+              'Share Capital', 'Retained Earnings', 'Total Equity',
+              // Non-current liabilities
+              'Long-Term Borrowings', 'Other Non-Current Liabilities', 'Non-Current Liabilities',
+              // Current liabilities
+              'Trade & Other Payables', 'Accrued Liabilities', 'Current Portion of Borrowings',
+              'Other Current Liabilities', 'Current Liabilities',
+              // Totals
+              'Total Liabilities', 'Total Equity & Liabilities',
+            ];
+            const metrics = ifrsOrder.filter(m => bs[0] && bs[0][m] !== undefined);
+            const pivoted = metrics.map(m => {
+              const row = { Metric: m };
+              bs.forEach(r => { row[`Yr ${r.year_index}`] = r[m] != null ? fmt.num(r[m], 0) : '—'; });
+              return row;
+            });
+            return <DataTable data={pivoted} columns={['Metric', ...bs.map(r => `Yr ${r.year_index}`)]}
+              totalRows={['Total Assets', 'Total Equity & Liabilities', 'Total Equity', 'Total Liabilities']}
+              subtotalRows={['Current Assets', 'Non-Current Assets', 'Current Liabilities', 'Non-Current Liabilities']} />;
+          })()}
+        </div>
+      </>
+    );
+  };
+
+  // ── CASH FLOW TAB ──────────────────────────────────
+  const renderCashFlow = () => {
+    const cf = results.cash_flow || [];
+    const fcf = results.fcf_table || [];
+    if (!cf.length) return <div style={{color:'var(--text-muted)',padding:40}}>No data</div>;
+
+    return (
+      <>
+        <div className="chart-grid cols-2">
+          <div className="chart-card">
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-blue)'}}></span>Cash Flow Components</div>
+            <div className="chart-container">
+              <ChartComponent type="bar" data={{
+                labels: cf.map(r => `Yr ${r.year_index}`),
+                datasets: [
+                  { label: 'CFO', data: cf.map(r => r['CFO']), backgroundColor: 'rgba(59,130,246,0.7)', borderRadius: 4 },
+                  { label: 'CFI', data: cf.map(r => r['CFI']), backgroundColor: 'rgba(239,68,68,0.7)', borderRadius: 4 },
+                  { label: 'CFF', data: cf.map(r => r['CFF']), backgroundColor: 'rgba(139,92,246,0.7)', borderRadius: 4 },
+                  { label: 'Net Change', data: cf.map(r => r['Net Change in Cash']), type: 'line', borderColor: '#10b981', pointBackgroundColor: '#10b981', borderWidth: 2, tension: 0.3, fill: false },
+                ],
+              }} options={{
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { ticks: { callback: v => fmt.usd(v) } } },
+              }} />
+            </div>
+          </div>
+
+          <div className="chart-card">
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-cyan)'}}></span>UFCF vs LFCF</div>
+            <div className="chart-container">
+              <ChartComponent type="line" data={{
+                labels: fcf.map(r => `Yr ${r.year_index}`),
+                datasets: [
+                  { label: 'Unlevered FCF', data: fcf.map(r => r['Unlevered FCF']), borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.15)', fill: true, tension: 0.3, pointRadius: 5, pointBackgroundColor: '#06b6d4' },
+                  { label: 'Levered FCF', data: fcf.map(r => r['Levered FCF']), borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.15)', fill: true, tension: 0.3, pointRadius: 5, pointBackgroundColor: '#8b5cf6' },
+                ],
+              }} options={{
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { ticks: { callback: v => fmt.usd(v) } } },
+              }} />
+            </div>
+          </div>
+        </div>
+
+        <div className="chart-card" style={{ marginTop: 20 }}>
+          <div className="chart-title"><span className="dot" style={{background:'var(--accent-cyan)'}}></span>Cash Flow Statement</div>
+          {(() => {
+            const metrics = Object.keys(cf[0] || {}).filter(k => k !== 'year_index');
+            const pivoted = metrics.map(m => {
+              const row = { Metric: m };
+              cf.forEach(r => { row[`Yr ${r.year_index}`] = r[m] != null ? fmt.num(r[m], 0) : '—'; });
+              return row;
+            });
+            return <DataTable data={pivoted} columns={['Metric', ...cf.map(r => `Yr ${r.year_index}`)]}
+              totalRows={['CFO', 'CFI', 'CFF', 'Net Change in Cash']} />;
+          })()}
+        </div>
+
+        {fcf.length > 0 && (
+          <div className="chart-card" style={{ marginTop: 20 }}>
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-green)'}}></span>FCF Build</div>
+            {(() => {
+              const metrics = Object.keys(fcf[0] || {}).filter(k => k !== 'year_index');
+              const pivoted = metrics.map(m => {
+                const row = { Metric: m };
+                fcf.forEach(r => { row[`Yr ${r.year_index}`] = r[m] != null ? fmt.num(r[m], 0) : '—'; });
+                return row;
+              });
+              return <DataTable data={pivoted} columns={['Metric', ...fcf.map(r => `Yr ${r.year_index}`)]}
+                totalRows={['Unlevered FCF', 'Levered FCF']} />;
+            })()}
+          </div>
+        )}
+      </>
+    );
+  };
+
+  // ── WACC TAB ──────────────────────────────────
+  const renderWACC = () => {
+    const w = results.wacc;
+    if (!w) return <div style={{color:'var(--text-muted)',padding:40}}>WACC not computed</div>;
+
+    return (
+      <>
+        <div className="kpi-grid">
+          <KpiCard label="WACC" value={fmt.pct(w.wacc)} sub="Blended cost of capital" color="purple" />
+          <KpiCard label="Cost of Equity (Ke)" value={fmt.pct(w.cost_of_equity)} sub="CAPM-derived" color="blue" />
+          <KpiCard label="Cost of Debt (Kd)" value={fmt.pct(w.cost_of_debt_after_tax)} sub={`Pre-tax: ${fmt.pct(w.cost_of_debt_pre_tax)}`} color="amber" />
+          <KpiCard label="Credit Rating" value={w.synthetic_rating || 'N/A'} sub="Synthetic (Damodaran)" color="green" />
+        </div>
+
+        <div className="chart-card" style={{ marginTop: 20 }}>
+          <div className="chart-title"><span className="dot" style={{background:'var(--accent-purple)'}}></span>WACC Components</div>
+          <div className="wacc-card">
+            <div className="wacc-item">
+              <div className="wacc-item-label">Risk-Free Rate</div>
+              <div className="wacc-item-value" style={{color:'var(--accent-blue)'}}>{fmt.pct(w.risk_free_rate)}</div>
+            </div>
+            <div className="wacc-item">
+              <div className="wacc-item-label">Beta (β)</div>
+              <div className="wacc-item-value" style={{color:'var(--accent-cyan)'}}>{w.beta?.toFixed(2)}</div>
+            </div>
+            <div className="wacc-item">
+              <div className="wacc-item-label">Equity Risk Premium</div>
+              <div className="wacc-item-value" style={{color:'var(--accent-purple)'}}>{fmt.pct(w.equity_risk_premium)}</div>
+            </div>
+            <div className="wacc-item">
+              <div className="wacc-item-label">Equity Weight</div>
+              <div className="wacc-item-value" style={{color:'var(--accent-green)'}}>{fmt.pct(w.equity_weight)}</div>
+            </div>
+            <div className="wacc-item">
+              <div className="wacc-item-label">Debt Weight</div>
+              <div className="wacc-item-value" style={{color:'var(--accent-red)'}}>{fmt.pct(w.debt_weight)}</div>
+            </div>
+            <div className="wacc-item">
+              <div className="wacc-item-label">Cost of Equity</div>
+              <div className="wacc-item-value" style={{color:'var(--accent-blue)'}}>{fmt.pct(w.cost_of_equity)}</div>
+            </div>
+            <div className="wacc-item">
+              <div className="wacc-item-label">Pre-Tax Kd</div>
+              <div className="wacc-item-value" style={{color:'var(--accent-amber)'}}>{fmt.pct(w.cost_of_debt_pre_tax)}</div>
+            </div>
+            <div className="wacc-item">
+              <div className="wacc-item-label">After-Tax Kd</div>
+              <div className="wacc-item-value" style={{color:'var(--accent-amber)'}}>{fmt.pct(w.cost_of_debt_after_tax)}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* WACC Build Chart */}
+        <div className="chart-card" style={{ marginTop: 20 }}>
+          <div className="chart-title"><span className="dot" style={{background:'var(--accent-blue)'}}></span>CAPM Build-Up</div>
+          <div className="chart-container short">
+            <ChartComponent type="bar" data={{
+              labels: ['Risk-Free', '+ β×ERP', '+ Size', '+ Country', '= Ke', 'After-Tax Kd', 'WACC'],
+              datasets: [{
+                data: [
+                  w.risk_free_rate,
+                  w.beta * w.equity_risk_premium,
+                  config.wacc.size_premium,
+                  config.wacc.country_risk_premium,
+                  w.cost_of_equity,
+                  w.cost_of_debt_after_tax,
+                  w.wacc,
+                ],
+                backgroundColor: [
+                  'rgba(59,130,246,0.7)', 'rgba(139,92,246,0.7)', 'rgba(236,72,153,0.7)',
+                  'rgba(245,158,11,0.7)', 'rgba(59,130,246,0.9)', 'rgba(239,68,68,0.7)', 'rgba(16,185,129,0.9)',
+                ],
+                borderRadius: 4,
+              }],
+            }} options={{
+              plugins: { legend: { display: false } },
+              scales: { y: { ticks: { callback: v => fmt.pct(v) } } },
+              indexAxis: 'y',
+            }} />
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  // ── DCF TAB ──────────────────────────────────
+  const renderDCF = () => {
+    const d = results.dcf;
+    if (!d) return <div style={{color:'var(--text-muted)',padding:40}}>DCF not computed</div>;
+
+    return (
+      <>
+        <div className="kpi-grid">
+          <KpiCard label="EV (Gordon)" value={fmt.usd(d.ev_gordon)} color="blue" />
+          <KpiCard label="EV (Exit Multiple)" value={fmt.usd(d.ev_exit)} color="purple" />
+          <KpiCard label="EV (Blended)" value={fmt.usd(d.ev_blended)} color="green" />
+          <KpiCard label="Equity (Blended)" value={fmt.usd(d.equity_blended)} sub={`${fmt.usd(d.price_blended)}/share`} color="amber" />
+        </div>
+
+        <div className="chart-grid cols-2" style={{ marginTop: 20 }}>
+          {/* Terminal Value Comparison */}
+          <div className="chart-card">
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-purple)'}}></span>Terminal Value Methods</div>
+            <div className="chart-container short">
+              <ChartComponent type="bar" data={{
+                labels: ['Gordon Growth', 'Exit Multiple', 'Blended'],
+                datasets: [
+                  { label: 'Terminal Value', data: [d.gordon_tv, d.exit_tv, d.blended_tv], backgroundColor: ['rgba(59,130,246,0.7)', 'rgba(139,92,246,0.7)', 'rgba(16,185,129,0.7)'], borderRadius: 6 },
+                ],
+              }} options={{
+                plugins: { legend: { display: false } },
+                scales: { y: { ticks: { callback: v => fmt.usd(v) } } },
+              }} />
+            </div>
+          </div>
+
+          {/* Football Field */}
+          <div className="chart-card">
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-cyan)'}}></span>Valuation Range (Football Field)</div>
+            <div className="chart-container short">
+              <ChartComponent type="bar" data={{
+                labels: ['Gordon Growth', 'Exit Multiple', 'Blended'],
+                datasets: [
+                  { label: 'Equity Value', data: [d.equity_gordon, d.equity_exit, d.equity_blended], backgroundColor: ['rgba(59,130,246,0.8)', 'rgba(139,92,246,0.8)', 'rgba(16,185,129,0.8)'], borderRadius: 6 },
+                ],
+              }} options={{
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { x: { ticks: { callback: v => fmt.usd(v) } } },
+              }} />
+            </div>
+          </div>
+        </div>
+
+        {/* DCF Detail */}
+        <div className="chart-card" style={{ marginTop: 20 }}>
+          <div className="chart-title"><span className="dot" style={{background:'var(--accent-blue)'}}></span>DCF Summary</div>
+          <div className="wacc-card">
+            <div className="wacc-item"><div className="wacc-item-label">Terminal FCF</div><div className="wacc-item-value" style={{fontSize:16,color:'var(--accent-blue)'}}>{fmt.usd(d.terminal_fcf)}</div></div>
+            <div className="wacc-item"><div className="wacc-item-label">Terminal EBITDA</div><div className="wacc-item-value" style={{fontSize:16,color:'var(--accent-cyan)'}}>{fmt.usd(d.terminal_ebitda)}</div></div>
+            <div className="wacc-item"><div className="wacc-item-label">Gordon TV</div><div className="wacc-item-value" style={{fontSize:16,color:'var(--accent-blue)'}}>{fmt.usd(d.gordon_tv)}</div></div>
+            <div className="wacc-item"><div className="wacc-item-label">Exit TV</div><div className="wacc-item-value" style={{fontSize:16,color:'var(--accent-purple)'}}>{fmt.usd(d.exit_tv)}</div></div>
+            <div className="wacc-item"><div className="wacc-item-label">TV % of EV</div><div className="wacc-item-value" style={{fontSize:16,color:'var(--accent-amber)'}}>{fmt.pct(d.tv_pct_of_ev)}</div></div>
+            <div className="wacc-item"><div className="wacc-item-label">Implied Exit Multiple</div><div className="wacc-item-value" style={{fontSize:16,color:'var(--accent-green)'}}>{fmt.x(d.implied_exit_multiple_from_gordon)}</div></div>
+            <div className="wacc-item"><div className="wacc-item-label">Implied Growth</div><div className="wacc-item-value" style={{fontSize:16,color:'var(--accent-pink)'}}>{fmt.pct(d.implied_growth_from_exit)}</div></div>
+          </div>
+        </div>
+
+        {/* Valuation Table */}
+        {d.valuation_table && (
+          <div className="chart-card" style={{ marginTop: 20 }}>
+            <div className="chart-title"><span className="dot" style={{background:'var(--accent-green)'}}></span>DCF Valuation Table</div>
+            <DataTable data={d.valuation_table}
+              totalRows={['Enterprise Value', 'Equity Value']}
+              subtotalRows={['PV of Terminal', 'Total PV']} />
+          </div>
+        )}
+      </>
+    );
+  };
+
+  // ── SCENARIOS TAB ──────────────────────────────────
+  const renderScenarios = () => {
+    const sc = results.scenarios || [];
+    if (!sc.length) return <div style={{color:'var(--text-muted)',padding:40}}>No scenario data</div>;
+
+    // Separate monetary and percentage metrics for charting
+    const pctMetrics = ['WACC', 'Terminal Growth', 'EBITDA Margin Yr5', 'TV % of EV'];
+    const dollarMetrics = sc.filter(r => !pctMetrics.includes(r.Metric));
+    const scenCols = Object.keys(sc[0] || {}).filter(k => k !== 'Metric' && k !== 'metric');
+    const colors = { Base: 'rgba(59,130,246,0.7)', Bull: 'rgba(16,185,129,0.7)', Bear: 'rgba(239,68,68,0.7)' };
+
+    // Format scenario table values
+    const formattedSc = sc.map(r => {
+      const row = { Metric: r.Metric };
+      const isPct = pctMetrics.includes(r.Metric);
+      scenCols.forEach(c => {
+        const v = r[c];
+        if (typeof v === 'number') {
+          row[c] = isPct ? fmt.pct(v) : (r.Metric === 'Exit Multiple' ? fmt.x(v) : fmt.usd(v));
+        } else {
+          row[c] = v ?? '—';
+        }
+      });
+      return row;
+    });
+
+    return (
+      <>
+        <div className="chart-card">
+          <div className="chart-title"><span className="dot" style={{background:'var(--accent-cyan)'}}></span>Scenario Comparison — Key Valuation Metrics</div>
+
+          <div className="chart-container tall" style={{ marginBottom: 20 }}>
+            <ChartComponent type="bar" data={{
+              labels: dollarMetrics.map(r => r.Metric || Object.values(r)[0]),
+              datasets: scenCols.map(c => ({
+                label: c,
+                data: dollarMetrics.map(r => typeof r[c] === 'number' ? r[c] : null),
+                backgroundColor: colors[c] || 'rgba(139,92,246,0.7)',
+                borderRadius: 4,
+              })),
+            }} options={{
+              indexAxis: 'y',
+              plugins: { legend: { position: 'top' } },
+              scales: {
+                x: { ticks: { callback: v => typeof v === 'number' ? fmt.usd(v) : v } },
+                y: { ticks: { font: { size: 10, family: 'Verdana' }, align: 'start' } },
+              },
+            }} />
+          </div>
+
+          <DataTable data={formattedSc} columns={['Metric', ...scenCols]} />
+        </div>
+      </>
+    );
+  };
+
+  // ── SENSITIVITY TAB ──────────────────────────────────
+  const renderSensitivity = () => {
+    const s = results.sensitivity;
+    if (!s) return <div style={{color:'var(--text-muted)',padding:40}}>Sensitivity not computed</div>;
+
+    return (
+      <div className="chart-grid cols-1" style={{ gap: 24 }}>
+        <div className="chart-card">
+          <HeatmapTable data={s.wacc_tg} title="WACC × Terminal Growth → Equity Value" />
+        </div>
+        <div className="chart-card">
+          <HeatmapTable data={s.rev_margin} title="Revenue Growth × EBITDA Margin → Equity Value" />
+        </div>
+      </div>
+    );
+  };
+
+  // ── MONTE CARLO TAB ──────────────────────────────────
+  const renderMonteCarlo = () => {
+    const mc = results.monte_carlo;
+    if (!mc) return <div style={{color:'var(--text-muted)',padding:40}}>Monte Carlo not computed</div>;
+
+    const stats = mc.statistics || {};
+    const hist = mc.histogram || {};
+
+    return (
+      <>
+        <div className="kpi-grid">
+          <KpiCard label="Mean" value={fmt.usd(stats['Mean'] || stats['mean'])} color="blue" />
+          <KpiCard label="Median" value={fmt.usd(stats['Median'] || stats['median'])} color="green" />
+          <KpiCard label="P10" value={fmt.usd(stats['P10'] || stats['p10'])} color="amber" />
+          <KpiCard label="P90" value={fmt.usd(stats['P90'] || stats['p90'])} color="purple" />
+          <KpiCard label="Min" value={fmt.usd(stats['Min'] || stats['min'])} sub="Worst case" color="amber" />
+          <KpiCard label="Max" value={fmt.usd(stats['Max'] || stats['max'])} sub="Best case" color="green" />
+        </div>
+
+        <div className="chart-card" style={{ marginTop: 20 }}>
+          <div className="chart-title"><span className="dot" style={{background:'var(--accent-cyan)'}}></span>Monte Carlo Distribution ({(config.monte_carlo.iterations || 10000).toLocaleString()} Simulations)</div>
+          <div className="chart-container tall">
+            {hist.centers && hist.counts ? (
+              <ChartComponent key={`mc-${JSON.stringify(stats).slice(0,60)}`} type="bar" data={{
+                labels: hist.centers.map(c => fmt.usd(c)),
+                datasets: [{
+                  label: 'Frequency',
+                  data: hist.counts,
+                  backgroundColor: hist.centers.map(c => {
+                    const mean = stats['Mean'] || stats['mean'] || 0;
+                    if (c < mean * 0.8) return 'rgba(239,68,68,0.6)';
+                    if (c > mean * 1.2) return 'rgba(16,185,129,0.6)';
+                    return 'rgba(59,130,246,0.6)';
+                  }),
+                  borderRadius: 2,
+                }],
+              }} options={{
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { ticks: { maxTicksLimit: 15, maxRotation: 45 } },
+                  y: { title: { display: true, text: 'Frequency', color: '#64748b' } },
+                },
+              }} />
+            ) : <div style={{color:'var(--text-muted)',textAlign:'center',padding:40}}>No histogram data</div>}
+          </div>
+        </div>
+
+        {/* Stats Table */}
+        <div className="chart-card" style={{ marginTop: 20 }}>
+          <div className="chart-title"><span className="dot" style={{background:'var(--accent-green)'}}></span>Distribution Statistics</div>
+          <div className="wacc-card">
+            {Object.entries(stats).map(([k, v]) => (
+              <div key={k} className="wacc-item">
+                <div className="wacc-item-label">{k}</div>
+                <div className="wacc-item-value" style={{ fontSize: 14, color: 'var(--accent-cyan)' }}>
+                  {typeof v === 'number' ? (Math.abs(v) > 100 ? fmt.usd(v) : v.toFixed(4)) : String(v)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  // ── TORNADO TAB ──────────────────────────────────
+  const renderTornado = () => {
+    const t = results.tornado;
+    if (!t || !t.length) return <div style={{color:'var(--text-muted)',padding:40}}>Tornado not computed</div>;
+
+    // Compute base equity line for reference
+    const baseEquity = results.dcf ? results.dcf.equity_blended : 0;
+
+    return (
+      <div className="chart-card">
+        <div className="chart-title"><span className="dot" style={{background:'var(--accent-red)'}}></span>Tornado Sensitivity (±20% Swing)</div>
+        <div className="chart-container tall">
+          <ChartComponent type="bar" data={{
+            labels: t.map(r => r['Driver'] || r['driver'] || Object.values(r)[0]),
+            datasets: [
+              {
+                label: 'Low Case',
+                data: t.map(r => r['Equity at Low'] || r['Low Value'] || r['low_value'] || 0),
+                backgroundColor: 'rgba(239,68,68,0.7)',
+                borderRadius: 4,
+              },
+              {
+                label: 'High Case',
+                data: t.map(r => r['Equity at High'] || r['High Value'] || r['high_value'] || 0),
+                backgroundColor: 'rgba(16,185,129,0.7)',
+                borderRadius: 4,
+              },
+            ],
+          }} options={{
+            indexAxis: 'y',
+            plugins: { legend: { position: 'top' } },
+            scales: {
+              x: { ticks: { callback: v => fmt.usd(v) } },
+              y: { ticks: { font: { size: 10, family: 'Verdana' }, align: 'start' } },
+            },
+          }} />
+        </div>
+
+        <div style={{ marginTop: 20 }}>
+          <DataTable data={t.map(r => ({
+            Driver: r['Driver'],
+            'Base Input': typeof r['Base Input'] === 'number' ? (Math.abs(r['Base Input']) < 1 ? fmt.pct(r['Base Input']) : fmt.num(r['Base Input'], 2)) : r['Base Input'],
+            'Low Case': fmt.usd(r['Equity at Low']),
+            'High Case': fmt.usd(r['Equity at High']),
+            'Impact': fmt.usd(r['Impact']),
+          }))} columns={['Driver', 'Base Input', 'Low Case', 'High Case', 'Impact']} />
+        </div>
+      </div>
+    );
+  };
+
+  // ── RENDER ──────────────────────────────────
+  return (
+    <div className="app-container">
+      {/* Header */}
+      <header className="header">
+        <div className="header-brand">
+          <div className="header-logo">DCF</div>
+          <div>
+            <div className="header-title">IB-Grade DCF Engine</div>
+            <div className="header-subtitle">Interactive Valuation Dashboard</div>
+          </div>
+          <span style={{marginLeft:10,padding:'2px 8px',fontSize:11,fontWeight:700,borderRadius:6,background:'var(--gradient-primary)',color:'#fff',letterSpacing:0.5}}>{appVersion}</span>
+        </div>
+        <div className="header-actions">
+          {results && (
+            <div className={`header-status success`}>
+              ✓ {Object.keys(results.timings || {}).length} steps · {Object.values(results.timings || {}).reduce((a,b) => a+b, 0).toFixed(2)}s
+            </div>
+          )}
+          {loading && <div className="header-status running"><span className="spinner" style={{width:12,height:12,borderWidth:1.5}}></span> Processing...</div>}
+          {error && <div className="header-status" style={{color:'var(--accent-red)',borderColor:'var(--accent-red)'}}>✗ {error.slice(0,50)}</div>}
+        </div>
+      </header>
+
+      {/* Sidebar */}
+      {renderSidebar()}
+
+      {/* Main */}
+      <main className="main-content">
+        {results && (
+          <nav className="tab-nav">
+            {TABS.map(t => (
+              <button key={t.id} className={`tab-btn ${activeTab === t.id ? 'active' : ''}`}
+                onClick={() => setActiveTab(t.id)}>{t.label}</button>
+            ))}
+          </nav>
+        )}
+        {renderContent()}
+      </main>
+    </div>
+  );
+}
+
+// ── Mount ──────────────────────────────────
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+{% endraw %}
+</body>
+</html>

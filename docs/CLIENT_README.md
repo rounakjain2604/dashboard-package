@@ -1,6 +1,8 @@
-# IB-Grade DCF Valuation Engine — V10.0.0
+# IB-Grade DCF Valuation Engine — V13.0.0
 
 A fully automated, investment-banking-grade Discounted Cash Flow valuation engine with an interactive web dashboard, formula-linked Excel export, and PDF memo generation.
+
+> **Full product documentation**: See the included **IB_Grade_DCF_Engine_Client_Document.docx** for a complete walkthrough, feature reference, and technical guide.
 
 ---
 
@@ -35,10 +37,11 @@ On Windows you can also double-click `run_dashboard.bat`.
 ## Folder Structure
 
 ```
-dcf_engine_v10/
+dcf_engine_v13/
   dashboard_api.py        Flask web server
   run_dashboard.bat       Windows one-click launcher
   requirements.txt        Python dependencies
+  IB_Grade_DCF_Engine_Client_Document.docx   Full product documentation
   configs/                Preset model configurations
     config.example.json
     config.asian_street_ib_grade.json
