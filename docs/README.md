@@ -135,8 +135,8 @@ No Node.js required — the frontend uses CDN libraries.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/<your-org>/dcf-dashboard.git
-cd dcf-dashboard
+git clone https://github.com/rounakjain2604/dashboard-package.git
+cd dashboard-package
 
 # 2. Create a virtual environment (recommended)
 python -m venv .venv
@@ -683,4 +683,4 @@ The config parser supports aliases for backward compatibility:
 
 ## License
 
-Proprietary. All rights reserved.
+This project is licensed under the [MIT License](../LICENSE).
