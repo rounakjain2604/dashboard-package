@@ -16,3 +16,4 @@ dist/
 *.xlsx
 *.pdf
 ~$*
+data/model_requests.csv

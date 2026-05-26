@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ brand_name }} - Editable Excel DCF Models</title>
+<meta name="description" content="Generate editable Excel DCF models for public stocks. Download free sample valuation workbooks or request a custom ticker model.">
+<style>
+:root {
+  --ink: #151515;
+  --muted: #626262;
+  --line: #ded8ce;
+  --paper: #faf8f3;
+  --panel: #ffffff;
+  --green: #0b7f55;
+  --green-soft: #e6f4ee;
+  --blue: #265f99;
+  --gold: #a9771f;
+  --red: #a23b2a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.5;
+}
+a { color: inherit; }
+.nav {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(250, 248, 243, 0.96);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.brand {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 25px;
+  letter-spacing: 0;
+}
+.nav-links { display: flex; gap: 18px; align-items: center; font-size: 14px; color: var(--muted); }
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 6px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+.button.secondary {
+  background: transparent;
+  color: var(--ink);
+}
+.button.ghost {
+  border-color: var(--line);
+  background: var(--panel);
+  color: var(--ink);
+}
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.04fr) minmax(320px, 0.96fr);
+  gap: 44px;
+  align-items: center;
+  padding: 74px 32px 40px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.eyebrow {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 13px;
+}
+h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(42px, 7vw, 78px);
+  line-height: 0.96;
+  letter-spacing: 0;
+  margin: 18px 0;
+}
+.lead {
+  font-size: 19px;
+  color: #414141;
+  max-width: 620px;
+  margin: 0 0 26px;
+}
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.fine { color: var(--muted); font-size: 13px; margin-top: 14px; }
+.workbook {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 18px 55px rgba(50, 40, 25, 0.12);
+  overflow: hidden;
+}
+.sheet-top {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: #eee8dd;
+}
+.dot { width: 10px; height: 10px; border-radius: 999px; background: #c9bda9; }
+.sheet-name { margin-left: auto; color: var(--muted); font-size: 12px; }
+.sheet-grid { padding: 18px; }
+.sheet-row {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(5, 0.8fr);
+  min-height: 34px;
+  border-bottom: 1px solid #ece7df;
+  align-items: center;
+  font-size: 12px;
+}
+.sheet-row.header {
+  color: #fff;
+  background: #1f3864;
+  border-radius: 5px 5px 0 0;
+  padding: 0 8px;
+  font-weight: 700;
+}
+.sheet-row:not(.header) { padding: 0 8px; }
+.sheet-row strong { font-size: 13px; }
+.num { text-align: right; font-family: Consolas, monospace; color: #394450; }
+.formula { color: var(--green); }
+.tabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 18px 18px;
+  flex-wrap: wrap;
+}
+.tab {
+  padding: 5px 9px;
+  border-radius: 4px;
+  background: #edf2f5;
+  font-size: 11px;
+  color: #394450;
+}
+.band {
+  border-top: 1px solid var(--line);
+  padding: 54px 32px;
+}
+.inner { max-width: 1180px; margin: 0 auto; }
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: end;
+  margin-bottom: 22px;
+}
+h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 38px;
+  margin: 0;
+}
+.section-copy { color: var(--muted); max-width: 620px; margin: 8px 0 0; }
+.sample-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+.sample-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  min-height: 208px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.ticker {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 32px;
+}
+.sample-card p { color: var(--muted); font-size: 13px; margin: 8px 0 16px; }
+.sample-links { display: grid; gap: 8px; }
+.mini-link {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+.offer {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+  gap: 28px;
+  align-items: start;
+}
+.price {
+  background: var(--ink);
+  color: #fff;
+  border-radius: 8px;
+  padding: 28px;
+}
+.price .amount {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 64px;
+  line-height: 1;
+}
+.price ul { padding-left: 18px; color: #e8e3da; }
+.form {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 24px;
+}
+.field { display: grid; gap: 7px; margin-bottom: 14px; }
+label { font-size: 13px; font-weight: 700; }
+input, textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px;
+  font: inherit;
+  background: #fff;
+}
+textarea { min-height: 92px; resize: vertical; }
+.message { margin-top: 12px; color: var(--green); font-weight: 700; }
+.error { max-width: 1180px; margin: 16px auto 0; padding: 12px 16px; background: #fff1ee; border: 1px solid #e8b5ab; color: var(--red); border-radius: 6px; }
+.footer {
+  padding: 34px 32px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}
+@media (max-width: 980px) {
+  .hero, .offer { grid-template-columns: 1fr; }
+  .sample-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nav { padding: 0 18px; }
+}
+@media (max-width: 620px) {
+  .nav-links a:not(.button) { display: none; }
+  .hero, .band { padding-left: 18px; padding-right: 18px; }
+  .sample-grid { grid-template-columns: 1fr; }
+  .section-head { display: block; }
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="brand">{{ brand_name }}</div>
+  <div class="nav-links">
+    <a href="#samples">Samples</a>
+    <a href="#custom">Custom model</a>
+    <a href="/dashboard">Dashboard</a>
+    <a class="button secondary" href="#custom">$29 custom DCF</a>
+  </div>
+</nav>
+
+{% if error is defined %}
+<div class="error">{{ error }}</div>
+{% endif %}
+
+<main>
+  <section class="hero">
+    <div>
+      <div class="eyebrow">Editable Excel DCF models for public stocks</div>
+      <h1>Get a clean valuation workbook without building it from scratch.</h1>
+      <p class="lead">{{ brand_name }} generates formula-linked Excel DCF models with 3-statement outputs, WACC, scenarios, sensitivity tables, and Monte Carlo tabs.</p>
+      <div class="hero-actions">
+        <a class="button" href="#samples">Download free samples</a>
+        <a class="button ghost" href="#custom">Request any US ticker</a>
+      </div>
+      <p class="fine">For education and research only. Every workbook is editable, unlocked, and assumption-driven.</p>
+    </div>
+    <div class="workbook" aria-label="Excel workbook preview">
+      <div class="sheet-top">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="sheet-name">Trinsic_NVIDIA_DCF_Sample.xlsx</span>
+      </div>
+      <div class="sheet-grid">
+        <div class="sheet-row header"><span>DCF Summary</span><span>Y1</span><span>Y2</span><span>Y3</span><span>Y4</span><span>Y5</span></div>
+        <div class="sheet-row"><strong>Revenue</strong><span class="num">$154B</span><span class="num">$182B</span><span class="num">$215B</span><span class="num">$254B</span><span class="num">$300B</span></div>
+        <div class="sheet-row"><strong>EBITDA</strong><span class="num">$88B</span><span class="num">$104B</span><span class="num">$123B</span><span class="num">$145B</span><span class="num">$171B</span></div>
+        <div class="sheet-row"><strong>Unlevered FCF</strong><span class="num formula">=NOPAT+D&A-Capex</span><span class="num">$72B</span><span class="num">$86B</span><span class="num">$102B</span><span class="num">$121B</span></div>
+        <div class="sheet-row"><strong>PV of FCF</strong><span class="num">$62B</span><span class="num">$58B</span><span class="num">$55B</span><span class="num">$52B</span><span class="num">$50B</span></div>
+        <div class="sheet-row"><strong>Blended Equity</strong><span></span><span></span><span></span><span></span><span class="num formula">=EV+Cash-Debt</span></div>
+      </div>
+      <div class="tabs">
+        <span class="tab">Assumptions</span><span class="tab">IS</span><span class="tab">BS</span><span class="tab">CF</span><span class="tab">WACC</span><span class="tab">DCF</span><span class="tab">Monte Carlo</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="samples">
+    <div class="inner">
+      <div class="section-head">
+        <div>
+          <h2>Free sample workbooks</h2>
+          <p class="section-copy">Use these as proof-of-output before paying for a custom ticker. Assumptions are starter estimates and should be reviewed.</p>
+        </div>
+      </div>
+      <div class="sample-grid">
+        {% for sample in samples %}
+        <article class="sample-card">
+          <div>
+            <div class="ticker">{{ sample.ticker }}</div>
+            <strong>{{ sample.name }}</strong>
+            <p>{{ sample.tagline }}</p>
+          </div>
+          <div class="sample-links">
+            <a class="mini-link" href="/samples/{{ sample.ticker }}">View page</a>
+            <a class="mini-link" href="/download/sample/{{ sample.ticker }}">Download Excel</a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="custom">
+    <div class="inner offer">
+      <div class="price">
+        <div>Custom model</div>
+        <div class="amount">$29</div>
+        <p>Send one US ticker. Get an editable Excel DCF starter model delivered within 24 hours during the validation period.</p>
+        <ul>
+          <li>Formula-linked Excel workbook</li>
+          <li>DCF, WACC, scenarios, sensitivity, Monte Carlo</li>
+          <li>Unlocked assumptions tab</li>
+          <li>Educational/research use only</li>
+        </ul>
+        <a class="button" style="background:#fff;color:#151515;border-color:#fff" href="/checkout/custom">Pay for custom model</a>
+      </div>
+      <form class="form" id="requestForm">
+        <h2 style="font-size:30px;margin-bottom:6px">Request a ticker</h2>
+        <p class="section-copy" style="margin-bottom:18px">Submit the ticker and email first, then complete payment. This gives you a backup contact path during the early launch.</p>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" placeholder="you@example.com" required>
+        </div>
+        <div class="field">
+          <label for="ticker">Ticker</label>
+          <input id="ticker" name="ticker" placeholder="e.g. COST" required>
+        </div>
+        <div class="field">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" placeholder="Any preference: bull/base/bear focus, industry peer set, etc."></textarea>
+        </div>
+        <button class="button" type="submit">Submit request</button>
+        <div id="formMessage" class="message" role="status"></div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="inner">
+    {{ brand_name }} builds editable valuation workbooks for education and research. Not investment, tax, legal, or financial advice. Contact: {{ support_email }}.
+  </div>
+</footer>
+
+<script>
+const form = document.getElementById('requestForm');
+const msg = document.getElementById('formMessage');
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  msg.textContent = 'Submitting...';
+  const payload = {
+    email: form.email.value,
+    ticker: form.ticker.value,
+    notes: form.notes.value
+  };
+  try {
+    const res = await fetch('/api/request-model', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Request failed');
+    msg.innerHTML = 'Request captured. <a href="' + data.checkout_url + '">Continue to payment</a>.';
+  } catch (err) {
+    msg.textContent = err.message || 'Could not submit request. Please email support.';
+  }
+});
+</script>
+</body>
+</html>

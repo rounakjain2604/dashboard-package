@@ -135,7 +135,7 @@ No Node.js required — the frontend uses CDN libraries.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/rounakjain2604/dashboard-package.git
+git clone <repository-url>
 cd dashboard-package
 
 # 2. Create a virtual environment (recommended)

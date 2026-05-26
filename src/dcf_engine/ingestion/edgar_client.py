@@ -23,7 +23,7 @@ _COMPANY_CONCEPT = f"{_BASE_URL}/api/xbrl/companyconcept/CIK{{cik}}/us-gaap/{{co
 _TICKER_TO_CIK = "https://efts.sec.gov/LATEST/search-index?q=%22{ticker}%22&dateRange=custom&startdt=2020-01-01&enddt=2025-12-31&forms=10-K"
 _CIK_LOOKUP = f"{_BASE_URL}/files/company_tickers.json"
 
-_DEFAULT_USER_AGENT = "DCFEngine/2.0 (rounak.jain.dcf@gmail.com)"
+_DEFAULT_USER_AGENT = "Trinsic/1.0 (support@trinsic.space)"
 _RATE_LIMIT_DELAY = 0.12  # ~8 req/sec to stay under 10
 
 # ── Standard XBRL concepts → friendly names ─────────────────────────

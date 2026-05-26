@@ -7,14 +7,16 @@ from __future__ import annotations
 import json
 import logging
 import os
+import csv
 import tempfile
 import traceback
-from dataclasses import asdict
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from flask import Flask, jsonify, render_template, request, send_from_directory, send_file
+from flask import Flask, jsonify, render_template, request, send_file, redirect
 
 from src.dcf_engine.config import (
     DCFEngineConfig,
@@ -30,6 +32,7 @@ from src.dcf_engine.config import (
 )
 from src.dcf_engine import __version__ as ENGINE_VERSION
 from src.dcf_engine.pipeline import run_pipeline
+from src.dcf_engine.sample_models import get_sample, get_sample_payload, list_samples
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s")
@@ -44,9 +47,15 @@ app = Flask(
     template_folder=str(_BASE_DIR / "templates"),
 )
 app.json.sort_keys = False
+app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("MAX_CONTENT_LENGTH", 1_000_000))
 
 # Detect Vercel environment
 IS_VERCEL = bool(os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"))
+BRAND_NAME = os.environ.get("BRAND_NAME", "Trinsic")
+SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@trinsic.space")
+CUSTOM_MODEL_CHECKOUT_URL = os.environ.get("CUSTOM_MODEL_CHECKOUT_URL", "")
+BUNDLE_CHECKOUT_URL = os.environ.get("BUNDLE_CHECKOUT_URL", "")
+REQUESTS_FILE = _BASE_DIR / "data" / "model_requests.csv"
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
@@ -68,6 +77,103 @@ def _df_to_records(df: pd.DataFrame | None) -> list[dict]:
         if df[col].dtype.kind == 'f':
             df[col] = df[col].replace([np.inf, -np.inf], np.nan)
     return json.loads(df.to_json(orient="records", double_precision=2))
+
+
+def _public_context(**extra):
+    """Shared template context for public launch pages."""
+    ctx = {
+        "brand_name": BRAND_NAME,
+        "support_email": SUPPORT_EMAIL,
+        "custom_model_checkout_url": CUSTOM_MODEL_CHECKOUT_URL,
+        "bundle_checkout_url": BUNDLE_CHECKOUT_URL,
+        "samples": list_samples(),
+    }
+    ctx.update(extra)
+    return ctx
+
+
+def _api_error(message: str, status: int = 500, request_id: str | None = None):
+    """Return a public-safe API error without stack traces."""
+    return jsonify({
+        "success": False,
+        "error": message,
+        "request_id": request_id or uuid.uuid4().hex[:10],
+    }), status
+
+
+def _safe_project_path(filename: str, allowed_dir: Path, allowed_suffixes: tuple[str, ...]) -> Path | None:
+    """Resolve a user path inside an approved directory only."""
+    try:
+        candidate = (allowed_dir / filename).resolve()
+        root = allowed_dir.resolve()
+        if root not in candidate.parents and candidate != root:
+            return None
+        if candidate.suffix.lower() not in allowed_suffixes:
+            return None
+        return candidate
+    except (OSError, ValueError):
+        return None
+
+
+def _load_historical_and_base_values(data: dict):
+    """Load historical CSV and derive base-year values from payload/defaults."""
+    data_file = data.get("data_file", "data/asian_street_financials.csv")
+    hist_path = (_BASE_DIR / data_file).resolve()
+    data_root = (_BASE_DIR / "data").resolve()
+    if data_root not in hist_path.parents and hist_path != data_root:
+        hist_path = data_root / "asian_street_financials.csv"
+
+    hist = pd.read_csv(hist_path) if hist_path.exists() else pd.DataFrame()
+
+    base_year_revenue = float(data.get("base_year_revenue", 0))
+    base_cash = float(data.get("base_cash", 0))
+    base_ppe = float(data.get("base_ppe", 0))
+    base_nwc = float(data.get("base_nwc", 0))
+    base_retained_earnings = float(data.get("base_retained_earnings", 0))
+    base_common_stock = float(data.get("base_common_stock", 0))
+    base_intangibles = float(data.get("base_intangibles", 0))
+
+    if base_year_revenue == 0 and not hist.empty:
+        try:
+            latest_rev = hist[hist["account"] == "Revenue"].sort_values("period").iloc[-1]["amount"]
+            base_year_revenue = float(latest_rev)
+        except Exception:
+            pass
+    if base_cash == 0 and not hist.empty:
+        try:
+            base_cash = float(hist[hist["account"] == "Cash"].sort_values("period").iloc[-1]["amount"])
+        except Exception:
+            pass
+    if base_nwc == 0 and not hist.empty:
+        try:
+            ar = float(hist[hist["account"].isin(["Accounts Receivable"])].sort_values("period").iloc[-1]["amount"]) if len(hist[hist["account"] == "Accounts Receivable"]) else 0
+            inv = float(hist[hist["account"] == "Inventory"].sort_values("period").iloc[-1]["amount"]) if len(hist[hist["account"] == "Inventory"]) else 0
+            ap = float(hist[hist["account"] == "Accounts Payable"].sort_values("period").iloc[-1]["amount"]) if len(hist[hist["account"] == "Accounts Payable"]) else 0
+            base_nwc = ar + inv - ap
+        except Exception:
+            pass
+
+    return hist, {
+        "base_year_revenue": base_year_revenue,
+        "base_cash": base_cash,
+        "base_ppe": base_ppe,
+        "base_nwc": base_nwc,
+        "base_retained_earnings": base_retained_earnings,
+        "base_common_stock": base_common_stock,
+        "base_intangibles": base_intangibles,
+    }
+
+
+def _run_payload(data: dict, output_excel: str | None = None):
+    """Build config and run the valuation pipeline from a dashboard payload."""
+    cfg = _build_config_from_payload(data)
+    max_mc = int(os.environ.get("MAX_MONTE_CARLO_ITERATIONS", 2000 if IS_VERCEL else cfg.monte_carlo.iterations))
+    cfg.monte_carlo.iterations = min(cfg.monte_carlo.iterations, max_mc)
+    if IS_VERCEL:
+        cfg.wacc.use_live_data = False
+
+    hist, base = _load_historical_and_base_values(data)
+    return run_pipeline(cfg=cfg, historical=hist, output_excel=output_excel, **base)
 
 
 def _build_config_from_payload(data: dict) -> DCFEngineConfig:
@@ -237,7 +343,35 @@ def add_cache_headers(response):
 
 @app.route("/")
 def index():
+    return render_template("landing.html", **_public_context())
+
+
+@app.route("/dashboard")
+def dashboard():
     return render_template("dashboard.html")
+
+
+@app.route("/samples/<ticker>")
+def sample_page(ticker: str):
+    sample = get_sample(ticker)
+    if sample is None:
+        return render_template("landing.html", **_public_context(error="Sample model not found.")), 404
+    return render_template("sample.html", **_public_context(sample={
+        "ticker": ticker.upper(),
+        "name": sample["name"],
+        "industry": sample["industry"],
+        "tagline": sample["tagline"],
+        "summary": sample["summary"],
+    }))
+
+
+@app.route("/checkout/custom")
+def checkout_custom():
+    if CUSTOM_MODEL_CHECKOUT_URL:
+        return redirect(CUSTOM_MODEL_CHECKOUT_URL, code=302)
+    return render_template("landing.html", **_public_context(
+        error="Payment link is not configured yet. Set CUSTOM_MODEL_CHECKOUT_URL after creating the LemonSqueezy checkout."
+    )), 503
 
 
 @app.route("/api/version", methods=["GET"])
@@ -261,9 +395,9 @@ def api_run():
 
         # Load historical data — resolve relative to project root
         data_file = data.get("data_file", "data/asian_street_financials.csv")
-        hist_path = _BASE_DIR / data_file
-        if not hist_path.exists():
-            hist_path = Path(data_file)  # fallback to CWD-relative
+        hist_path = _safe_project_path(data_file.replace("data/", "", 1), _BASE_DIR / "data", (".csv", ".xlsx"))
+        if hist_path is None:
+            hist_path = _BASE_DIR / "data" / "asian_street_financials.csv"
         if hist_path.exists():
             hist = pd.read_csv(hist_path)
         else:
@@ -437,9 +571,10 @@ def api_run():
 
         return jsonify(response)
 
-    except Exception as e:
-        logger.error("API error: %s", traceback.format_exc())
-        return jsonify({"success": False, "error": str(e), "traceback": traceback.format_exc()}), 500
+    except Exception:
+        request_id = uuid.uuid4().hex[:10]
+        logger.error("API error [%s]: %s", request_id, traceback.format_exc())
+        return _api_error("Model run failed. Please check assumptions or try again.", request_id=request_id)
 
 
 @app.route("/api/export-excel", methods=["POST"])
@@ -455,9 +590,9 @@ def api_export_excel():
 
         # Load historical data
         data_file = data.get("data_file", "data/asian_street_financials.csv")
-        hist_path = _BASE_DIR / data_file
-        if not hist_path.exists():
-            hist_path = Path(data_file)
+        hist_path = _safe_project_path(data_file.replace("data/", "", 1), _BASE_DIR / "data", (".csv", ".xlsx"))
+        if hist_path is None:
+            hist_path = _BASE_DIR / "data" / "asian_street_financials.csv"
         hist = pd.read_csv(hist_path) if hist_path.exists() else pd.DataFrame()
 
         # Base-year values
@@ -492,7 +627,7 @@ def api_export_excel():
         # Generate Excel to a temp file
         tmp_dir = tempfile.mkdtemp()
         company_name = data.get("company_name", "DCF_Model").replace(" ", "_")
-        excel_filename = f"{company_name}_IB_Grade_Model.xlsx"
+        excel_filename = f"{company_name}_Trinsic_DCF_Model.xlsx"
         excel_path = os.path.join(tmp_dir, excel_filename)
 
         result = run_pipeline(
@@ -519,9 +654,76 @@ def api_export_excel():
             errors = result.errors or ["Excel generation failed"]
             return jsonify({"success": False, "error": "; ".join(errors)}), 500
 
-    except Exception as e:
-        logger.error("Excel export error: %s", traceback.format_exc())
-        return jsonify({"success": False, "error": str(e)}), 500
+    except Exception:
+        request_id = uuid.uuid4().hex[:10]
+        logger.error("Excel export error [%s]: %s", request_id, traceback.format_exc())
+        return _api_error("Excel export failed. Please try again.", request_id=request_id)
+
+
+@app.route("/download/sample/<ticker>", methods=["GET"])
+def download_sample_model(ticker: str):
+    """Generate and download a public sample Excel model."""
+    payload = get_sample_payload(ticker)
+    if payload is None:
+        return render_template("landing.html", **_public_context(error="Sample model not found.")), 404
+
+    try:
+        tmp_dir = tempfile.mkdtemp()
+        safe_ticker = ticker.upper()
+        excel_filename = f"Trinsic_{safe_ticker}_DCF_Sample.xlsx"
+        excel_path = os.path.join(tmp_dir, excel_filename)
+        result = _run_payload(payload, output_excel=excel_path)
+        if result.excel_path and Path(result.excel_path).exists():
+            return send_file(
+                str(result.excel_path),
+                mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                as_attachment=True,
+                download_name=excel_filename,
+            )
+        return _api_error("Sample model generation failed.", 500)
+    except Exception:
+        request_id = uuid.uuid4().hex[:10]
+        logger.error("Sample export error [%s]: %s", request_id, traceback.format_exc())
+        return _api_error("Sample model generation failed. Please try again.", request_id=request_id)
+
+
+@app.route("/api/request-model", methods=["POST"])
+def api_request_model():
+    """Capture early custom model requests for the productized-service MVP."""
+    try:
+        data = request.get_json(force=True) or {}
+        email = str(data.get("email", "")).strip()[:160]
+        ticker = str(data.get("ticker", "")).strip().upper()[:16]
+        notes = str(data.get("notes", "")).strip()[:1000]
+
+        if "@" not in email or "." not in email:
+            return _api_error("Please enter a valid email.", 400)
+        if not ticker:
+            return _api_error("Please enter a ticker.", 400)
+
+        REQUESTS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        file_exists = REQUESTS_FILE.exists()
+        with REQUESTS_FILE.open("a", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=["created_at", "email", "ticker", "notes"])
+            if not file_exists:
+                writer.writeheader()
+            writer.writerow({
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "email": email,
+                "ticker": ticker,
+                "notes": notes,
+            })
+
+        return jsonify({
+            "success": True,
+            "message": "Request captured.",
+            "checkout_url": CUSTOM_MODEL_CHECKOUT_URL or "/checkout/custom",
+            "support_email": SUPPORT_EMAIL,
+        })
+    except Exception:
+        request_id = uuid.uuid4().hex[:10]
+        logger.error("Request capture error [%s]: %s", request_id, traceback.format_exc())
+        return _api_error("Could not capture request. Please email support.", request_id=request_id)
 
 
 @app.route("/api/configs", methods=["GET"])
@@ -540,7 +742,12 @@ def api_list_configs():
 @app.route("/api/config/<path:filename>", methods=["GET"])
 def api_load_config(filename: str):
     """Load a config file."""
-    path = _BASE_DIR / filename
+    if filename.startswith("config."):
+        path = _safe_project_path(filename, _BASE_DIR, (".json",))
+    else:
+        path = _safe_project_path(filename.replace("config/", "", 1), _BASE_DIR / "config", (".json",))
+    if path is None:
+        return jsonify({"error": "Not found"}), 404
     if not path.exists():
         return jsonify({"error": "Not found"}), 404
     return jsonify(json.loads(path.read_text()))
@@ -562,7 +769,9 @@ def api_list_data_files():
 def api_data_file_base_values(filename: str):
     """Extract latest-period base-year values from a historical data CSV."""
     try:
-        hist_path = _BASE_DIR / filename
+        hist_path = _safe_project_path(filename.replace("data/", "", 1), _BASE_DIR / "data", (".csv", ".xlsx"))
+        if hist_path is None:
+            return jsonify({"error": "File not found"}), 404
         if not hist_path.exists():
             return jsonify({"error": "File not found"}), 404
 

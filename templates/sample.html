@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ sample.ticker }} DCF Excel Model - {{ brand_name }}</title>
+<meta name="description" content="Download a free editable {{ sample.ticker }} DCF Excel sample model from {{ brand_name }}.">
+<style>
+:root { --ink:#151515; --muted:#626262; --line:#ded8ce; --paper:#faf8f3; --panel:#fff; }
+* { box-sizing: border-box; }
+body { margin:0; font-family:Arial, Helvetica, sans-serif; background:var(--paper); color:var(--ink); line-height:1.5; }
+.nav { height:64px; display:flex; align-items:center; justify-content:space-between; padding:0 32px; border-bottom:1px solid var(--line); }
+.brand { font-family:Georgia, 'Times New Roman', serif; font-size:25px; text-decoration:none; color:var(--ink); }
+.button { display:inline-flex; min-height:42px; padding:0 18px; align-items:center; justify-content:center; border-radius:6px; border:1px solid var(--ink); background:var(--ink); color:#fff; text-decoration:none; font-weight:700; }
+.button.secondary { background:transparent; color:var(--ink); }
+.hero { max-width:1040px; margin:0 auto; padding:70px 32px 40px; }
+.eyebrow { color:var(--muted); font-size:14px; }
+h1 { font-family:Georgia, 'Times New Roman', serif; font-size:clamp(44px, 8vw, 88px); line-height:.95; margin:12px 0 18px; }
+.lead { max-width:680px; color:#3d3d3d; font-size:19px; margin-bottom:26px; }
+.actions { display:flex; flex-wrap:wrap; gap:12px; }
+.panel { max-width:1040px; margin:0 auto 56px; padding:0 32px; display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.box { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px; }
+h2 { font-family:Georgia, 'Times New Roman', serif; font-size:30px; margin:0 0 10px; }
+ul { margin:0; padding-left:20px; color:var(--muted); }
+.footer { border-top:1px solid var(--line); color:var(--muted); padding:28px 32px; font-size:13px; }
+@media(max-width:760px){ .panel{grid-template-columns:1fr;} .nav{padding:0 18px;} .hero{padding-left:18px;padding-right:18px;} }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="/">{{ brand_name }}</a>
+  <a class="button secondary" href="/">All samples</a>
+</nav>
+
+<main>
+  <section class="hero">
+    <div class="eyebrow">{{ sample.industry }} sample workbook</div>
+    <h1>{{ sample.ticker }} DCF Excel model</h1>
+    <p class="lead">{{ sample.summary }}</p>
+    <div class="actions">
+      <a class="button" href="/download/sample/{{ sample.ticker }}">Download free Excel sample</a>
+      <a class="button secondary" href="/#custom">Request a custom ticker</a>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="box">
+      <h2>Inside the workbook</h2>
+      <ul>
+        <li>Editable assumptions tab</li>
+        <li>Income statement, balance sheet, and cash flow forecast</li>
+        <li>WACC and DCF valuation tabs</li>
+        <li>Scenario analysis, sensitivity tables, tornado chart, and Monte Carlo tab</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h2>Important note</h2>
+      <p style="color:var(--muted)">This is a starter sample for education and research. It uses simplified assumptions and public-company framing. Review and adjust assumptions before relying on any output.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  {{ brand_name }} is for education and research only. Not investment advice. Contact: {{ support_email }}.
+</footer>
+</body>
+</html>
