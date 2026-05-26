@@ -78,14 +78,14 @@ a { color: inherit; }
   color: var(--ink);
 }
 .button.ghost {
-  border-color: #a8a49c;
+  border-color: var(--line);
   background: var(--panel);
   color: var(--muted);
 }
 .button.ghost:hover {
   border-color: var(--ink);
   color: var(--ink);
-  background: #faf9f6;
+  background: #f9fafb;
   box-shadow: 0 6px 16px rgba(0,0,0,0.06);
 }
 .hero {
@@ -122,7 +122,7 @@ h1 {
 }
 .lead {
   font-size: 18px;
-  color: #444340;
+  color: #374151;
   max-width: 600px;
   margin: 0 0 32px;
   line-height: 1.6;
@@ -189,10 +189,40 @@ h1 {
 .tab {
   padding: 6px 12px;
   border-radius: 6px;
-  background: #f0ecdf;
+  background: #f3f4f6;
   font-size: 11px;
   font-weight: 500;
-  color: #3e3f3a;
+  color: #374151;
+}
+/* ── Mockup Spreadsheet Formula Bar ── */
+.sheet-formula-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: #f9fafb;
+  border-bottom: 1px solid var(--line);
+  font-family: Consolas, monospace;
+  font-size: 11px;
+}
+.sheet-formula-bar .fx-symbol {
+  font-weight: 700;
+  color: var(--muted);
+  font-style: italic;
+  user-select: none;
+  font-size: 13px;
+  border-right: 1px solid var(--line);
+  padding-right: 12px;
+}
+.sheet-formula-bar .fx-display {
+  color: #111827;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  background: #ffffff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  flex-grow: 1;
 }
 .band {
   border-top: 1px solid var(--line);
@@ -204,7 +234,7 @@ h1 {
   flex-direction: column;
   gap: 16px;
   align-items: flex-start;
-  margin-bottom: 48px;
+  margin-bottom: 24px;
 }
 h2 {
   font-family: 'Inter', Arial, Helvetica, sans-serif;
@@ -215,111 +245,149 @@ h2 {
 }
 .section-copy { color: var(--muted); max-width: 600px; margin: 8px 0 0; font-size: 15px; }
 
-/* ── Minimalist Directory Table ── */
-.samples-table {
-  width: 100%;
+/* ── Directory Layout ── */
+.samples-directory {
+  display: flex;
+  flex-direction: column;
+  margin-top: 32px;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(15,23,42,0.02);
+  box-shadow: 0 1px 2px rgba(15,23,42,0.02), 0 8px 24px rgba(15,23,42,0.02);
 }
-.samples-header {
+.directory-header {
   display: grid;
-  grid-template-columns: 0.8fr 1.6fr 2.5fr 2fr 2.1fr;
-  padding: 18px 24px;
+  grid-template-columns: 140px 240px 1fr 280px;
+  align-items: center;
+  padding: 16px 24px;
   background: #f9fafb;
   border-bottom: 1px solid var(--line);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: var(--muted);
-  align-items: center;
 }
-.sample-row {
+.directory-row {
   display: grid;
-  grid-template-columns: 0.8fr 1.6fr 2.5fr 2fr 2.1fr;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--line);
+  grid-template-columns: 140px 240px 1fr 280px;
   align-items: center;
-  font-size: 14px;
-  transition: background 0.2s ease;
+  padding: 24px;
+  border-bottom: 1px solid var(--line);
+  transition: background-color 0.15s ease;
+  gap: 16px;
 }
-.sample-row:last-child {
+.directory-row:hover {
+  background: #f9fafb;
+}
+.directory-row:last-child {
   border-bottom: none;
 }
-.sample-row:hover {
-  background: #fafbfc;
+.col-ticker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-.ticker-badge {
-  font-weight: 700;
+.dir-num {
+  font-family: Consolas, monospace;
   font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.dir-ticker {
+  font-size: 13px;
+  font-weight: 700;
   color: var(--ink);
   background: #f3f4f6;
-  border: 1px solid var(--line);
-  padding: 4px 8px;
-  border-radius: 4px;
-  letter-spacing: 0.05em;
-  display: inline-block;
-}
-.sample-row strong {
-  font-size: 15px;
-  font-weight: 600;
-}
-.sample-tagline {
-  color: var(--muted);
-  font-size: 13.5px;
-  padding-right: 12px;
-}
-.feature-tag {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--muted);
-  background: #fafbfc;
-  border: 1px solid var(--line);
   padding: 3px 8px;
   border-radius: 4px;
-  margin-right: 6px;
-  display: inline-block;
+  letter-spacing: -0.01em;
+}
+.col-company {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dir-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.dir-industry {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+.col-desc {
+  font-size: 14px;
+  color: var(--muted);
+}
+.dir-tagline {
+  line-height: 1.5;
+  margin: 0;
 }
 .col-actions {
   display: flex;
-  gap: 8px;
+  align-items: center;
   justify-content: flex-end;
+  gap: 12px;
 }
-.action-btn {
-  min-height: 38px;
+.dir-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
   padding: 0 16px;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   text-decoration: none;
-  transition: all 0.2s ease;
-  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.action-btn.primary {
+.dir-btn.primary {
   background: var(--ink);
   color: #fff;
   border: 1px solid var(--ink);
 }
-.action-btn.primary:hover {
-  background: #334155;
-  border-color: #334155;
-  box-shadow: 0 4px 10px rgba(15,23,42,0.08);
+.dir-btn.primary:hover {
+  background: #222;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.12);
 }
-.action-btn.secondary {
-  background: var(--panel);
+.dir-btn.secondary {
+  background: transparent;
   color: var(--muted);
-  border: 1px solid #c8c4bc;
+  border: 1px solid var(--line);
 }
-.action-btn.secondary:hover {
-  border-color: var(--ink);
+.dir-btn.secondary:hover {
   color: var(--ink);
-  background: #fbfaf8;
+  border-color: var(--ink);
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+.dir-btn .arrow {
+  transition: transform 0.2s ease;
+  margin-left: 4px;
+}
+.dir-btn:hover .arrow {
+  transform: translateX(3px);
+}
+@media (max-width: 980px) {
+  .directory-header {
+    display: none;
+  }
+  .directory-row {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 24px 20px;
+  }
+  .col-actions {
+    justify-content: flex-start;
+    margin-top: 4px;
+  }
 }
 
 .offer {
@@ -348,7 +416,7 @@ h2 {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #94a3b8; /* Muted slate-gray for strict monochrome look */
+  color: #94a3b8;
 }
 .price .amount {
   font-family: 'Inter', Arial, Helvetica, sans-serif;
@@ -369,7 +437,7 @@ h2 {
   letter-spacing: 0.05em;
 }
 .price-copy {
-  color: #c5c4c0;
+  color: #94a3b8;
   font-size: 15px;
   line-height: 1.6;
   margin-bottom: 24px;
@@ -377,7 +445,7 @@ h2 {
 .price ul {
   padding-left: 0;
   list-style: none;
-  color: #e5e4e0;
+  color: #cbd5e1;
   font-size: 14px;
   display: flex;
   flex-direction: column;
@@ -391,7 +459,7 @@ h2 {
 }
 .price ul li::before {
   content: "✓";
-  color: #cbd5e1; /* White/slate-gray checkmark */
+  color: #cbd5e1;
   font-weight: bold;
 }
 .form {
@@ -416,13 +484,13 @@ input, textarea {
   padding: 14px;
   font-size: 14px;
   font-family: 'Inter', sans-serif;
-  background: #faf9f6;
+  background: #ffffff;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   color: var(--ink);
 }
 input:focus, textarea:focus {
   background: #ffffff;
-  border-color: var(--gold);
+  border-color: var(--ink);
   outline: none;
   box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.06);
 }
@@ -456,22 +524,18 @@ textarea { min-height: 98px; resize: vertical; }
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 @media (max-width: 980px) {
   .hero, .offer { grid-template-columns: 1fr; gap: 40px; }
-  .samples-header {
-    display: none;
-  }
-  .sample-row {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 24px;
-  }
-  .desktop-only {
-    display: none !important;
-  }
-  .col-actions {
-    justify-content: flex-start;
-    margin-top: 8px;
-  }
   .nav { padding: 0 24px; }
+}
+@media (max-width: 768px) {
+  .sample-item {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 32px 0;
+  }
+  .sample-meta {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }
 @media (max-width: 620px) {
   .nav-links a:not(.button) { display: none; }
@@ -517,13 +581,17 @@ textarea { min-height: 98px; resize: vertical; }
         <span class="dot dot-green"></span>
         <span class="sheet-name">Trinsic_NVIDIA_DCF_Sample.xlsx</span>
       </div>
+      <div class="sheet-formula-bar">
+        <span class="fx-symbol">fx</span>
+        <div class="fx-display" id="activeFormula">=NOPAT + D&amp;A - CapEx</div>
+      </div>
       <div class="sheet-grid">
         <div class="sheet-row header"><span>DCF Summary</span><span>Y1</span><span>Y2</span><span>Y3</span><span>Y4</span><span>Y5</span></div>
-        <div class="sheet-row"><strong>Revenue</strong><span class="num">$154B</span><span class="num">$182B</span><span class="num">$215B</span><span class="num">$300B</span><span class="num">$350B</span></div>
-        <div class="sheet-row"><strong>EBITDA</strong><span class="num">$88B</span><span class="num">$104B</span><span class="num">$123B</span><span class="num">$171B</span><span class="num">$200B</span></div>
-        <div class="sheet-row"><strong>Unlevered FCF</strong><span class="num formula">=NOPAT+D&A-Capex</span><span class="num">$72B</span><span class="num">$86B</span><span class="num">$102B</span><span class="num">$142B</span></div>
-        <div class="sheet-row"><strong>PV of FCF</strong><span class="num">$62B</span><span class="num">$58B</span><span class="num">$55B</span><span class="num">$52B</span><span class="num">$50B</span></div>
-        <div class="sheet-row"><strong>Blended Equity</strong><span></span><span></span><span></span><span></span><span class="num formula">=EV+Cash-Debt</span></div>
+        <div class="sheet-row" onmouseover="updateFormula('=REVENUE - COGS - SG&amp;A')"><strong>Revenue</strong><span class="num">$154B</span><span class="num">$182B</span><span class="num">$215B</span><span class="num">$300B</span><span class="num">$350B</span></div>
+        <div class="sheet-row" onmouseover="updateFormula('=REVENUE * EBITDA_MARGIN')"><strong>EBITDA</strong><span class="num">$88B</span><span class="num">$104B</span><span class="num">$123B</span><span class="num">$171B</span><span class="num">$200B</span></div>
+        <div class="sheet-row" onmouseover="updateFormula('=NOPAT + D&amp;A - CapEx')" style="background: #f8fafc;"><strong>Unlevered FCF</strong><span class="num">$72B</span><span class="num">$86B</span><span class="num">$102B</span><span class="num">$122B</span><span class="num">$142B</span></div>
+        <div class="sheet-row" onmouseover="updateFormula('=FCF / (1 + WACC)^t')"><strong>PV of FCF</strong><span class="num">$62B</span><span class="num">$58B</span><span class="num">$55B</span><span class="num">$52B</span><span class="num">$50B</span></div>
+        <div class="sheet-row" onmouseover="updateFormula('=EV + Cash - Debt')"><strong>Blended Equity</strong><span class="num"></span><span class="num"></span><span class="num"></span><span class="num"></span><span class="num">$2.4T</span></div>
       </div>
       <div class="tabs">
         <span class="tab">Assumptions</span><span class="tab">IS</span><span class="tab">BS</span><span class="tab">CF</span><span class="tab">WACC</span><span class="tab">DCF</span><span class="tab">Monte Carlo</span>
@@ -535,29 +603,37 @@ textarea { min-height: 98px; resize: vertical; }
     <div class="inner">
       <div class="section-head">
         <h2>Free Sample Workbooks</h2>
-        <p class="section-copy">Download these complete workbooks as proof-of-output before requesting a custom ticker. All models remain fully unlocked and editable.</p>
+        <p class="section-copy">Download formula-linked public stock valuation models as proof-of-output. To preserve sheet structure and protect sample integrity, these sheets are protected. Order a custom model for fully unlocked and unlimited forecast control.</p>
       </div>
-      <div class="samples-table">
-        <div class="samples-header">
+      
+      <div class="samples-directory">
+        <div class="directory-header">
           <span>Ticker</span>
-          <span>Company</span>
-          <span>Projections & Scope</span>
-          <span class="desktop-only">Model Features</span>
-          <span style="text-align: right;">Action</span>
+          <span>Company &amp; Industry</span>
+          <span>Valuation Focus</span>
+          <span style="text-align: right;">Coverage Actions</span>
         </div>
         {% for sample in samples %}
-        <div class="sample-row">
-          <div><span class="ticker-badge">{{ sample.ticker }}</span></div>
-          <div><strong>{{ sample.name }}</strong></div>
-          <div class="sample-tagline">{{ sample.tagline }}</div>
-          <div class="desktop-only">
-            <span class="feature-tag">17-Tab Model</span>
-            <span class="feature-tag">WACC</span>
-            <span class="feature-tag">Monte Carlo</span>
+        <div class="directory-row">
+          <div class="col-ticker">
+            <span class="dir-num">0{{ loop.index }}</span>
+            <span class="dir-ticker">{{ sample.ticker }}</span>
+          </div>
+          <div class="col-company">
+            <span class="dir-name">{{ sample.name }}</span>
+            <span class="dir-industry">{{ sample.industry }}</span>
+          </div>
+          <div class="col-desc">
+            <span class="dir-tagline">{{ sample.tagline }}</span>
           </div>
           <div class="col-actions">
-            <a class="action-btn primary" href="/download/sample/{{ sample.ticker }}">Download Excel</a>
-            <a class="action-btn secondary" href="/samples/{{ sample.ticker }}">Interactive View</a>
+            <a class="dir-btn primary" href="/download/sample/{{ sample.ticker }}">
+              <svg class="icon-download" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Excel Workbook
+            </a>
+            <a class="dir-btn secondary" href="/samples/{{ sample.ticker }}">
+              Live Dashboard <span class="arrow">→</span>
+            </a>
           </div>
         </div>
         {% endfor %}
@@ -616,6 +692,11 @@ textarea { min-height: 98px; resize: vertical; }
 </footer>
 
 <script>
+function updateFormula(formula) {
+  const display = document.getElementById('activeFormula');
+  if (display) display.textContent = formula;
+}
+
 const form = document.getElementById('requestForm');
 const msg = document.getElementById('formMessage');
 form.addEventListener('submit', async (event) => {
