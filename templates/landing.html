@@ -255,34 +255,36 @@ h2 {
 }
 .section-copy { color: var(--muted); max-width: 600px; margin: 8px 0 0; font-size: 15px; }
 
-/* ── Stock Logo Badges ── */
+/* -- Stock ticker badges -- */
 .ticker-badge-logo {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: #0f172a;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #111827;
+  color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  box-shadow: 0 1px 2px rgba(15,23,42,0.08);
   flex-shrink: 0;
   transition: all 0.2s ease;
 }
-.ticker-badge-logo svg {
-  width: 18px;
-  height: 18px;
-  display: block;
+.ticker-badge-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 .ticker-badge-logo:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+  box-shadow: 0 8px 18px rgba(15,23,42,0.14);
 }
-.ticker-badge-logo.logo-nvda { border-color: rgba(118, 185, 0, 0.3); }
-.ticker-badge-logo.logo-tsla { border-color: rgba(232, 33, 39, 0.3); }
-.ticker-badge-logo.logo-aapl { border-color: rgba(255, 255, 255, 0.25); }
-.ticker-badge-logo.logo-msft { border-color: rgba(0, 164, 239, 0.3); }
-.ticker-badge-logo.logo-amzn { border-color: rgba(255, 153, 0, 0.3); }
+.ticker-badge-logo.logo-nvda { background: #76b900; color: #081300; }
+.ticker-badge-logo.logo-tsla { background: #e82127; color: #fff; }
+.ticker-badge-logo.logo-aapl { background: #1f2937; color: #fff; }
+.ticker-badge-logo.logo-msft { background: linear-gradient(135deg, #f25022 0 50%, #7fba00 50%); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.32); }
+.ticker-badge-logo.logo-amzn { background: #ff9900; color: #111827; }
 
 /* ── Directory Layout ── */
 .samples-directory {
@@ -458,176 +460,121 @@ h2 {
   }
 }
 
-/* ── Interactive SVG Flowchart Schematic Styling ── */
-.flowchart-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 32px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 44px 32px;
-  box-shadow: 0 1px 2px rgba(15,23,42,0.02), 0 8px 32px rgba(15,23,42,0.03);
-  margin-top: 32px;
-}
-.flowchart-graphic {
-  width: 100%;
-  max-width: 840px;
-  height: auto;
-}
-/* MARCHING ANTS ON PATHS */
-.flow-line {
-  stroke: #e2e8f0;
-  stroke-width: 1.5;
-  stroke-dasharray: 6, 4;
-  animation: flowMarch 18s linear infinite;
-}
-@keyframes flowMarch {
-  to { stroke-dashoffset: -100; }
-}
-/* FLOWCHART NODES */
-.node-rect {
-  fill: #f8fafc;
-  stroke: var(--line);
-  stroke-width: 1.5;
-  rx: 8px;
-  ry: 8px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.node-group {
-  user-select: none;
-}
-.node-group:hover .node-rect {
-  fill: #ffffff;
-  stroke: var(--ink);
-  filter: drop-shadow(0 6px 14px rgba(17, 24, 39, 0.06));
-}
-.node-group.active .node-rect {
-  fill: #0f172a;
-  stroke: #0f172a;
-}
-.node-text-title {
-  font-family: 'Outfit', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  fill: var(--ink);
-  cursor: pointer;
-  transition: fill 0.2s ease;
-}
-.node-group.active .node-text-title {
-  fill: #ffffff;
-}
-.node-text-sub {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 9px;
-  font-weight: 600;
-  fill: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-}
-.node-group.active .node-text-sub {
-  fill: #94a3b8;
-}
-.node-text-icon {
-  font-size: 18px;
-  fill: var(--ink);
-  transition: transform 0.3s ease;
-}
-.node-group.active .node-text-icon {
-  fill: #3b82f6; /* Glowing active icon color */
-}
-.node-group:hover .node-text-icon {
-  transform: scale(1.1);
-}
-
-/* DYNAMIC CONTENT CARD */
-.flowchart-detail-card {
-  width: 100%;
-  max-width: 840px;
-  background: #f8fafc;
+/* -- Interactive sandbox -- */
+.sandbox-panel {
+  margin-top: 34px;
+  background: #fff;
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 24px 28px;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.03), 0 18px 44px rgba(15,23,42,0.04);
+  overflow: hidden;
+}
+.sandbox-top {
   display: grid;
-  grid-template-columns: 48px 1fr;
-  gap: 20px;
-  text-align: left;
-  transition: all 0.25s ease;
-  min-height: 120px;
-}
-.flowchart-detail-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  background: var(--ink);
-  color: #fff;
-  display: flex;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
   align-items: center;
-  justify-content: center;
+  padding: 28px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
 }
-.flowchart-detail-info h3 {
+.sandbox-title {
   margin: 0 0 8px;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 800;
-  color: var(--ink);
 }
-.flowchart-detail-info p {
+.sandbox-copy {
   margin: 0;
+  max-width: 720px;
+  color: var(--muted);
   font-size: 14px;
   line-height: 1.6;
-  color: #4b5563;
 }
-
-/* HIGH-END CTA TO INTERACTIVE DASHBOARD */
-.sandbox-cta-wrapper {
-  margin-top: 12px;
+.sandbox-actions {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
-.sandbox-cta-btn {
+.sandbox-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 48px;
-  padding: 0 28px;
+  min-height: 42px;
+  padding: 0 16px;
   border-radius: 8px;
+  border: 1px solid var(--ink);
   background: var(--ink);
   color: #fff;
-  font-family: 'Outfit', sans-serif;
-  font-size: 14px;
   font-weight: 700;
+  font-size: 13px;
   text-decoration: none;
-  box-shadow: 0 8px 20px rgba(17, 24, 39, 0.1);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  cursor: pointer;
 }
-.sandbox-cta-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.15);
-  background: #27272a;
+.sandbox-link.secondary {
+  background: #fff;
+  color: var(--ink);
+  border-color: var(--line);
 }
-.sandbox-cta-btn .arrow {
-  margin-left: 8px;
-  transition: transform 0.2s ease;
+.sandbox-capability-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
 }
-.sandbox-cta-btn:hover .arrow {
-  transform: translateX(4px);
+.sandbox-capability {
+  background: #fff;
+  padding: 22px;
+  min-height: 190px;
 }
-.sandbox-cta-sub {
-  font-size: 12px;
+.cap-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #f3f4f6;
   color: var(--muted);
-  font-weight: 500;
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 18px;
+}
+.cap-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.cap-copy {
+  margin: 0;
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.cap-output {
+  display: inline-flex;
+  margin-top: 16px;
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+@media (max-width: 1024px) {
+  .sandbox-capability-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sandbox-top { grid-template-columns: 1fr; }
+  .sandbox-actions { justify-content: flex-start; }
+}
+@media (max-width: 620px) {
+  .sandbox-capability-grid { grid-template-columns: 1fr; }
 }
 
 /* ── Access Tiers Section ── */
 .access-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
   align-items: stretch;
   margin-top: 32px;
@@ -642,15 +589,36 @@ h2 {
   justify-content: space-between;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 1px 2px rgba(15,23,42,0.02);
+  position: relative;
+  overflow: hidden;
 }
 .access-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 28px rgba(15,23,42,0.04);
 }
 .access-card.premium {
-  background: var(--ink);
+  background: #111827;
   color: #ffffff;
-  border-color: var(--ink);
+  border-color: #111827;
+}
+.access-card.accent {
+  border-color: rgba(37, 99, 235, 0.28);
+  box-shadow: 0 1px 2px rgba(15,23,42,0.02), 0 0 0 4px rgba(37,99,235,0.04);
+}
+.access-card.accent::before {
+  content: "Best for testing demand";
+  position: absolute;
+  top: 18px;
+  right: -44px;
+  transform: rotate(35deg);
+  width: 180px;
+  padding: 6px 0;
+  background: #2563eb;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.04em;
 }
 .access-card.premium:hover {
   box-shadow: 0 16px 48px rgba(17,24,39,0.15);
@@ -663,6 +631,13 @@ h2 {
   color: var(--muted);
   margin-bottom: 8px;
   display: inline-block;
+}
+.tier-badge.accent {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  padding: 4px 10px;
 }
 .tier-badge.premium {
   color: #94a3b8;
@@ -681,6 +656,9 @@ h2 {
   font-size: 38px;
   font-weight: 800;
   line-height: 1;
+}
+.access-card.accent .price-val {
+  color: #1d4ed8;
 }
 .price-period {
   font-size: 13px;
@@ -744,6 +722,17 @@ h2 {
   border: 1px solid var(--ink);
   color: var(--ink);
   background: transparent;
+}
+.access-btn.primary {
+  background: #2563eb;
+  color: #fff;
+  border: 1px solid #2563eb;
+}
+.access-btn.primary:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(37,99,235,0.18);
 }
 .access-btn.outline:hover {
   background: #f9fafb;
@@ -820,9 +809,9 @@ h2 {
   <a class="brand" href="/" style="text-decoration:none;">{{ brand_name }}</a>
   <div class="nav-links">
     <a href="#samples">Free Coverage</a>
+    <a href="#features">Sandbox</a>
     <a href="#access">Access Tiers</a>
-    <a href="/dashboard">Dashboard</a>
-    <a class="button" href="/dashboard" style="min-height:36px;padding:0 14px;font-size:13px;font-weight:600;">Launch App</a>
+    <a class="button" href="/dashboard" style="min-height:36px;padding:0 14px;font-size:13px;font-weight:600;">Open Dashboard</a>
   </div>
 </nav>
 
@@ -841,7 +830,7 @@ h2 {
       <p class="lead">{{ brand_name }} generates formula-linked Excel models complete with full 3-statement projections, dynamic WACC structures, custom scenarios, 2D sensitivities, and Monte Carlo tabs.</p>
       <div class="hero-actions">
         <a class="button" href="#samples">Download Free Samples</a>
-        <a class="button ghost" href="#custom">Request Custom Ticker</a>
+        <a class="button ghost" href="#access">View Access Plans</a>
       </div>
       <p class="fine">Unlocked, fully auditable, and assumption-driven workbooks. Built for education and valuation research.</p>
     </div>
@@ -889,36 +878,9 @@ h2 {
         <div class="directory-row">
           <div class="col-ticker">
             <span class="dir-num">0{{ loop.index }}</span>
-            {% if sample.ticker == 'NVDA' %}
-            <span class="ticker-badge-logo logo-nvda" title="NVIDIA">
-              <svg viewBox="0 0 24 24" fill="#76b900"><path d="M22.0113 3.269h-5.8219a4.2894 4.2894 0 0 0-4.1854 3.3452A4.2894 4.2894 0 0 0 7.8186 3.269h-5.818A2.0007 2.0007 0 0 0 0 5.2697v10.2434a2.0007 2.0007 0 0 0 2.0007 2.0007h3.7372c4.2574 0 5.5299 1.0244 6.138 3.133a.112.112 0 0 0 .1121.084h.024a.112.112 0 0 0 .112-.084c.6122-2.1086 1.8806-3.133 6.138-3.133h3.7372a2.0007 2.0007 0 0 0 2.0007-2.0007V5.2697a2.0007 2.0007 0 0 0-2.0007-2.0007z"/></svg>
+            <span class="ticker-badge-logo logo-{{ sample.ticker|lower }}" title="{{ sample.name }}">
+              <span class="ticker-badge-text">{{ sample.ticker }}</span>
             </span>
-            {% elif sample.ticker == 'TSLA' %}
-            <span class="ticker-badge-logo logo-tsla" title="Tesla">
-              <svg viewBox="0 0 24 24" fill="#e82127"><path d="M11.9772 0.3642L0 17.168h7.9548l2.136-11.976h4.8192L17.0676 17.168H25.044L13.0668 0.3642h-1.0896z"/></svg>
-            </span>
-            {% elif sample.ticker == 'AAPL' %}
-            <span class="ticker-badge-logo logo-aapl" title="Apple">
-              <svg viewBox="0 0 16 16" fill="#ffffff"><path d="M11.182.008C11.148-.03 9.923.023 8.857 1.18c-1.066 1.156-.902 2.482-.878 2.516s1.52.087 2.475-1.258.762-2.391.728-2.43m3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422s1.675-2.789 1.698-2.854-.597-.79-1.254-1.157a3.7 3.7 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116-.508.139-1.653.589-1.968.607-.316.018-1.256-.522-2.267-.665-.647-.125-1.333.131-1.824.328-.49.196-1.422.754-2.074 2.237-.652 1.482-.311 3.83-.067 4.56s.625 1.924 1.273 2.796c.576.984 1.34 1.667 1.659 1.899s1.219.386 1.843.067c.502-.308 1.408-.485 1.766-.472.357.013 1.061.154 1.782.539.571.197 1.111.115 1.652-.105.541-.221 1.324-1.059 2.238-2.758q.52-1.185.473-1.282"/></svg>
-            </span>
-            {% elif sample.ticker == 'MSFT' %}
-            <span class="ticker-badge-logo logo-msft" title="Microsoft">
-              <svg viewBox="0 0 23 23">
-                <rect x="0" y="0" width="10.5" height="10.5" fill="#f25022" />
-                <rect x="11.5" y="0" width="10.5" height="10.5" fill="#7fba00" />
-                <rect x="0" y="11.5" width="10.5" height="10.5" fill="#00a4ef" />
-                <rect x="11.5" y="11.5" width="10.5" height="10.5" fill="#ffb900" />
-              </svg>
-            </span>
-            {% elif sample.ticker == 'AMZN' %}
-            <span class="ticker-badge-logo logo-amzn" title="Amazon">
-              <svg viewBox="0 0 24 24" fill="#ff9900">
-                <path d="M15.93 17.09c-2.93 1.99-6.9 2.91-10.42 2.91-5.18 0-9.87-1.99-13.1-5.26-.22-.22-.02-.53.27-.41 3.59 1.47 7.74 2.3 11.96 2.3 3.58 0 7.1-.6 10.28-1.78.33-.12.56.23.27.47M16.92 15.65c-.3-.39-1.95-.2-2.68-.08-.34.06-.39-.27-.08-.52 1.45-1.13 3.82-.8 4.12-.39.3.41-.21 2.76-1.57 3.92-.32.27-.58.11-.47-.24.24-.76.99-2.3.68-2.69z"/>
-              </svg>
-            </span>
-            {% else %}
-            <span class="ticker-badge-logo" title="{{ sample.name }}"><span style="color:#fff;font-size:11px;font-weight:700;font-family:'Outfit';">{{ sample.ticker[:2] }}</span></span>
-            {% endif %}
             <span class="dir-ticker">{{ sample.ticker }}</span>
           </div>
           <div class="col-company">
@@ -971,71 +933,48 @@ h2 {
         <p class="section-copy" style="text-align: center;">Trinsic features an integrated sandbox valuation engine. Play with dynamic projections in real-time, or download fully unlocked formula-linked Excel spreadsheets under our premium coverage tiers.</p>
       </div>
 
-      <div class="flowchart-container">
-        <!-- Interactive vector flowchart SVG schematic -->
-        <svg class="flowchart-graphic" viewBox="0 0 780 140" xmlns="http://www.w3.org/2000/svg">
-          <!-- Marching ants connections -->
-          <path class="flow-line" d="M120,70 L180,70" />
-          <path class="flow-line" d="M280,70 L340,70" />
-          <path class="flow-line" d="M440,70 L500,70" />
-          <path class="flow-line" d="M600,70 L660,70" />
-          
-          <!-- Node 0: Inputs -->
-          <g class="node-group active" id="node-0" onclick="selectNode(0)" onmouseover="selectNode(0)">
-            <rect class="node-rect" x="20" y="25" width="100" height="90" />
-            <text class="node-text-sub" x="70" y="52" text-anchor="middle">Step 01</text>
-            <text class="node-text-title" x="70" y="76" text-anchor="middle">Base Stats</text>
-            <text class="node-text-icon" x="70" y="98" text-anchor="middle">📊</text>
-          </g>
-          
-          <!-- Node 1: Calculations -->
-          <g class="node-group" id="node-1" onclick="selectNode(1)" onmouseover="selectNode(1)">
-            <rect class="node-rect" x="180" y="25" width="100" height="90" />
-            <text class="node-text-sub" x="230" y="52" text-anchor="middle">Step 02</text>
-            <text class="node-text-title" x="230" y="76" text-anchor="middle">3-Statements</text>
-            <text class="node-text-icon" x="230" y="98" text-anchor="middle">⚙️</text>
-          </g>
-          
-          <!-- Node 2: WACC -->
-          <g class="node-group" id="node-2" onclick="selectNode(2)" onmouseover="selectNode(2)">
-            <rect class="node-rect" x="340" y="25" width="100" height="90" />
-            <text class="node-text-sub" x="390" y="52" text-anchor="middle">Step 03</text>
-            <text class="node-text-title" x="390" y="76" text-anchor="middle">WACC Rate</text>
-            <text class="node-text-icon" x="390" y="98" text-anchor="middle">⚖️</text>
-          </g>
-          
-          <!-- Node 3: DCF -->
-          <g class="node-group" id="node-3" onclick="selectNode(3)" onmouseover="selectNode(3)">
-            <rect class="node-rect" x="500" y="25" width="100" height="90" />
-            <text class="node-text-sub" x="550" y="52" text-anchor="middle">Step 04</text>
-            <text class="node-text-title" x="550" y="76" text-anchor="middle">DCF Bridge</text>
-            <text class="node-text-icon" x="550" y="98" text-anchor="middle">💎</text>
-          </g>
-          
-          <!-- Node 4: Risk -->
-          <g class="node-group" id="node-4" onclick="selectNode(4)" onmouseover="selectNode(4)">
-            <rect class="node-rect" x="660" y="25" width="100" height="90" />
-            <text class="node-text-sub" x="710" y="52" text-anchor="middle">Step 05</text>
-            <text class="node-text-title" x="710" y="76" text-anchor="middle">Monte Carlo</text>
-            <text class="node-text-icon" x="710" y="98" text-anchor="middle">🔮</text>
-          </g>
-        </svg>
-
-        <!-- Dynamic Content Explanation Card -->
-        <div class="flowchart-detail-card">
-          <div class="flowchart-detail-icon" id="detail-icon">📊</div>
-          <div class="flowchart-detail-info">
-            <h3 id="detail-title">Historical &amp; Base Stats (Inputs)</h3>
-            <p id="detail-desc">Establish base-year figures: Revenue, EBITDA margins, Cash, Debt, and Capex schedules. This serves as the grounding anchor from which all active valuations are generated.</p>
+      <div class="sandbox-panel">
+        <div class="sandbox-top">
+          <div>
+            <h3 class="sandbox-title">One workspace from assumptions to export</h3>
+            <p class="sandbox-copy">The sandbox is the live dashboard: change core assumptions, inspect the valuation bridge, stress-test risk cases, and export clean Excel output when your access tier includes unlocked workbooks.</p>
+          </div>
+          <div class="sandbox-actions">
+            <a class="sandbox-link" href="/dashboard">Open Dashboard</a>
+            <a class="sandbox-link secondary" href="#access">See Export Access</a>
           </div>
         </div>
-
-        <!-- Call-to-action button to point to dashboard -->
-        <div class="sandbox-cta-wrapper">
-          <a class="sandbox-cta-btn" href="/dashboard">
-            Launch Valuation Sandbox <span class="arrow">→</span>
-          </a>
-          <span class="sandbox-cta-sub">Play with dynamic, real-time assumptions inside the interactive sandbox workspace.</span>
+        <div class="sandbox-capability-grid">
+          <article class="sandbox-capability">
+            <span class="cap-step">01 Inputs</span>
+            <h3 class="cap-title">Base Stats</h3>
+            <p class="cap-copy">Set revenue, cash, debt, working capital, and opening balance assumptions without touching backend code.</p>
+            <span class="cap-output">Model-ready base year</span>
+          </article>
+          <article class="sandbox-capability">
+            <span class="cap-step">02 Forecast</span>
+            <h3 class="cap-title">Three Statements</h3>
+            <p class="cap-copy">Link income statement, balance sheet, and cash flow schedules with dynamic growth and margin controls.</p>
+            <span class="cap-output">Auditable forecast</span>
+          </article>
+          <article class="sandbox-capability">
+            <span class="cap-step">03 Discount</span>
+            <h3 class="cap-title">WACC Engine</h3>
+            <p class="cap-copy">Tune risk-free rates, ERP, beta, debt weighting, tax rate, and synthetic credit spread assumptions.</p>
+            <span class="cap-output">Live cost of capital</span>
+          </article>
+          <article class="sandbox-capability">
+            <span class="cap-step">04 Value</span>
+            <h3 class="cap-title">DCF Bridge</h3>
+            <p class="cap-copy">Blend Gordon growth and exit multiple methods into enterprise value, equity value, and price per share.</p>
+            <span class="cap-output">Valuation range</span>
+          </article>
+          <article class="sandbox-capability">
+            <span class="cap-step">05 Risk</span>
+            <h3 class="cap-title">Monte Carlo</h3>
+            <p class="cap-copy">Run simulations, scenario cases, tornado sensitivity, and 2D tables to see how assumptions move value.</p>
+            <span class="cap-output">Exportable risk tabs</span>
+          </article>
         </div>
       </div>
     </div>
@@ -1045,64 +984,61 @@ h2 {
     <div class="inner">
       <div class="section-head" style="margin-bottom: 44px;">
         <h2>Subscription &amp; Access Models</h2>
-        <p class="section-copy">We distribute institutional-grade valuation templates on a highly clean, utility-driven access framework. Designed for professional analysts, reference, and structural auditability.</p>
+        <p class="section-copy">Simple validation-stage pricing while LemonSqueezy activation is pending. Every paid tier is built around the thing buyers actually want: unlocked Excel exports, editable assumptions, and usable valuation tabs.</p>
       </div>
       <div class="access-grid">
-        <!-- Card 1: Free Coverage -->
         <div class="access-card">
           <div>
-            <span class="tier-badge">Standard Access</span>
-            <h3 class="tier-title">Free Coverage</h3>
+            <span class="tier-badge">Free Access</span>
+            <h3 class="tier-title">Sample Library</h3>
             <div class="tier-price">
               <span class="price-val">Free</span>
-              <span class="price-period">/ 1 Ticker Monthly</span>
+              <span class="price-period">/ public models</span>
             </div>
-            <p class="tier-description">Deploy one verified public stock valuation model workbook every month. Ideal for verifying dynamic, formula-linked sheet structures and basic beta overrides.</p>
+            <p class="tier-description">Use the public samples to inspect model quality, download proof-of-output workbooks, and test the interactive dashboard before buying.</p>
             <ul class="tier-features">
-              <li>Formula-linked dynamic 3-statement forecast schedule</li>
-              <li>Read-only sheet protection to guarantee sample integrity</li>
-              <li>Full auditable access to WACC Credit Spread &amp; discount factors</li>
+              <li>Protected sample workbooks for NVDA, TSLA, AAPL, MSFT, and AMZN</li>
+              <li>Dashboard access for assumptions, WACC, DCF, scenarios, and risk views</li>
+              <li>Basic sample exports for diligence and product evaluation</li>
             </ul>
           </div>
           <a class="access-btn outline" href="#samples" style="width: 100%; margin-top: 24px;">Browse Available Samples</a>
         </div>
         
-        <!-- Card 2: Single Model -->
-        <div class="access-card">
+        <div class="access-card accent">
           <div>
-            <span class="tier-badge" style="color: var(--ink); border: 1px solid var(--line); background: #ffffff; padding: 2px 8px; border-radius: 4px;">Single Purchase</span>
-            <h3 class="tier-title">Single Ticker</h3>
+            <span class="tier-badge accent">Single Export</span>
+            <h3 class="tier-title">Custom Ticker</h3>
             <div class="tier-price">
-              <span class="price-val">$10</span>
-              <span class="price-period">/ Fully Unlocked Model</span>
+              <span class="price-val">$19</span>
+              <span class="price-period">/ unlocked workbook</span>
             </div>
-            <p class="tier-description">Acquire a single, 100% unlocked and fully editable Excel model for any public stock ticker of your choice. Clean formulas, scenarios, and discount structures included.</p>
+            <p class="tier-description">The cleanest paid offer for testing demand: one custom public-company model delivered as a fully unlocked Excel export.</p>
             <ul class="tier-features">
-              <li>100% fully unlocked, editable formula linking</li>
-              <li>Complete control over historical and projection assumptions</li>
-              <li>WACC structures and 2D Sensitivity calculation schedules</li>
+              <li>Unlocked Excel export with editable formulas and assumptions</li>
+              <li>Three statements, WACC, DCF bridge, scenarios, sensitivity, tornado, and Monte Carlo tabs</li>
+              <li>Delivery queue ready for LemonSqueezy checkout activation</li>
             </ul>
           </div>
-          <a class="access-btn outline" href="mailto:{{ support_email }}?subject=Trinsic%20Single%20Model%20Purchase%20Request" style="width: 100%; margin-top: 24px;">Buy Single Ticker</a>
+          <a class="access-btn primary" href="{{ custom_model_checkout_url or '/checkout/custom' }}" style="width: 100%; margin-top: 24px;">Reserve Single Ticker</a>
         </div>
         
-        <!-- Card 3: Coverage Bundle -->
         <div class="access-card premium">
           <div>
-            <span class="tier-badge premium">Professional Access</span>
-            <h3 class="tier-title">Coverage Bundle</h3>
+            <span class="tier-badge premium">Best Value</span>
+            <h3 class="tier-title">5-Ticker Pack</h3>
             <div class="tier-price">
-              <span class="price-val">$30</span>
-              <span class="price-period">/ 5 Ticker Pack</span>
+              <span class="price-val">$49</span>
+              <span class="price-period">/ 5 unlocked exports</span>
             </div>
-            <p class="tier-description">Acquire fully unlocked, un-watermarked sheets for 5 custom stock models of your choice. Gain total forecasting agency and formula control.</p>
+            <p class="tier-description">A scalable analyst bundle for students, creators, and small research teams who want multiple tickers without enterprise pricing.</p>
             <ul class="tier-features">
-              <li>100% unlocked sheets (complete control over assumptions &amp; formulas)</li>
-              <li>Full active Monte Carlo settings &amp; custom 2D sensitivity calculations</li>
-              <li>Direct prioritization delivery for custom tickers (within 24 hours)</li>
+              <li>Five fully unlocked Excel valuation exports for tickers of your choice</li>
+              <li>Reusable sandbox assumptions plus all exportable valuation and risk tabs</li>
+              <li>Priority fulfillment while paid checkout is being connected</li>
             </ul>
           </div>
-          <a class="access-btn solid" href="mailto:{{ support_email }}?subject=Trinsic%20Coverage%20Bundle%20Access%20Request" style="width: 100%; margin-top: 24px;">Contact Support</a>
+          <a class="access-btn solid" href="{{ bundle_checkout_url or 'mailto:' ~ support_email ~ '?subject=Trinsic%205-Ticker%20Pack%20Access%20Request' }}" style="width: 100%; margin-top: 24px;">Reserve 5-Ticker Pack</a>
         </div>
       </div>
     </div>
@@ -1119,54 +1055,6 @@ h2 {
 function updateFormula(formula) {
   const display = document.getElementById('activeFormula');
   if (display) display.textContent = formula;
-}
-
-const nodeData = [
-  {
-    title: "Historical & Base Stats (Inputs)",
-    icon: "📊",
-    desc: "Establish base-year figures: Revenue, EBITDA margins, Cash, Debt, and Capex schedules. This serves as the grounding anchor from which all active valuations are generated."
-  },
-  {
-    title: "Dynamic 3-Statement Forecast (Calculations)",
-    icon: "⚙️",
-    desc: "Project five years of detailed operations. Dynamic formula linking automatically shifts your Balance Sheet and Cash Flow Statement in perfect equilibrium whenever Revenue CAGR or COGS shifts."
-  },
-  {
-    title: "WACC Cost of Capital (Discount Factor)",
-    icon: "⚖️",
-    desc: "Calibrate equity weights, cost of debt, synthetic ratings, and size premiums. Automatically updates the blended discount factors to reflect capitalization risk changes instantly."
-  },
-  {
-    title: "Gordon Growth & Multiple exit (DCF Bridge)",
-    icon: "💎",
-    desc: "Generate the full equity valuation bridge. Projects terminal values and present values, calculating net blended enterprise equity value and target stock prices."
-  },
-  {
-    title: "Monte Carlo & 2D Sensitivities (Risk Analysis)",
-    icon: "🔮",
-    desc: "Execute 2,000+ randomized iterations in real-time. Maps normal distribution outputs, variance thresholds, and probability density curves of hitting your target price points."
-  }
-];
-
-function selectNode(index) {
-  for (let i = 0; i < 5; i++) {
-    const node = document.getElementById('node-' + i);
-    if (node) {
-      if (i === index) node.classList.add('active');
-      else node.classList.remove('active');
-    }
-  }
-  
-  const detailIcon = document.getElementById('detail-icon');
-  const detailTitle = document.getElementById('detail-title');
-  const detailDesc = document.getElementById('detail-desc');
-  
-  if (detailIcon && detailTitle && detailDesc) {
-    detailIcon.textContent = nodeData[index].icon;
-    detailTitle.textContent = nodeData[index].title;
-    detailDesc.textContent = nodeData[index].desc;
-  }
 }
 </script>
 </body>
