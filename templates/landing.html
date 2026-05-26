@@ -260,25 +260,29 @@ h2 {
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  background: var(--ink);
-  color: #fff;
+  background: #0f172a;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: -0.02em;
-  border: 1px solid rgba(255,255,255,0.15);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
   flex-shrink: 0;
   transition: all 0.2s ease;
 }
-.ticker-badge-logo.logo-nvda { background: #0f172a; border-color: rgba(76, 175, 80, 0.25); color: #4caf50; }
-.ticker-badge-logo.logo-tsla { background: #0f172a; border-color: rgba(244, 67, 54, 0.25); color: #f44336; }
-.ticker-badge-logo.logo-aapl { background: #0f172a; border-color: rgba(255, 255, 255, 0.25); color: #ffffff; }
-.ticker-badge-logo.logo-msft { background: #0f172a; border-color: rgba(3, 169, 244, 0.25); color: #03a9f4; }
-.ticker-badge-logo.logo-amzn { background: #0f172a; border-color: rgba(255, 152, 0, 0.25); color: #ff9800; }
+.ticker-badge-logo svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+.ticker-badge-logo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+}
+.ticker-badge-logo.logo-nvda { border-color: rgba(118, 185, 0, 0.3); }
+.ticker-badge-logo.logo-tsla { border-color: rgba(232, 33, 39, 0.3); }
+.ticker-badge-logo.logo-aapl { border-color: rgba(255, 255, 255, 0.25); }
+.ticker-badge-logo.logo-msft { border-color: rgba(0, 164, 239, 0.3); }
+.ticker-badge-logo.logo-amzn { border-color: rgba(255, 153, 0, 0.3); }
 
 /* ── Directory Layout ── */
 .samples-directory {
@@ -293,7 +297,7 @@ h2 {
 }
 .directory-header {
   display: grid;
-  grid-template-columns: 160px 200px 120px 1fr 340px;
+  grid-template-columns: 140px 180px 120px 1fr 290px;
   align-items: center;
   padding: 16px 24px;
   background: #f9fafb;
@@ -306,7 +310,7 @@ h2 {
 }
 .directory-row {
   display: grid;
-  grid-template-columns: 160px 200px 120px 1fr 340px;
+  grid-template-columns: 140px 180px 120px 1fr 290px;
   align-items: center;
   padding: 24px;
   border-bottom: 1px solid var(--line);
@@ -391,19 +395,22 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: nowrap;
 }
 .dir-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   height: 36px;
-  padding: 0 16px;
+  padding: 0 12px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   text-decoration: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .dir-btn.primary {
   background: var(--ink);
@@ -451,71 +458,194 @@ h2 {
   }
 }
 
-/* ── Features Section Styling ── */
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+/* ── Interactive SVG Flowchart Schematic Styling ── */
+.flowchart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 32px;
-}
-.feature-card {
   background: var(--panel);
   border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 44px 32px;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.02), 0 8px 32px rgba(15,23,42,0.03);
+  margin-top: 32px;
+}
+.flowchart-graphic {
+  width: 100%;
+  max-width: 840px;
+  height: auto;
+}
+/* MARCHING ANTS ON PATHS */
+.flow-line {
+  stroke: #e2e8f0;
+  stroke-width: 1.5;
+  stroke-dasharray: 6, 4;
+  animation: flowMarch 18s linear infinite;
+}
+@keyframes flowMarch {
+  to { stroke-dashoffset: -100; }
+}
+/* FLOWCHART NODES */
+.node-rect {
+  fill: #f8fafc;
+  stroke: var(--line);
+  stroke-width: 1.5;
+  rx: 8px;
+  ry: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.node-group {
+  user-select: none;
+}
+.node-group:hover .node-rect {
+  fill: #ffffff;
+  stroke: var(--ink);
+  filter: drop-shadow(0 6px 14px rgba(17, 24, 39, 0.06));
+}
+.node-group.active .node-rect {
+  fill: #0f172a;
+  stroke: #0f172a;
+}
+.node-text-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--ink);
+  cursor: pointer;
+  transition: fill 0.2s ease;
+}
+.node-group.active .node-text-title {
+  fill: #ffffff;
+}
+.node-text-sub {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  fill: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+.node-group.active .node-text-sub {
+  fill: #94a3b8;
+}
+.node-text-icon {
+  font-size: 18px;
+  fill: var(--ink);
+  transition: transform 0.3s ease;
+}
+.node-group.active .node-text-icon {
+  fill: #3b82f6; /* Glowing active icon color */
+}
+.node-group:hover .node-text-icon {
+  transform: scale(1.1);
+}
+
+/* DYNAMIC CONTENT CARD */
+.flowchart-detail-card {
+  width: 100%;
+  max-width: 840px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 32px;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 2px rgba(15,23,42,0.02);
+  padding: 24px 28px;
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 20px;
+  text-align: left;
+  transition: all 0.25s ease;
+  min-height: 120px;
 }
-.feature-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 32px rgba(15,23,42,0.04);
-  border-color: #cbd5e1;
-}
-.feature-icon {
-  width: 44px;
-  height: 44px;
+.flowchart-detail-icon {
+  width: 48px;
+  height: 48px;
   border-radius: 8px;
-  background: #f3f4f6;
-  color: var(--ink);
+  background: var(--ink);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
 }
-.feature-card h3 {
-  font-family: 'Outfit', sans-serif;
+.flowchart-detail-info h3 {
+  margin: 0 0 8px;
   font-size: 18px;
-  font-weight: 700;
-  margin: 0 0 12px;
+  font-weight: 800;
   color: var(--ink);
 }
-.feature-card p {
-  font-size: 13.5px;
-  line-height: 1.6;
-  color: var(--muted);
+.flowchart-detail-info p {
   margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+/* HIGH-END CTA TO INTERACTIVE DASHBOARD */
+.sandbox-cta-wrapper {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.sandbox-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 28px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba(17, 24, 39, 0.1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+.sandbox-cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.15);
+  background: #27272a;
+}
+.sandbox-cta-btn .arrow {
+  margin-left: 8px;
+  transition: transform 0.2s ease;
+}
+.sandbox-cta-btn:hover .arrow {
+  transform: translateX(4px);
+}
+.sandbox-cta-sub {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
 }
 
 /* ── Access Tiers Section ── */
 .access-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
   align-items: stretch;
+  margin-top: 32px;
 }
 .access-card {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 44px;
+  padding: 28px 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 1px 2px rgba(15,23,42,0.02);
 }
 .access-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 40px rgba(15,23,42,0.04);
+  box-shadow: 0 12px 28px rgba(15,23,42,0.04);
 }
 .access-card.premium {
   background: var(--ink);
@@ -523,49 +653,49 @@ h2 {
   border-color: var(--ink);
 }
 .access-card.premium:hover {
-  box-shadow: 0 24px 64px rgba(17,24,39,0.15);
+  box-shadow: 0 16px 48px rgba(17,24,39,0.15);
 }
 .tier-badge {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   display: inline-block;
 }
 .tier-badge.premium {
   color: #94a3b8;
 }
 .tier-title {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
-  margin: 0 0 16px;
+  margin: 0 0 12px;
 }
 .tier-price {
   display: flex;
   align-items: baseline;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 .price-val {
-  font-size: 48px;
+  font-size: 38px;
   font-weight: 800;
   line-height: 1;
 }
 .price-period {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
-  margin-left: 8px;
+  margin-left: 6px;
   font-weight: 500;
 }
 .access-card.premium .price-period {
   color: #94a3b8;
 }
 .tier-description {
-  font-size: 15px;
+  font-size: 13.5px;
   color: #4b5563;
-  line-height: 1.6;
-  margin: 0 0 32px;
+  line-height: 1.5;
+  margin: 0 0 24px;
 }
 .access-card.premium .tier-description {
   color: #cbd5e1;
@@ -575,16 +705,16 @@ h2 {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 44px;
-  font-size: 14px;
+  gap: 12px;
+  margin-bottom: 32px;
+  font-size: 13.5px;
   color: var(--muted);
 }
 .tier-features li {
   display: flex;
   align-items: start;
-  gap: 10px;
-  line-height: 1.5;
+  gap: 8px;
+  line-height: 1.4;
   text-align: left;
 }
 .tier-features li::before {
@@ -602,9 +732,9 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 48px;
+  height: 44px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
   text-decoration: none;
   transition: all 0.25s ease;
@@ -630,12 +760,13 @@ h2 {
   transform: translateY(-1px);
   box-shadow: 0 8px 24px rgba(255,255,255,0.15);
 }
-@media (max-width: 860px) {
+@media (max-width: 980px) {
   .access-grid {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 24px;
   }
 }
+
 .error {
   max-width: 1200px;
   margin: 24px auto 0;
@@ -759,17 +890,34 @@ h2 {
           <div class="col-ticker">
             <span class="dir-num">0{{ loop.index }}</span>
             {% if sample.ticker == 'NVDA' %}
-            <span class="ticker-badge-logo logo-nvda" title="NVIDIA">NV</span>
+            <span class="ticker-badge-logo logo-nvda" title="NVIDIA">
+              <svg viewBox="0 0 24 24" fill="#76b900"><path d="M22.0113 3.269h-5.8219a4.2894 4.2894 0 0 0-4.1854 3.3452A4.2894 4.2894 0 0 0 7.8186 3.269h-5.818A2.0007 2.0007 0 0 0 0 5.2697v10.2434a2.0007 2.0007 0 0 0 2.0007 2.0007h3.7372c4.2574 0 5.5299 1.0244 6.138 3.133a.112.112 0 0 0 .1121.084h.024a.112.112 0 0 0 .112-.084c.6122-2.1086 1.8806-3.133 6.138-3.133h3.7372a2.0007 2.0007 0 0 0 2.0007-2.0007V5.2697a2.0007 2.0007 0 0 0-2.0007-2.0007z"/></svg>
+            </span>
             {% elif sample.ticker == 'TSLA' %}
-            <span class="ticker-badge-logo logo-tsla" title="Tesla">TS</span>
+            <span class="ticker-badge-logo logo-tsla" title="Tesla">
+              <svg viewBox="0 0 24 24" fill="#e82127"><path d="M11.9772 0.3642L0 17.168h7.9548l2.136-11.976h4.8192L17.0676 17.168H25.044L13.0668 0.3642h-1.0896z"/></svg>
+            </span>
             {% elif sample.ticker == 'AAPL' %}
-            <span class="ticker-badge-logo logo-aapl" title="Apple">AP</span>
+            <span class="ticker-badge-logo logo-aapl" title="Apple">
+              <svg viewBox="0 0 16 16" fill="#ffffff"><path d="M11.182.008C11.148-.03 9.923.023 8.857 1.18c-1.066 1.156-.902 2.482-.878 2.516s1.52.087 2.475-1.258.762-2.391.728-2.43m3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422s1.675-2.789 1.698-2.854-.597-.79-1.254-1.157a3.7 3.7 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116-.508.139-1.653.589-1.968.607-.316.018-1.256-.522-2.267-.665-.647-.125-1.333.131-1.824.328-.49.196-1.422.754-2.074 2.237-.652 1.482-.311 3.83-.067 4.56s.625 1.924 1.273 2.796c.576.984 1.34 1.667 1.659 1.899s1.219.386 1.843.067c.502-.308 1.408-.485 1.766-.472.357.013 1.061.154 1.782.539.571.197 1.111.115 1.652-.105.541-.221 1.324-1.059 2.238-2.758q.52-1.185.473-1.282"/></svg>
+            </span>
             {% elif sample.ticker == 'MSFT' %}
-            <span class="ticker-badge-logo logo-msft" title="Microsoft">MS</span>
+            <span class="ticker-badge-logo logo-msft" title="Microsoft">
+              <svg viewBox="0 0 23 23">
+                <rect x="0" y="0" width="10.5" height="10.5" fill="#f25022" />
+                <rect x="11.5" y="0" width="10.5" height="10.5" fill="#7fba00" />
+                <rect x="0" y="11.5" width="10.5" height="10.5" fill="#00a4ef" />
+                <rect x="11.5" y="11.5" width="10.5" height="10.5" fill="#ffb900" />
+              </svg>
+            </span>
             {% elif sample.ticker == 'AMZN' %}
-            <span class="ticker-badge-logo logo-amzn" title="Amazon">AM</span>
+            <span class="ticker-badge-logo logo-amzn" title="Amazon">
+              <svg viewBox="0 0 24 24" fill="#ff9900">
+                <path d="M15.93 17.09c-2.93 1.99-6.9 2.91-10.42 2.91-5.18 0-9.87-1.99-13.1-5.26-.22-.22-.02-.53.27-.41 3.59 1.47 7.74 2.3 11.96 2.3 3.58 0 7.1-.6 10.28-1.78.33-.12.56.23.27.47M16.92 15.65c-.3-.39-1.95-.2-2.68-.08-.34.06-.39-.27-.08-.52 1.45-1.13 3.82-.8 4.12-.39.3.41-.21 2.76-1.57 3.92-.32.27-.58.11-.47-.24.24-.76.99-2.3.68-2.69z"/>
+              </svg>
+            </span>
             {% else %}
-            <span class="ticker-badge-logo" title="{{ sample.name }}">{{ sample.ticker[:2] }}</span>
+            <span class="ticker-badge-logo" title="{{ sample.name }}"><span style="color:#fff;font-size:11px;font-weight:700;font-family:'Outfit';">{{ sample.ticker[:2] }}</span></span>
             {% endif %}
             <span class="dir-ticker">{{ sample.ticker }}</span>
           </div>
@@ -804,10 +952,10 @@ h2 {
           <div class="col-actions">
             <a class="dir-btn primary" href="/download/sample/{{ sample.ticker }}">
               <svg class="icon-download" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              Download Model (XLSX)
+              Download Model
             </a>
             <a class="dir-btn secondary" href="/samples/{{ sample.ticker }}">
-              Run Valuation Engine <span class="arrow">→</span>
+              Run Engine <span class="arrow">→</span>
             </a>
           </div>
         </div>
@@ -818,41 +966,76 @@ h2 {
 
   <section class="band" id="features">
     <div class="inner">
-      <div class="section-head" style="margin-bottom: 56px;">
-        <h2>Interactive Sandbox Capabilities</h2>
-        <p class="section-copy">Trinsic features an integrated sandbox valuation engine. Play with dynamic projections in real-time, or download fully unlocked formula-linked Excel spreadsheets under our premium coverage tiers.</p>
+      <div class="section-head" style="margin-bottom: 44px; text-align: center; align-items: center; width: 100%;">
+        <h2>Interactive Sandbox capabilities</h2>
+        <p class="section-copy" style="text-align: center;">Trinsic features an integrated sandbox valuation engine. Play with dynamic projections in real-time, or download fully unlocked formula-linked Excel spreadsheets under our premium coverage tiers.</p>
       </div>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+
+      <div class="flowchart-container">
+        <!-- Interactive vector flowchart SVG schematic -->
+        <svg class="flowchart-graphic" viewBox="0 0 780 140" xmlns="http://www.w3.org/2000/svg">
+          <!-- Marching ants connections -->
+          <path class="flow-line" d="M120,70 L180,70" />
+          <path class="flow-line" d="M280,70 L340,70" />
+          <path class="flow-line" d="M440,70 L500,70" />
+          <path class="flow-line" d="M600,70 L660,70" />
+          
+          <!-- Node 0: Inputs -->
+          <g class="node-group active" id="node-0" onclick="selectNode(0)" onmouseover="selectNode(0)">
+            <rect class="node-rect" x="20" y="25" width="100" height="90" />
+            <text class="node-text-sub" x="70" y="52" text-anchor="middle">Step 01</text>
+            <text class="node-text-title" x="70" y="76" text-anchor="middle">Base Stats</text>
+            <text class="node-text-icon" x="70" y="98" text-anchor="middle">📊</text>
+          </g>
+          
+          <!-- Node 1: Calculations -->
+          <g class="node-group" id="node-1" onclick="selectNode(1)" onmouseover="selectNode(1)">
+            <rect class="node-rect" x="180" y="25" width="100" height="90" />
+            <text class="node-text-sub" x="230" y="52" text-anchor="middle">Step 02</text>
+            <text class="node-text-title" x="230" y="76" text-anchor="middle">3-Statements</text>
+            <text class="node-text-icon" x="230" y="98" text-anchor="middle">⚙️</text>
+          </g>
+          
+          <!-- Node 2: WACC -->
+          <g class="node-group" id="node-2" onclick="selectNode(2)" onmouseover="selectNode(2)">
+            <rect class="node-rect" x="340" y="25" width="100" height="90" />
+            <text class="node-text-sub" x="390" y="52" text-anchor="middle">Step 03</text>
+            <text class="node-text-title" x="390" y="76" text-anchor="middle">WACC Rate</text>
+            <text class="node-text-icon" x="390" y="98" text-anchor="middle">⚖️</text>
+          </g>
+          
+          <!-- Node 3: DCF -->
+          <g class="node-group" id="node-3" onclick="selectNode(3)" onmouseover="selectNode(3)">
+            <rect class="node-rect" x="500" y="25" width="100" height="90" />
+            <text class="node-text-sub" x="550" y="52" text-anchor="middle">Step 04</text>
+            <text class="node-text-title" x="550" y="76" text-anchor="middle">DCF Bridge</text>
+            <text class="node-text-icon" x="550" y="98" text-anchor="middle">💎</text>
+          </g>
+          
+          <!-- Node 4: Risk -->
+          <g class="node-group" id="node-4" onclick="selectNode(4)" onmouseover="selectNode(4)">
+            <rect class="node-rect" x="660" y="25" width="100" height="90" />
+            <text class="node-text-sub" x="710" y="52" text-anchor="middle">Step 05</text>
+            <text class="node-text-title" x="710" y="76" text-anchor="middle">Monte Carlo</text>
+            <text class="node-text-icon" x="710" y="98" text-anchor="middle">🔮</text>
+          </g>
+        </svg>
+
+        <!-- Dynamic Content Explanation Card -->
+        <div class="flowchart-detail-card">
+          <div class="flowchart-detail-icon" id="detail-icon">📊</div>
+          <div class="flowchart-detail-info">
+            <h3 id="detail-title">Historical &amp; Base Stats (Inputs)</h3>
+            <p id="detail-desc">Establish base-year figures: Revenue, EBITDA margins, Cash, Debt, and Capex schedules. This serves as the grounding anchor from which all active valuations are generated.</p>
           </div>
-          <h3>Dynamic 3-Statement Forecast</h3>
-          <p>Tweak revenue growth, opex rates, and working capital schedules. The engine instantly cascades calculations across linked income statements, balance sheets, and cash flow schedules.</p>
         </div>
-        
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-          </div>
-          <h3>WACC Discount Rate Calibration</h3>
-          <p>Tune capital structure weights, risk-free rates, equity risk premiums, and cost of debt. See how changes in cost of capital immediately shift the present value of future cash flows.</p>
-        </div>
-        
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2.5 3.19-2.5 5.5h20c0-2.31-1-4.24-2.5-5.5"></path><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></path></svg>
-          </div>
-          <h3>Monte Carlo Confidence Corridor</h3>
-          <p>Execute 2,000+ statistical iterations in real-time, sampling key drivers across probability distributions to map standard deviations and the mathematical probability of beating current price points.</p>
-        </div>
-        
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>
-          </div>
-          <h3>2D Sensitivity Matrices</h3>
-          <p>Instantly generate valuation matrices mapping cost of capital (WACC) against terminal growth rates, revealing the dynamic stability corridor of equity value per share.</p>
+
+        <!-- Call-to-action button to point to dashboard -->
+        <div class="sandbox-cta-wrapper">
+          <a class="sandbox-cta-btn" href="/dashboard">
+            Launch Valuation Sandbox <span class="arrow">→</span>
+          </a>
+          <span class="sandbox-cta-sub">Play with dynamic, real-time assumptions inside the interactive sandbox workspace.</span>
         </div>
       </div>
     </div>
@@ -860,11 +1043,12 @@ h2 {
 
   <section class="band" id="access">
     <div class="inner">
-      <div class="section-head" style="margin-bottom: 56px;">
+      <div class="section-head" style="margin-bottom: 44px;">
         <h2>Subscription &amp; Access Models</h2>
         <p class="section-copy">We distribute institutional-grade valuation templates on a highly clean, utility-driven access framework. Designed for professional analysts, reference, and structural auditability.</p>
       </div>
       <div class="access-grid">
+        <!-- Card 1: Free Coverage -->
         <div class="access-card">
           <div>
             <span class="tier-badge">Standard Access</span>
@@ -883,13 +1067,33 @@ h2 {
           <a class="access-btn outline" href="#samples" style="width: 100%; margin-top: 24px;">Browse Available Samples</a>
         </div>
         
+        <!-- Card 2: Single Model -->
+        <div class="access-card">
+          <div>
+            <span class="tier-badge" style="color: var(--ink); border: 1px solid var(--line); background: #ffffff; padding: 2px 8px; border-radius: 4px;">Single Purchase</span>
+            <h3 class="tier-title">Single Ticker</h3>
+            <div class="tier-price">
+              <span class="price-val">$10</span>
+              <span class="price-period">/ Fully Unlocked Model</span>
+            </div>
+            <p class="tier-description">Acquire a single, 100% unlocked and fully editable Excel model for any public stock ticker of your choice. Clean formulas, scenarios, and discount structures included.</p>
+            <ul class="tier-features">
+              <li>100% fully unlocked, editable formula linking</li>
+              <li>Complete control over historical and projection assumptions</li>
+              <li>WACC structures and 2D Sensitivity calculation schedules</li>
+            </ul>
+          </div>
+          <a class="access-btn outline" href="mailto:{{ support_email }}?subject=Trinsic%20Single%20Model%20Purchase%20Request" style="width: 100%; margin-top: 24px;">Buy Single Ticker</a>
+        </div>
+        
+        <!-- Card 3: Coverage Bundle -->
         <div class="access-card premium">
           <div>
             <span class="tier-badge premium">Professional Access</span>
             <h3 class="tier-title">Coverage Bundle</h3>
             <div class="tier-price">
               <span class="price-val">$30</span>
-              <span class="price-period">/ 5 Model Pack</span>
+              <span class="price-period">/ 5 Ticker Pack</span>
             </div>
             <p class="tier-description">Acquire fully unlocked, un-watermarked sheets for 5 custom stock models of your choice. Gain total forecasting agency and formula control.</p>
             <ul class="tier-features">
@@ -915,6 +1119,54 @@ h2 {
 function updateFormula(formula) {
   const display = document.getElementById('activeFormula');
   if (display) display.textContent = formula;
+}
+
+const nodeData = [
+  {
+    title: "Historical & Base Stats (Inputs)",
+    icon: "📊",
+    desc: "Establish base-year figures: Revenue, EBITDA margins, Cash, Debt, and Capex schedules. This serves as the grounding anchor from which all active valuations are generated."
+  },
+  {
+    title: "Dynamic 3-Statement Forecast (Calculations)",
+    icon: "⚙️",
+    desc: "Project five years of detailed operations. Dynamic formula linking automatically shifts your Balance Sheet and Cash Flow Statement in perfect equilibrium whenever Revenue CAGR or COGS shifts."
+  },
+  {
+    title: "WACC Cost of Capital (Discount Factor)",
+    icon: "⚖️",
+    desc: "Calibrate equity weights, cost of debt, synthetic ratings, and size premiums. Automatically updates the blended discount factors to reflect capitalization risk changes instantly."
+  },
+  {
+    title: "Gordon Growth & Multiple exit (DCF Bridge)",
+    icon: "💎",
+    desc: "Generate the full equity valuation bridge. Projects terminal values and present values, calculating net blended enterprise equity value and target stock prices."
+  },
+  {
+    title: "Monte Carlo & 2D Sensitivities (Risk Analysis)",
+    icon: "🔮",
+    desc: "Execute 2,000+ randomized iterations in real-time. Maps normal distribution outputs, variance thresholds, and probability density curves of hitting your target price points."
+  }
+];
+
+function selectNode(index) {
+  for (let i = 0; i < 5; i++) {
+    const node = document.getElementById('node-' + i);
+    if (node) {
+      if (i === index) node.classList.add('active');
+      else node.classList.remove('active');
+    }
+  }
+  
+  const detailIcon = document.getElementById('detail-icon');
+  const detailTitle = document.getElementById('detail-title');
+  const detailDesc = document.getElementById('detail-desc');
+  
+  if (detailIcon && detailTitle && detailDesc) {
+    detailIcon.textContent = nodeData[index].icon;
+    detailTitle.textContent = nodeData[index].title;
+    detailDesc.textContent = nodeData[index].desc;
+  }
 }
 </script>
 </body>
