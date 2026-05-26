@@ -372,7 +372,7 @@ def checkout_custom():
     if CUSTOM_MODEL_CHECKOUT_URL:
         return redirect(CUSTOM_MODEL_CHECKOUT_URL, code=302)
     return render_template("landing.html", **_public_context(
-        error="Payment link is not configured yet. Set CUSTOM_MODEL_CHECKOUT_URL after creating the LemonSqueezy checkout."
+        error="Custom model orders are temporarily paused while our LemonSqueezy payment gateway completes verification. Please check back shortly, or email support at " + SUPPORT_EMAIL + " to order directly!"
     )), 503
 
 
