@@ -14,10 +14,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
-<!-- Google Fonts: DM Serif Display + DM Sans -->
+<!-- Google Fonts: DM Sans + JetBrains Mono -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
 /* ═══════════════════════════════════════════════════════════
@@ -26,47 +26,47 @@
    ═══════════════════════════════════════════════════════════ */
 
 :root {
-  --bg-body: #f6f3ee;
-  --bg-sidebar: #faf8f5;
+  --bg-body: #f7f8fa;
+  --bg-sidebar: #ffffff;
   --bg-card: #ffffff;
-  --bg-card-hover: #fefdfb;
+  --bg-card-hover: #f8fafc;
   --bg-input: #ffffff;
-  --bg-badge: #f0ede7;
-  --border: #e8e3da;
-  --border-light: #f0ece4;
-  --border-focus: #1a1a1a;
-  --text-primary: #1a1a1a;
-  --text-secondary: #5c5750;
-  --text-muted: #9b9590;
-  --text-label: #7a756d;
-  --accent-green: #22a06b;
-  --accent-green-bg: #e3fcef;
-  --accent-green-text: #006644;
-  --accent-red: #de350b;
-  --accent-red-bg: #ffebe6;
-  --accent-red-text: #bf2600;
-  --accent-yellow: #ff991f;
-  --accent-yellow-bg: #fff7e6;
-  --accent-yellow-text: #8b6914;
-  --accent-blue: #0065ff;
-  --accent-blue-bg: #deebff;
-  --accent-cyan: #00b8d9;
-  --accent-purple: #6554c0;
-  --accent-purple-bg: #eae6ff;
-  --accent-pink: #e76e8a;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
-  --shadow-lg: 0 4px 12px rgba(0,0,0,0.06);
-  --shadow-modal: 0 20px 60px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.08);
-  --radius: 12px;
+  --bg-badge: #eef2f7;
+  --border: #e5e7eb;
+  --border-light: #eef0f3;
+  --border-focus: #2563eb;
+  --text-primary: #111827;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-label: #64748b;
+  --accent-green: #059669;
+  --accent-green-bg: #ecfdf5;
+  --accent-green-text: #047857;
+  --accent-red: #dc2626;
+  --accent-red-bg: #fef2f2;
+  --accent-red-text: #b91c1c;
+  --accent-yellow: #d97706;
+  --accent-yellow-bg: #fffbeb;
+  --accent-yellow-text: #92400e;
+  --accent-blue: #2563eb;
+  --accent-blue-bg: #eff6ff;
+  --accent-cyan: #0891b2;
+  --accent-purple: #7c3aed;
+  --accent-purple-bg: #f5f3ff;
+  --accent-pink: #db2777;
+  --shadow-sm: 0 1px 2px rgba(15,23,42,0.05);
+  --shadow-card: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.04);
+  --shadow-lg: 0 16px 40px rgba(15,23,42,0.08);
+  --shadow-modal: 0 24px 80px rgba(15,23,42,0.16);
+  --radius: 8px;
   --radius-sm: 8px;
   --radius-xs: 6px;
-  --radius-lg: 16px;
-  --font-display: 'DM Serif Display', Georgia, serif;
+  --radius-lg: 12px;
+  --font-display: 'DM Sans', -apple-system, sans-serif;
   --font-sans: 'DM Sans', -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'Consolas', monospace;
-  --sidebar-width: 240px;
-  --transition: 180ms ease;
+  --sidebar-width: 248px;
+  --transition: 160ms ease;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -107,7 +107,7 @@ body {
 }
 
 .sidebar-brand {
-  padding: 24px 20px 20px;
+  padding: 22px 20px 18px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -130,9 +130,10 @@ body {
 
 .brand-name {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 18px;
+  font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.3px;
+  letter-spacing: 0;
 }
 
 .sidebar-nav {
@@ -147,21 +148,77 @@ body {
 
 .sidebar-nav-label {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  color: white;
-  border: none;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  padding: 0 10px 8px;
+}
+
+.nav-item {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  margin: 2px 0;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all var(--transition);
+}
+
+.nav-item:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-color: var(--border-light);
+}
+
+.nav-icon {
+  width: 28px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--bg-badge);
+  color: var(--text-label);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  padding: 14px;
+  border-top: 1px solid var(--border);
+  background: #fff;
+}
+
+.sidebar-run-btn {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 16px;
+  background: var(--text-primary);
+  color: #fff;
+  border: 1px solid var(--text-primary);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   transition: all var(--transition);
-  letter-spacing: -0.1px;
 }
 
 .sidebar-run-btn:hover { background: #333; }
@@ -191,15 +248,15 @@ body {
 
 /* Settings highlight button in sidebar */
 .nav-item.settings-highlight {
-  background: var(--text-primary);
-  color: #fff;
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue);
   font-weight: 600;
   border-radius: var(--radius-sm);
   margin-top: 4px;
 }
 .nav-item.settings-highlight:hover {
-  background: #333;
-  color: #fff;
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 .nav-item.settings-highlight .nav-icon { opacity: 1; }
 
@@ -236,14 +293,15 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 18px;
 }
 
 .main-header-left h1 {
   font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 400;
+  font-size: 28px;
+  font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.3px;
+  letter-spacing: 0;
 }
 
 .main-header-left .subtitle {
@@ -259,13 +317,14 @@ body {
 }
 
 .version-badge {
-  padding: 5px 14px;
-  background: var(--text-primary);
-  color: white;
-  border-radius: 20px;
+  padding: 5px 12px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
 }
 
 .status-chip {
@@ -344,9 +403,9 @@ body {
 }
 
 .kpi-card:hover {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-  transform: translateY(-2px);
-  border-color: #d4cfc6;
+  box-shadow: var(--shadow-card);
+  transform: translateY(-1px);
+  border-color: #d8dee8;
 }
 
 .kpi-card-header {
@@ -375,9 +434,9 @@ body {
 
 .kpi-card-value {
   font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 400;
-  letter-spacing: -0.5px;
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: 0;
   line-height: 1.1;
   margin-bottom: 8px;
 }
@@ -537,9 +596,9 @@ body {
 }
 
 .chart-card:hover {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-  transform: translateY(-2px);
-  border-color: #d4cfc6;
+  box-shadow: var(--shadow-card);
+  transform: translateY(-1px);
+  border-color: #d8dee8;
 }
 
 .chart-card-header {
@@ -589,8 +648,8 @@ body {
 }
 
 .table-card:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
-  border-color: #d4cfc6;
+  box-shadow: var(--shadow-card);
+  border-color: #d8dee8;
 }
 
 .table-card-header {
@@ -735,7 +794,7 @@ body {
 }
 
 .wacc-item {
-  background: var(--bg-body);
+  background: #f8fafc;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
   padding: 14px;
@@ -754,6 +813,7 @@ body {
 .wacc-item-value {
   font-family: var(--font-display);
   font-size: 20px;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -838,8 +898,16 @@ body {
 }
 
 .settings-section-icon {
-  font-size: 14px;
-  opacity: 0.7;
+  width: 26px;
+  height: 22px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: var(--text-label);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
 }
 
 .settings-section-label {
@@ -1077,6 +1145,205 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
   align-items: center;
   gap: 8px;
 }
+
+/* Minimal polish pass */
+body {
+  background:
+    linear-gradient(180deg, #ffffff 0, var(--bg-body) 240px),
+    var(--bg-body);
+}
+
+button, input, select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.main-content {
+  background: transparent;
+}
+
+.main-body {
+  max-width: 1480px;
+}
+
+.header-settings-btn,
+.tab-pill,
+.sidebar-export-btn,
+.settings-close,
+.mobile-toggle {
+  box-shadow: none;
+}
+
+.header-settings-btn:hover,
+.tab-pill:hover,
+.sidebar-export-btn:hover,
+.settings-close:hover,
+.mobile-toggle:hover {
+  background: #f8fafc;
+  box-shadow: none;
+}
+
+.nav-item.active {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.nav-item.active::before {
+  display: none;
+}
+
+.nav-item.active .nav-icon,
+.nav-item.settings-highlight .nav-icon {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.sidebar-run-btn:hover {
+  background: #1f2937;
+  border-color: #1f2937;
+  box-shadow: 0 8px 18px rgba(15,23,42,0.12);
+}
+
+.sidebar-export-btn {
+  min-height: 38px;
+  font-weight: 700;
+  border-color: var(--border);
+}
+
+.tab-filter-row {
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tab-filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-pill {
+  border-radius: 999px;
+  background: #fff;
+  font-weight: 700;
+}
+
+.tab-pill.active {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: #fff;
+}
+
+.kpi-card,
+.distribution-card,
+.chart-card,
+.table-card {
+  box-shadow: 0 1px 1px rgba(15,23,42,0.02);
+}
+
+.distribution-card:hover,
+.table-card:hover {
+  box-shadow: var(--shadow-card);
+  border-color: #d8dee8;
+}
+
+.chart-card-title,
+.table-card-title,
+.distribution-card-title,
+.wacc-item-label {
+  letter-spacing: 0.06em;
+}
+
+.distribution-bar {
+  height: 30px;
+  background: #f1f5f9;
+}
+
+.distribution-bar-segment.seg-fcf { background: #3b82f6; }
+.distribution-bar-segment.seg-tv { background: #10b981; }
+.distribution-bar-segment.seg-bridge { background: #f59e0b; }
+.distribution-bar-segment.seg-equity { background: #ef4444; }
+
+.distribution-card-link,
+.chart-card-action,
+.table-card-action {
+  color: var(--accent-blue);
+}
+
+.data-table th {
+  background: #f8fafc;
+}
+
+.data-table tbody tr:nth-child(even) td {
+  background: #fbfcfe;
+}
+
+.data-table tr:hover td {
+  background: #f8fafc;
+}
+
+.heatmap-table th,
+.heatmap-table td:first-child {
+  background: #f8fafc;
+}
+
+.settings-overlay {
+  background: rgba(15,23,42,0.32);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.settings-panel {
+  border-left: 1px solid var(--border);
+}
+
+.settings-section {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  background: #fff;
+}
+
+.settings-section-header {
+  padding: 0 0 10px;
+}
+
+input[type="number"],
+input[type="text"],
+select {
+  background: #f8fafc;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
+}
+
+.empty-state {
+  background: #fff;
+  border: 1px dashed #d8dee8;
+  border-radius: var(--radius-lg);
+}
+
+.empty-title {
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .main-header {
+    padding-top: 72px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .main-header-right {
+    flex-wrap: wrap;
+  }
+
+  .settings-panel {
+    width: min(440px, 94vw);
+  }
+}
 </style>
 </head>
 <body>
@@ -1227,12 +1494,12 @@ function ChartComponent({ type, data, options, className = '' }) {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { labels: { color: '#7a756d', font: { family: 'DM Sans', size: 11, weight: 500 }, padding: 16, usePointStyle: true, pointStyle: 'circle' } },
+          legend: { labels: { color: '#64748b', font: { family: 'DM Sans', size: 11, weight: 500 }, padding: 16, usePointStyle: true, pointStyle: 'circle' } },
           tooltip: {
             backgroundColor: '#fff',
-            titleColor: '#1a1a1a',
-            bodyColor: '#5c5750',
-            borderColor: '#e8e3da',
+            titleColor: '#111827',
+            bodyColor: '#475569',
+            borderColor: '#e5e7eb',
             borderWidth: 1,
             cornerRadius: 8,
             padding: 12,
@@ -1244,12 +1511,12 @@ function ChartComponent({ type, data, options, className = '' }) {
         },
         scales: {
           x: {
-            ticks: { color: '#9b9590', font: { family: 'DM Sans', size: 11 } },
+            ticks: { color: '#94a3b8', font: { family: 'DM Sans', size: 11 } },
             grid: { color: 'rgba(232,227,218,0.6)', drawBorder: false },
             border: { display: false },
           },
           y: {
-            ticks: { color: '#9b9590', font: { family: 'JetBrains Mono', size: 10 } },
+            ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } },
             grid: { color: 'rgba(232,227,218,0.6)', drawBorder: false },
             border: { display: false },
           },
@@ -1560,21 +1827,21 @@ function App() {
 
   // ── NAV ITEMS ──
   const NAV_MAIN = [
-    { id: 'overview', icon: '◎', label: 'Overview' },
-    { id: 'income', icon: '≡', label: 'Income Statement' },
-    { id: 'balance', icon: '⊞', label: 'Balance Sheet' },
-    { id: 'cashflow', icon: '⇄', label: 'Cash Flow' },
-    { id: 'wacc_tab', icon: '⚖', label: 'WACC' },
-    { id: 'dcf', icon: '◆', label: 'DCF Valuation' },
-    { id: 'scenarios', icon: '⊕', label: 'Scenarios' },
-    { id: 'sensitivity', icon: '▦', label: 'Sensitivity' },
-    { id: 'montecarlo', icon: '⊘', label: 'Monte Carlo' },
-    { id: 'tornado', icon: '⇶', label: 'Tornado' },
+    { id: 'overview', icon: 'OV', label: 'Overview' },
+    { id: 'income', icon: 'IS', label: 'Income Statement' },
+    { id: 'balance', icon: 'BS', label: 'Balance Sheet' },
+    { id: 'cashflow', icon: 'CF', label: 'Cash Flow' },
+    { id: 'wacc_tab', icon: 'WA', label: 'WACC' },
+    { id: 'dcf', icon: 'DC', label: 'DCF Valuation' },
+    { id: 'scenarios', icon: 'SC', label: 'Scenarios' },
+    { id: 'sensitivity', icon: 'SN', label: 'Sensitivity' },
+    { id: 'montecarlo', icon: 'MC', label: 'Monte Carlo' },
+    { id: 'tornado', icon: 'TO', label: 'Tornado' },
   ];
 
   const NAV_SETTINGS = [
-    { id: 'settings', icon: '⚙', label: 'Settings' },
-    { id: 'assumptions', icon: '◈', label: 'Assumptions' },
+    { id: 'settings', icon: 'ST', label: 'Settings' },
+    { id: 'assumptions', icon: 'AS', label: 'Assumptions' },
   ];
 
   // ── SIDEBAR ──
@@ -1602,7 +1869,7 @@ function App() {
           <div className="sidebar-nav-label">Configuration</div>
           <button className={`nav-item settings-highlight ${showSettings ? 'active' : ''}`}
             onClick={() => setShowSettings(true)}>
-            <span className="nav-icon">⚙</span>
+            <span className="nav-icon">ST</span>
             Model Settings
           </button>
         </div>
@@ -1610,10 +1877,10 @@ function App() {
 
       <div className="sidebar-footer">
         <button className="sidebar-run-btn" onClick={() => runModel(false)} disabled={loading}>
-          {loading ? <><span className="spinner"></span> Running...</> : <>▶ Run Model</>}
+          {loading ? <><span className="spinner"></span> Running...</> : <>Run Model</>}
         </button>
         <button className="sidebar-export-btn" onClick={exportExcel} disabled={loading || !results}>
-          {exporting ? <><span className="spinner dark"></span> Exporting...</> : <>↓ Export Excel</>}
+          {exporting ? <><span className="spinner dark"></span> Exporting...</> : <>Export Excel</>}
         </button>
       </div>
     </aside>
@@ -1627,18 +1894,18 @@ function App() {
         <div className="settings-panel">
           <div className="settings-header">
             <h2>Model Configuration</h2>
-            <button className="settings-close" onClick={() => setShowSettings(false)}>✕</button>
+            <button className="settings-close" onClick={() => setShowSettings(false)}>x</button>
           </div>
           <div className="settings-body">
             {/* Company */}
-            <SettingsSection icon="🏢" label="Company Info" defaultOpen={false}>
+            <SettingsSection icon="CO" label="Company Info" defaultOpen={false}>
               <InputField label="Company Name" value={config.company_name} type="text" onChange={v => updateConfig('company_name', v)} />
               <InputField label="Ticker" value={config.ticker} type="text" onChange={v => updateConfig('ticker', v)} />
               <InputField label="Industry" value={config.industry} type="text" onChange={v => updateConfig('industry', v)} />
             </SettingsSection>
 
             {/* Base Year */}
-            <SettingsSection icon="📊" label="Base Year Values" defaultOpen={true}>
+            <SettingsSection icon="BY" label="Base Year Values" defaultOpen={true}>
               <InputField label="Revenue" unit="$" value={config.base_year_revenue} onChange={v => updateConfig('base_year_revenue', v)} />
               <InputField label="Cash" unit="$" value={config.base_cash} onChange={v => updateConfig('base_cash', v)} />
               <InputField label="PP&E" unit="$" value={config.base_ppe} onChange={v => updateConfig('base_ppe', v)} />
@@ -1648,7 +1915,7 @@ function App() {
             </SettingsSection>
 
             {/* Forecast */}
-            <SettingsSection icon="📈" label="Forecast Assumptions" defaultOpen={true}>
+            <SettingsSection icon="FC" label="Forecast Assumptions" defaultOpen={true}>
               <InputField label="Projection Years" value={config.forecast.projection_years} onChange={v => updateConfig('forecast.projection_years', v)} min={1} max={10} step={1} />
               <InputField label="Revenue Method" value={config.forecast.revenue_method} onChange={v => updateConfig('forecast.revenue_method', v)} options={[{value:'cagr',label:'CAGR'},{value:'yoy',label:'Year-over-Year'},{value:'manual',label:'Manual'}]} />
               <InputField label="Revenue CAGR" unit="%" value={config.forecast.revenue_cagr} onChange={v => updateConfig('forecast.revenue_cagr', v)} step={0.5} pct />
@@ -1664,7 +1931,7 @@ function App() {
             </SettingsSection>
 
             {/* Working Capital */}
-            <SettingsSection icon="🔄" label="Working Capital" defaultOpen={false}>
+            <SettingsSection icon="WC" label="Working Capital" defaultOpen={false}>
               <InputField label="DSO" unit="days" value={config.forecast.dso} onChange={v => updateConfig('forecast.dso', v)} step={1} />
               <InputField label="DIO" unit="days" value={config.forecast.dio} onChange={v => updateConfig('forecast.dio', v)} step={1} />
               <InputField label="DPO" unit="days" value={config.forecast.dpo} onChange={v => updateConfig('forecast.dpo', v)} step={1} />
@@ -1673,7 +1940,7 @@ function App() {
             </SettingsSection>
 
             {/* WACC */}
-            <SettingsSection icon="⚖️" label="WACC" defaultOpen={false}>
+            <SettingsSection icon="WA" label="WACC" defaultOpen={false}>
               <InputField label="Risk-Free Rate" unit="%" value={config.wacc.risk_free_rate} onChange={v => updateConfig('wacc.risk_free_rate', v)} step={0.1} pct />
               <InputField label="Equity Risk Premium" unit="%" value={config.wacc.equity_risk_premium} onChange={v => updateConfig('wacc.equity_risk_premium', v)} step={0.5} pct />
               <InputField label="Beta" value={config.wacc.beta} onChange={v => updateConfig('wacc.beta', v)} step={0.05} />
@@ -1686,7 +1953,7 @@ function App() {
             </SettingsSection>
 
             {/* Valuation */}
-            <SettingsSection icon="💎" label="Valuation" defaultOpen={false}>
+            <SettingsSection icon="VL" label="Valuation" defaultOpen={false}>
               <InputField label="Terminal Growth" unit="%" value={config.valuation.terminal_growth_rate} onChange={v => updateConfig('valuation.terminal_growth_rate', v)} step={0.5} pct />
               <InputField label="Exit EV/EBITDA" unit="x" value={config.valuation.exit_ev_ebitda_multiple} onChange={v => updateConfig('valuation.exit_ev_ebitda_multiple', v)} step={0.5} />
               <InputField label="Discount Method" value={config.valuation.discount_convention} onChange={v => updateConfig('valuation.discount_convention', v)} options={[{value:'mid_year',label:'Mid-Year'},{value:'end_period',label:'End Period'}]} />
@@ -1712,7 +1979,7 @@ function App() {
             </SettingsSection>
 
             {/* Monte Carlo */}
-            <SettingsSection icon="🎲" label="Monte Carlo" defaultOpen={false}>
+            <SettingsSection icon="MC" label="Monte Carlo" defaultOpen={false}>
               <InputField label="Iterations" value={config.monte_carlo.iterations} onChange={v => updateConfig('monte_carlo.iterations', v)} step={1000} />
               <InputField label="Rev Growth μ" unit="%" value={config.monte_carlo.revenue_growth_mean} onChange={v => updateConfig('monte_carlo.revenue_growth_mean', v)} step={0.5} pct />
               <InputField label="Rev Growth σ" unit="%" value={config.monte_carlo.revenue_growth_std} onChange={v => updateConfig('monte_carlo.revenue_growth_std', v)} step={0.5} pct />
@@ -1727,7 +1994,7 @@ function App() {
             </SettingsSection>
 
             {/* Scenarios */}
-            <SettingsSection icon="🎯" label="Scenarios" defaultOpen={false}>
+            <SettingsSection icon="SC" label="Scenarios" defaultOpen={false}>
               {Object.entries(config.scenarios).map(([name, s]) => (
                 <div key={name} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid var(--border-light)' }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: name === 'Bull' ? 'var(--accent-green)' : name === 'Bear' ? 'var(--accent-red)' : 'var(--accent-blue)', marginBottom: 6 }}>
@@ -2019,7 +2286,7 @@ function App() {
                   { label: 'COGS', data: is.map(r => r['COGS']), backgroundColor: '#c9908d', stack: 's' },
                   { label: 'SG&A', data: is.map(r => r['SGA']), backgroundColor: '#d4b876', stack: 's' },
                   { label: 'Other OpEx', data: is.map(r => r['Other OpEx']), backgroundColor: '#a78bcc', stack: 's' },
-                  { label: 'D&A', data: is.map(r => r['Total D&A']), backgroundColor: '#9b9590', stack: 's' },
+                  { label: 'D&A', data: is.map(r => r['Total D&A']), backgroundColor: '#94a3b8', stack: 's' },
                   { label: 'Tax', data: is.map(r => r['Tax Expense']), backgroundColor: '#c47d9a', stack: 's' },
                   { label: 'Net Income', data: is.map(r => r['Net Income']), backgroundColor: '#78a87c', stack: 's' },
                 ],
@@ -2431,7 +2698,7 @@ function App() {
                 plugins: { legend: { display: false } },
                 scales: {
                   x: { ticks: { maxTicksLimit: 15, maxRotation: 45 } },
-                  y: { title: { display: true, text: 'Frequency', color: '#9b9590', font: { family: 'DM Sans', size: 11 } } },
+                  y: { title: { display: true, text: 'Frequency', color: '#94a3b8', font: { family: 'DM Sans', size: 11 } } },
                 },
               }} />
             ) : <div style={{color:'var(--text-muted)',textAlign:'center',padding:40}}>No histogram data</div>}
@@ -2541,7 +2808,7 @@ function App() {
             <div className="subtitle">{config.company_name} · {config.currency}</div>
           </div>
           <div className="main-header-right">
-            <button className="header-settings-btn" onClick={() => setShowSettings(true)}>⚙ Assumptions</button>
+            <button className="header-settings-btn" onClick={() => setShowSettings(true)}>Assumptions</button>
             <span className="version-badge">{appVersion}</span>
             {results && (
               <span className="status-chip success">
