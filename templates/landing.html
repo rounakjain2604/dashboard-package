@@ -17,9 +17,9 @@
   --panel: #ffffff;
   --green: #059669;
   --green-soft: #ecfdf5;
-  --blue: #2563eb;
-  --gold: #2563eb;
-  --gold-soft: #eff6ff;
+  --blue: #111827;
+  --gold: #111827;
+  --gold-soft: #f3f4f6;
   --red: #dc2626;
 }
 * { box-sizing: border-box; }
@@ -105,7 +105,7 @@ a { color: inherit; }
   border: 1px solid var(--line);
   border-radius: 999px;
   background: #fff;
-  color: var(--gold);
+  color: var(--muted);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -161,7 +161,7 @@ h1 {
 }
 .sheet-row.header {
   color: #fff;
-  background: #1d3354;
+  background: var(--ink);
   border-radius: 6px 6px 0 0;
   padding: 0 12px;
   font-weight: 600;
@@ -214,116 +214,114 @@ h2 {
   margin: 0;
 }
 .section-copy { color: var(--muted); max-width: 600px; margin: 8px 0 0; font-size: 15px; }
-.sample-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 24px;
-}
-.sample-card {
+
+/* ── Minimalist Directory Table ── */
+.samples-table {
+  width: 100%;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 24px;
-  min-height: 240px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
-  animation: fadeUp 0.5s ease both;
+  box-shadow: 0 4px 20px rgba(15,23,42,0.02);
 }
-.sample-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: var(--gold);
-  opacity: 0;
-  transition: opacity 0.25s ease;
+.samples-header {
+  display: grid;
+  grid-template-columns: 0.8fr 1.6fr 2.5fr 2fr 2.1fr;
+  padding: 18px 24px;
+  background: #f9fafb;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  align-items: center;
 }
-.sample-card:hover::before {
-  opacity: 1;
+.sample-row {
+  display: grid;
+  grid-template-columns: 0.8fr 1.6fr 2.5fr 2fr 2.1fr;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--line);
+  align-items: center;
+  font-size: 14px;
+  transition: background 0.2s ease;
 }
-.sample-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 36px rgba(15,23,42,0.08);
-  border-color: #d8dee8;
+.sample-row:last-child {
+  border-bottom: none;
 }
-.ticker {
+.sample-row:hover {
+  background: #fafbfc;
+}
+.ticker-badge {
   font-weight: 700;
-  font-size: 13px;
-  color: var(--gold);
-  background: var(--gold-soft);
-  border: 1px solid #ebdcb9;
+  font-size: 12px;
+  color: var(--ink);
+  background: #f3f4f6;
+  border: 1px solid var(--line);
+  padding: 4px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  display: inline-block;
+}
+.sample-row strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+.sample-tagline {
+  color: var(--muted);
+  font-size: 13.5px;
+  padding-right: 12px;
+}
+.feature-tag {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  background: #fafbfc;
+  border: 1px solid var(--line);
   padding: 3px 8px;
   border-radius: 4px;
+  margin-right: 6px;
   display: inline-block;
-  letter-spacing: 0.05em;
-  margin-bottom: 12px;
 }
-.sample-card strong {
-  display: block;
-  font-size: 17px;
-  font-weight: 600;
-  margin-top: 4px;
-}
-.sample-card p { color: var(--muted); font-size: 13px; margin: 8px 0 20px; line-height: 1.5; }
-.card-features {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 20px 0;
-  font-size: 12px;
-  color: var(--muted);
+.col-actions {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  justify-content: flex-end;
 }
-.card-features li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.card-features li::before {
-  content: "✓";
-  color: var(--green);
-  font-weight: bold;
-}
-.sample-links { display: grid; gap: 8px; }
-.mini-link {
+.action-btn {
   min-height: 38px;
-  border: 1px solid #c8c4bc;
+  padding: 0 16px;
   border-radius: 6px;
-  display: flex;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  font-size: 13px;
-  font-weight: 600;
   transition: all 0.2s ease;
-  background: var(--panel);
+  cursor: pointer;
 }
-.mini-link.primary {
+.action-btn.primary {
   background: var(--ink);
   color: #fff;
-  border-color: var(--ink);
+  border: 1px solid var(--ink);
 }
-.mini-link.primary:hover {
-  background: #222;
-  border-color: #222;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+.action-btn.primary:hover {
+  background: #334155;
+  border-color: #334155;
+  box-shadow: 0 4px 10px rgba(15,23,42,0.08);
 }
-.mini-link.secondary {
+.action-btn.secondary {
+  background: var(--panel);
   color: var(--muted);
+  border: 1px solid #c8c4bc;
 }
-.mini-link.secondary:hover {
-  background: #f8fafc;
+.action-btn.secondary:hover {
   border-color: var(--ink);
   color: var(--ink);
+  background: #fbfaf8;
 }
+
 .offer {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -344,23 +342,13 @@ h2 {
   position: relative;
   overflow: hidden;
 }
-.price::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(141, 98, 21, 0.12) 0%, transparent 60%);
-  pointer-events: none;
-}
 .price:hover { box-shadow: 0 24px 64px rgba(0,0,0,0.3); transform: translateY(-2px); border-color: rgba(255,255,255,0.12); }
 .price-label {
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #93c5fd;
+  color: #94a3b8; /* Muted slate-gray for strict monochrome look */
 }
 .price .amount {
   font-family: 'Inter', Arial, Helvetica, sans-serif;
@@ -375,7 +363,7 @@ h2 {
   content: ' USD';
   font-size: 16px;
   font-family: 'Inter', sans-serif;
-  color: #93c5fd;
+  color: #94a3b8;
   margin-left: 8px;
   font-weight: 500;
   letter-spacing: 0.05em;
@@ -403,7 +391,7 @@ h2 {
 }
 .price ul li::before {
   content: "✓";
-  color: #93c5fd;
+  color: #cbd5e1; /* White/slate-gray checkmark */
   font-weight: bold;
 }
 .form {
@@ -436,7 +424,7 @@ input:focus, textarea:focus {
   background: #ffffff;
   border-color: var(--gold);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(141, 98, 21, 0.08);
+  box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.06);
 }
 textarea { min-height: 98px; resize: vertical; }
 .message { margin-top: 14px; color: var(--green); font-weight: 600; transition: all 0.3s ease; }
@@ -444,16 +432,16 @@ textarea { min-height: 98px; resize: vertical; }
   max-width: 1200px;
   margin: 24px auto 0;
   padding: 16px 24px;
-  background: #fdfaf2;
-  border: 1px solid #ebdcb9;
-  color: var(--gold);
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  color: #111827;
   border-radius: 8px;
   font-weight: 500;
   font-size: 14px;
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 12px 32px rgba(141, 98, 21, 0.05);
+  box-shadow: 0 4px 12px rgba(15,23,42,0.03);
   line-height: 1.5;
 }
 .footer {
@@ -468,13 +456,26 @@ textarea { min-height: 98px; resize: vertical; }
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 @media (max-width: 980px) {
   .hero, .offer { grid-template-columns: 1fr; gap: 40px; }
-  .sample-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .samples-header {
+    display: none;
+  }
+  .sample-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 24px;
+  }
+  .desktop-only {
+    display: none !important;
+  }
+  .col-actions {
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
   .nav { padding: 0 24px; }
 }
 @media (max-width: 620px) {
   .nav-links a:not(.button) { display: none; }
   .hero, .band { padding-left: 24px; padding-right: 24px; }
-  .sample-grid { grid-template-columns: 1fr; }
   .section-head { display: flex; }
 }
 </style>
@@ -536,24 +537,29 @@ textarea { min-height: 98px; resize: vertical; }
         <h2>Free Sample Workbooks</h2>
         <p class="section-copy">Download these complete workbooks as proof-of-output before requesting a custom ticker. All models remain fully unlocked and editable.</p>
       </div>
-      <div class="sample-grid">
+      <div class="samples-table">
+        <div class="samples-header">
+          <span>Ticker</span>
+          <span>Company</span>
+          <span>Projections & Scope</span>
+          <span class="desktop-only">Model Features</span>
+          <span style="text-align: right;">Action</span>
+        </div>
         {% for sample in samples %}
-        <article class="sample-card">
-          <div>
-            <span class="ticker">{{ sample.ticker }}</span>
-            <strong>{{ sample.name }}</strong>
-            <p>{{ sample.tagline }}</p>
-            <ul class="card-features">
-              <li>17-Tab Full Analysis</li>
-              <li>Monte Carlo Simulation</li>
-              <li>Linked Excel Formulas</li>
-            </ul>
+        <div class="sample-row">
+          <div><span class="ticker-badge">{{ sample.ticker }}</span></div>
+          <div><strong>{{ sample.name }}</strong></div>
+          <div class="sample-tagline">{{ sample.tagline }}</div>
+          <div class="desktop-only">
+            <span class="feature-tag">17-Tab Model</span>
+            <span class="feature-tag">WACC</span>
+            <span class="feature-tag">Monte Carlo</span>
           </div>
-          <div class="sample-links">
-            <a class="mini-link primary" href="/download/sample/{{ sample.ticker }}">Download Excel</a>
-            <a class="mini-link secondary" href="/samples/{{ sample.ticker }}">Interactive View</a>
+          <div class="col-actions">
+            <a class="action-btn primary" href="/download/sample/{{ sample.ticker }}">Download Excel</a>
+            <a class="action-btn secondary" href="/samples/{{ sample.ticker }}">Interactive View</a>
           </div>
-        </article>
+        </div>
         {% endfor %}
       </div>
     </div>
@@ -628,7 +634,7 @@ form.addEventListener('submit', async (event) => {
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error || 'Request failed');
-    msg.innerHTML = 'Request captured. <a href="' + data.checkout_url + '" style="text-decoration: underline; font-weight: bold; color: var(--gold);">Continue to payment</a>.';
+    msg.innerHTML = 'Request captured. <a href="' + data.checkout_url + '" style="text-decoration: underline; font-weight: bold; color: var(--ink);">Continue to payment</a>.';
   } catch (err) {
     msg.textContent = err.message || 'Could not submit request. Please email support.';
   }
