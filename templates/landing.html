@@ -3,23 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ brand_name }} - Editable Excel DCF Models</title>
-<meta name="description" content="Generate editable Excel DCF models for public stocks. Download free sample valuation workbooks or request a custom ticker model.">
+<title>{{ brand_name }} - Premium Editable Excel DCF Models</title>
+<meta name="description" content="Generate formula-linked Excel DCF models for public stocks. Download free sample valuation workbooks or request a custom ticker model.">
 <link rel='preconnect' href='https://fonts.googleapis.com'>
 <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
 <link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
 <style>
 :root {
-  --ink: #151515;
-  --muted: #626262;
-  --line: #ded8ce;
-  --paper: #faf8f3;
+  --ink: #121212;
+  --muted: #666664;
+  --line: #e3dec3;
+  --paper: #faf8f5;
   --panel: #ffffff;
-  --green: #0b7f55;
-  --green-soft: #e6f4ee;
-  --blue: #265f99;
-  --gold: #a9771f;
-  --red: #a23b2a;
+  --green: #0a794f;
+  --green-soft: #e5f5ed;
+  --blue: #1c5285;
+  --gold: #8d6215;
+  --gold-soft: #fcf8ee;
+  --red: #a12c1a;
 }
 * { box-sizing: border-box; }
 body {
@@ -27,7 +28,10 @@ body {
   font-family: 'Inter', Arial, Helvetica, sans-serif;
   color: var(--ink);
   background: var(--paper);
-  line-height: 1.5;
+  background-image: radial-gradient(rgba(20, 20, 18, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 a { color: inherit; }
 .nav {
@@ -35,37 +39,40 @@ a { color: inherit; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 32px;
+  padding: 0 40px;
   border-bottom: 1px solid var(--line);
-  background: rgba(250, 248, 243, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(250, 248, 245, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   position: sticky;
   top: 0;
   z-index: 10;
 }
 .brand {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 25px;
-  letter-spacing: 0;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
-.nav-links { display: flex; gap: 18px; align-items: center; font-size: 14px; color: var(--muted); }
+.nav-links { display: flex; gap: 24px; align-items: center; font-size: 14px; color: var(--muted); }
+.nav-links a:hover { color: var(--ink); text-decoration: none; }
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
-  padding: 0 18px;
-  border-radius: 6px;
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 8px;
   border: 1px solid var(--ink);
   background: var(--ink);
   color: #fff;
   text-decoration: none;
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.button:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); background: #222; border-color: #222; }
 .button:active { transform: translateY(0); }
 .button.secondary {
   background: transparent;
@@ -76,213 +83,377 @@ a { color: inherit; }
   background: var(--panel);
   color: var(--ink);
 }
+.button.ghost:hover {
+  background: #f9f8f6;
+  border-color: var(--ink);
+}
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.04fr) minmax(320px, 0.96fr);
-  gap: 44px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
+  gap: 64px;
   align-items: center;
-  padding: 74px 32px 40px;
-  max-width: 1180px;
+  padding: 88px 40px 64px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 .eyebrow {
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  padding: 6px 10px;
+  padding: 6px 14px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: #fff;
-  color: var(--muted);
+  color: var(--gold);
   font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  margin-bottom: 8px;
   animation: fadeUp 0.5s ease both;
 }
 h1 {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(42px, 7vw, 78px);
-  line-height: 0.96;
-  letter-spacing: 0;
+  font-size: clamp(38px, 6vw, 68px);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  font-weight: 400;
   margin: 18px 0;
 }
 .lead {
-  font-size: 19px;
-  color: #414141;
-  max-width: 620px;
-  margin: 0 0 26px;
+  font-size: 18px;
+  color: #444340;
+  max-width: 600px;
+  margin: 0 0 32px;
+  line-height: 1.6;
 }
-.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-.fine { color: var(--muted); font-size: 13px; margin-top: 14px; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.fine { color: var(--muted); font-size: 13px; margin-top: 20px; }
 .workbook {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 18px 55px rgba(50, 40, 25, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(40, 30, 20, 0.08);
   overflow: hidden;
-  animation: float 4s ease-in-out infinite, fadeUp 0.8s ease 0.15s both;
+  animation: float 5s ease-in-out infinite, fadeUp 0.8s ease 0.15s both;
 }
 .sheet-top {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
-  padding: 12px 14px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--line);
-  background: #eee8dd;
+  background: #f2eee6;
 }
-.dot { width: 10px; height: 10px; border-radius: 999px; background: #c9bda9; }
-.sheet-name { margin-left: auto; color: var(--muted); font-size: 12px; }
-.sheet-grid { padding: 18px; }
+.dot { width: 11px; height: 11px; border-radius: 999px; }
+.dot-red { background: #ff5f56; }
+.dot-yellow { background: #ffbd2e; }
+.dot-green { background: #27c93f; }
+.sheet-name { margin-left: 12px; color: var(--muted); font-size: 12px; font-weight: 500; }
+.sheet-grid { padding: 24px; }
 .sheet-row {
   display: grid;
-  grid-template-columns: 1.4fr repeat(5, 0.8fr);
-  min-height: 34px;
-  border-bottom: 1px solid #ece7df;
+  grid-template-columns: 1.5fr repeat(5, 0.9fr);
+  min-height: 38px;
+  border-bottom: 1px solid #f2eee6;
   align-items: center;
   font-size: 12px;
 }
 .sheet-row.header {
   color: #fff;
-  background: #1f3864;
-  border-radius: 5px 5px 0 0;
-  padding: 0 8px;
-  font-weight: 700;
+  background: #1d3354;
+  border-radius: 6px 6px 0 0;
+  padding: 0 12px;
+  font-weight: 600;
+  min-height: 40px;
 }
-.sheet-row:not(.header) { padding: 0 8px; }
-.sheet-row strong { font-size: 13px; }
-.num { text-align: right; font-family: Consolas, monospace; color: #394450; }
-.formula { color: var(--green); }
+.sheet-row:not(.header) { padding: 0 12px; }
+.sheet-row strong { font-size: 13px; font-weight: 500; }
+.num { text-align: right; font-family: Consolas, monospace; color: #2e3641; }
+.formula {
+  color: var(--green);
+  font-family: Consolas, monospace;
+  font-size: 10px;
+  white-space: nowrap;
+  background: var(--green-soft);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(10, 121, 79, 0.15);
+}
 .tabs {
   display: flex;
-  gap: 6px;
-  padding: 0 18px 18px;
+  gap: 8px;
+  padding: 0 24px 24px;
   flex-wrap: wrap;
 }
 .tab {
-  padding: 5px 9px;
-  border-radius: 4px;
-  background: #edf2f5;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: #f0ecdf;
   font-size: 11px;
-  color: #394450;
+  font-weight: 500;
+  color: #3e3f3a;
 }
 .band {
   border-top: 1px solid var(--line);
-  padding: 54px 32px;
+  padding: 88px 40px;
 }
-.inner { max-width: 1180px; margin: 0 auto; }
+.inner { max-width: 1200px; margin: 0 auto; }
 .section-head {
   display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  align-items: end;
-  margin-bottom: 22px;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 48px;
 }
 h2 {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 38px;
+  font-size: 40px;
+  letter-spacing: -0.02em;
+  font-weight: 400;
   margin: 0;
 }
-.section-copy { color: var(--muted); max-width: 620px; margin: 8px 0 0; }
+.section-copy { color: var(--muted); max-width: 600px; margin: 8px 0 0; font-size: 15px; }
 .sample-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
 }
 .sample-card {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 16px;
-  min-height: 208px;
+  border-radius: 12px;
+  padding: 24px;
+  min-height: 240px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: all 0.25s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
   animation: fadeUp 0.5s ease both;
 }
-.sample-card:nth-child(1) { animation-delay: 0s; }
-.sample-card:nth-child(2) { animation-delay: 0.08s; }
-.sample-card:nth-child(3) { animation-delay: 0.16s; }
-.sample-card:nth-child(4) { animation-delay: 0.24s; }
-.sample-card:nth-child(5) { animation-delay: 0.32s; }
-.sample-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(50, 40, 25, 0.10); border-color: #d4cfc6; }
-.ticker {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 32px;
+.sample-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--gold);
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
-.sample-card p { color: var(--muted); font-size: 13px; margin: 8px 0 16px; }
+.sample-card:hover::before {
+  opacity: 1;
+}
+.sample-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(40, 30, 20, 0.06);
+  border-color: var(--ink);
+}
+.ticker {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--gold);
+  background: var(--gold-soft);
+  border: 1px solid #ebdcb9;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+.sample-card strong {
+  display: block;
+  font-size: 17px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.sample-card p { color: var(--muted); font-size: 13px; margin: 8px 0 20px; line-height: 1.5; }
+.card-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.card-features li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-features li::before {
+  content: "✓";
+  color: var(--green);
+  font-weight: bold;
+}
 .sample-links { display: grid; gap: 8px; }
 .mini-link {
-  min-height: 34px;
+  min-height: 38px;
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   transition: all 0.2s ease;
+  background: var(--panel);
 }
-.mini-link:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
-.offer {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
-  gap: 28px;
-  align-items: start;
-}
-.price {
+.mini-link.primary {
   background: var(--ink);
   color: #fff;
-  border-radius: 8px;
-  padding: 28px;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 20px 50px rgba(0,0,0,0.25);
-  transition: all 0.3s ease;
+  border-color: var(--ink);
 }
-.price:hover { box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 25px 60px rgba(0,0,0,0.3); transform: translateY(-2px); }
+.mini-link.primary:hover {
+  background: #222;
+  border-color: #222;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+.mini-link.secondary:hover {
+  background: #fbfaf8;
+  border-color: var(--ink);
+}
+.offer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: stretch;
+}
+.price {
+  background: #141413;
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 44px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.price::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(141, 98, 21, 0.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+.price:hover { box-shadow: 0 40px 96px rgba(0,0,0,0.35); transform: translateY(-2px); border-color: rgba(255,255,255,0.12); }
+.price-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+}
 .price .amount {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 64px;
+  font-size: 72px;
   line-height: 1;
+  margin: 16px 0;
+  color: #ffffff;
+  display: flex;
+  align-items: baseline;
 }
-.price ul { padding-left: 18px; color: #e8e3da; }
+.price .amount::after {
+  content: ' USD';
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  color: var(--gold);
+  margin-left: 8px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+.price-copy {
+  color: #c5c4c0;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.price ul {
+  padding-left: 0;
+  list-style: none;
+  color: #e5e4e0;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.price ul li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.price ul li::before {
+  content: "✓";
+  color: var(--gold);
+  font-weight: bold;
+}
 .form {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 24px;
+  border-radius: 12px;
+  padding: 44px;
+  box-shadow: 0 24px 64px rgba(40, 30, 20, 0.04);
 }
-.field { display: grid; gap: 7px; margin-bottom: 14px; }
-label { font-size: 13px; font-weight: 700; }
+.field { display: grid; gap: 8px; margin-bottom: 20px; }
+.field label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
 input, textarea {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 12px;
-  font: inherit;
-  background: #fff;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  background: #fbfaf8;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-input:focus, textarea:focus { border-color: var(--ink); outline: none; box-shadow: 0 0 0 3px rgba(21, 21, 21, 0.06); }
-textarea { min-height: 92px; resize: vertical; }
-.message { margin-top: 12px; color: var(--green); font-weight: 700; transition: all 0.3s ease; }
-.error { max-width: 1180px; margin: 16px auto 0; padding: 12px 16px; background: #fff1ee; border: 1px solid #e8b5ab; color: var(--red); border-radius: 6px; }
+input:focus, textarea:focus {
+  background: #fff;
+  border-color: var(--ink);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(18, 18, 18, 0.07);
+}
+textarea { min-height: 98px; resize: vertical; }
+.message { margin-top: 14px; color: var(--green); font-weight: 600; transition: all 0.3s ease; }
+.error { max-width: 1200px; margin: 24px auto 0; padding: 14px 20px; background: #fff1ef; border: 1px solid #ebbeb7; color: var(--red); border-radius: 8px; font-weight: 500; }
 .footer {
-  padding: 34px 32px;
+  padding: 48px 40px;
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 13px;
   text-align: center;
+  line-height: 1.7;
 }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 @media (max-width: 980px) {
-  .hero, .offer { grid-template-columns: 1fr; }
+  .hero, .offer { grid-template-columns: 1fr; gap: 40px; }
   .sample-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .nav { padding: 0 18px; }
+  .nav { padding: 0 24px; }
 }
 @media (max-width: 620px) {
   .nav-links a:not(.button) { display: none; }
-  .hero, .band { padding-left: 18px; padding-right: 18px; }
+  .hero, .band { padding-left: 24px; padding-right: 24px; }
   .sample-grid { grid-template-columns: 1fr; }
-  .section-head { display: block; }
+  .section-head { display: flex; }
 }
 </style>
 </head>
@@ -291,9 +462,9 @@ textarea { min-height: 92px; resize: vertical; }
   <div class="brand">{{ brand_name }}</div>
   <div class="nav-links">
     <a href="#samples">Samples</a>
-    <a href="#custom">Custom model</a>
+    <a href="#custom">Custom Model</a>
     <a href="/dashboard">Dashboard</a>
-    <a class="button secondary" href="#custom">$29 custom DCF</a>
+    <a class="button secondary" href="#custom" style="min-height:36px;padding:0 14px;font-size:13px;">$29 Custom DCF</a>
   </div>
 </nav>
 
@@ -303,19 +474,21 @@ textarea { min-height: 92px; resize: vertical; }
 
 <main>
   <section class="hero">
-    <div style="animation: fadeUp 0.7s ease both;">
-      <div class="eyebrow">Editable Excel DCF models for public stocks</div>
-      <h1>Get a clean valuation workbook without building it from scratch.</h1>
-      <p class="lead">{{ brand_name }} generates formula-linked Excel DCF models with 3-statement outputs, WACC, scenarios, sensitivity tables, and Monte Carlo tabs.</p>
+    <div style="animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;">
+      <div class="eyebrow">Institutional-Grade Financial Modeling</div>
+      <h1>Get a clean, fully editable Excel DCF without the build time.</h1>
+      <p class="lead">{{ brand_name }} generates formula-linked Excel models complete with full 3-statement projections, dynamic WACC structures, custom scenarios, 2D sensitivities, and Monte Carlo tabs.</p>
       <div class="hero-actions">
-        <a class="button" href="#samples">Download free samples</a>
-        <a class="button ghost" href="#custom">Request any US ticker</a>
+        <a class="button" href="#samples">Download Free Samples</a>
+        <a class="button ghost" href="#custom">Request Custom Ticker</a>
       </div>
-      <p class="fine">For education and research only. Every workbook is editable, unlocked, and assumption-driven.</p>
+      <p class="fine">Unlocked, fully auditable, and assumption-driven workbooks. Built for education and valuation research.</p>
     </div>
     <div class="workbook" aria-label="Excel workbook preview">
       <div class="sheet-top">
-        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="dot dot-red"></span>
+        <span class="dot dot-yellow"></span>
+        <span class="dot dot-green"></span>
         <span class="sheet-name">Trinsic_NVIDIA_DCF_Sample.xlsx</span>
       </div>
       <div class="sheet-grid">
@@ -335,22 +508,25 @@ textarea { min-height: 92px; resize: vertical; }
   <section class="band" id="samples">
     <div class="inner">
       <div class="section-head">
-        <div>
-          <h2>Free sample workbooks</h2>
-          <p class="section-copy">Use these as proof-of-output before paying for a custom ticker. Assumptions are starter estimates and should be reviewed.</p>
-        </div>
+        <h2>Free Sample Workbooks</h2>
+        <p class="section-copy">Download these complete workbooks as proof-of-output before requesting a custom ticker. All models remain fully unlocked and editable.</p>
       </div>
       <div class="sample-grid">
         {% for sample in samples %}
         <article class="sample-card">
           <div>
-            <div class="ticker">{{ sample.ticker }}</div>
+            <span class="ticker">{{ sample.ticker }}</span>
             <strong>{{ sample.name }}</strong>
             <p>{{ sample.tagline }}</p>
+            <ul class="card-features">
+              <li>17-Tab Full Analysis</li>
+              <li>Monte Carlo Simulation</li>
+              <li>Linked Excel Formulas</li>
+            </ul>
           </div>
           <div class="sample-links">
-            <a class="mini-link" href="/samples/{{ sample.ticker }}">View page</a>
-            <a class="mini-link" href="/download/sample/{{ sample.ticker }}">Download Excel</a>
+            <a class="mini-link primary" href="/download/sample/{{ sample.ticker }}">Download Excel</a>
+            <a class="mini-link secondary" href="/samples/{{ sample.ticker }}">Interactive View</a>
           </div>
         </article>
         {% endfor %}
@@ -359,44 +535,52 @@ textarea { min-height: 92px; resize: vertical; }
   </section>
 
   <section class="band" id="custom">
-    <div class="inner offer">
-      <div class="price">
-        <div>Custom model</div>
-        <div class="amount">$29</div>
-        <p>Send one US ticker. Get an editable Excel DCF starter model delivered within 24 hours during the validation period.</p>
-        <ul>
-          <li>Formula-linked Excel workbook</li>
-          <li>DCF, WACC, scenarios, sensitivity, Monte Carlo</li>
-          <li>Unlocked assumptions tab</li>
-          <li>Educational/research use only</li>
-        </ul>
-        <a class="button" style="background:#fff;color:#151515;border-color:#fff" href="/checkout/custom">Pay for custom model</a>
+    <div class="inner">
+      <div class="section-head" style="margin-bottom: 40px;">
+        <h2>Order Custom Model</h2>
+        <p class="section-copy">Get any active US public stock modeled to professional standards and delivered directly to your inbox.</p>
       </div>
-      <form class="form" id="requestForm">
-        <h2 style="font-size:30px;margin-bottom:6px">Request a ticker</h2>
-        <p class="section-copy" style="margin-bottom:18px">Submit the ticker and email first, then complete payment. This gives you a backup contact path during the early launch.</p>
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" placeholder="you@example.com" required>
+      <div class="offer">
+        <div class="price">
+          <div>
+            <span class="price-label">Standard License</span>
+            <div class="amount">$29</div>
+            <p class="price-copy">Submit your ticker preference. You will receive an editable, institutional-grade starter model workbook within 24 hours during our early launch period.</p>
+            <ul>
+              <li>100% formula-linked Excel spreadsheet</li>
+              <li>Dynamic cost-of-capital synthetic credit builds</li>
+              <li>10,000-iteration Monte Carlo & 2D sensitivity</li>
+              <li>Unlocked and un-watermarked assumptions tab</li>
+            </ul>
+          </div>
+          <a class="button" style="background:#ffffff;color:#121212;border-color:#ffffff" href="/checkout/custom">Continue to Payment</a>
         </div>
-        <div class="field">
-          <label for="ticker">Ticker</label>
-          <input id="ticker" name="ticker" placeholder="e.g. COST" required>
-        </div>
-        <div class="field">
-          <label for="notes">Notes</label>
-          <textarea id="notes" name="notes" placeholder="Any preference: bull/base/bear focus, industry peer set, etc."></textarea>
-        </div>
-        <button class="button" type="submit">Submit request</button>
-        <div id="formMessage" class="message" role="status"></div>
-      </form>
+        <form class="form" id="requestForm">
+          <h2 style="font-size:28px;margin-bottom:8px;font-family:Georgia, serif;">Request a Ticker</h2>
+          <p class="section-copy" style="margin-bottom:24px;font-size:14px;">Pre-register your ticker and contact email here to guarantee backup tracking and support during your checkout.</p>
+          <div class="field">
+            <label for="email">Email Address</label>
+            <input id="email" name="email" type="email" placeholder="you@example.com" required>
+          </div>
+          <div class="field">
+            <label for="ticker">Stock Ticker Symbol</label>
+            <input id="ticker" name="ticker" placeholder="e.g. MSFT" required style="text-transform: uppercase;">
+          </div>
+          <div class="field">
+            <label for="notes">Special Requirements / Notes</label>
+            <textarea id="notes" name="notes" placeholder="Optional: Specific beta overrides, peer lists, custom growth CAGR assumptions, etc."></textarea>
+          </div>
+          <button class="button" type="submit" style="width: 100%;">Submit Request</button>
+          <div id="formMessage" class="message" role="status"></div>
+        </form>
+      </div>
     </div>
   </section>
 </main>
 
 <footer class="footer">
   <div class="inner">
-    © 2024–2026 {{ brand_name }}. Editable valuation workbooks for education and research. Not investment, tax, legal, or financial advice. Contact: {{ support_email }}.
+    © 2024–2026 {{ brand_name }}. Editable financial models for education, reference, and valuation research. Not tax, legal, or investment advice. Support email: {{ support_email }}.
   </div>
 </footer>
 
@@ -408,7 +592,7 @@ form.addEventListener('submit', async (event) => {
   msg.textContent = 'Submitting...';
   const payload = {
     email: form.email.value,
-    ticker: form.ticker.value,
+    ticker: form.ticker.value.toUpperCase(),
     notes: form.notes.value
   };
   try {
@@ -419,7 +603,7 @@ form.addEventListener('submit', async (event) => {
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error || 'Request failed');
-    msg.innerHTML = 'Request captured. <a href="' + data.checkout_url + '">Continue to payment</a>.';
+    msg.innerHTML = 'Request captured. <a href="' + data.checkout_url + '" style="text-decoration: underline; font-weight: bold; color: var(--gold);">Continue to payment</a>.';
   } catch (err) {
     msg.textContent = err.message || 'Could not submit request. Please email support.';
   }
