@@ -43,7 +43,7 @@ This is a production-ready DCF modeling platform that takes a company's historic
 | **PDF** | ReportLab (optional) |
 | **Data** | pandas, numpy |
 | **Live Data** | yfinance, SEC EDGAR XBRL API (optional) |
-| **Deployment** | Vercel (serverless Python), or any WSGI server |
+| **Deployment** | Render, or any WSGI server (Gunicorn, Waitress) |
 
 ---
 
@@ -158,8 +158,8 @@ pip install matplotlib scipy reportlab yfinance
 
 | Variable | Required | Default | Purpose |
 |----------|----------|---------|---------|
-| `VERCEL` | No | — | Auto-detected on Vercel; caps MC iterations to 2,000, disables live data |
-| `VERCEL_ENV` | No | — | Same as `VERCEL` |
+| `IS_PRODUCTION` | No | False | Set to True in production to toggle production settings |
+| `MAX_MONTE_CARLO_ITERATIONS` | No | 10000 | Caps MC iterations in production to prevent timeouts |
 
 No `.env` file is needed for local development.
 
@@ -189,8 +189,8 @@ The dashboard will be available at **http://localhost:5050**.
 | `dashboard_api.py` | Flask web server — routes, config parsing, JSON serialisation |
 | `config.example.json` | Sample config with default assumptions |
 | `config.asian_street_ib_grade.json` | Real config for "Asian Street Eats" (food & beverage) |
-| `requirements.txt` | Python dependencies (heavy deps commented out for Vercel) |
-| `vercel.json` | Vercel deployment config (routes all traffic to `api/index.py`) |
+| `requirements.txt` | Python dependencies |
+| `render.yaml` | Infrastructure-as-code configuration for Render |
 | `run_dashboard.bat` | Windows launch script |
 
 ### `src/dcf_engine/` — Core Engine
@@ -436,24 +436,19 @@ python dashboard_api.py
 # Runs on http://localhost:5050
 ```
 
-### Vercel (Production)
+### Render (Production)
 
-The project is pre-configured for Vercel serverless deployment:
+The project is pre-configured for Render Web Service deployment via the included `render.yaml` file:
 
-1. Install the [Vercel CLI](https://vercel.com/docs/cli):
-   ```bash
-   npm i -g vercel
-   ```
-
-2. Deploy:
-   ```bash
-   vercel --prod
-   ```
+1. Connect your GitHub repository to Render.
+2. Render will automatically detect the settings in `render.yaml`.
+3. It will provision a Python Web Service running on Gunicorn with all environment variables configured automatically (such as `SECRET_KEY`, `MAX_MONTE_CARLO_ITERATIONS`, and `WACC_LIVE_DATA_ENABLED`).
 
 **How it works:**
-- `vercel.json` routes all requests to `api/index.py`
-- `api/index.py` adds the project root to `sys.path` and imports the Flask app
-- On Vercel: Monte Carlo is capped at 2,000 iterations, live data pulls are disabled
+- `render.yaml` instructs Render to create a web service.
+- The build command is `pip install -r requirements.txt`.
+- The start command is `gunicorn dashboard_api:app --bind 0.0.0.0:$PORT`.
+- Live market data pulls and Monte Carlo iteration caps are fully controlled via environment variables on the Render dashboard.
 
 ### Other Deployment Options
 
@@ -471,7 +466,7 @@ waitress-serve --port=8080 dashboard_api:app
 
 | Service | Required? | Purpose |
 |---------|-----------|---------|
-| Vercel | Optional | Serverless hosting |
+| Render | Optional | Production cloud hosting |
 | yfinance (Yahoo Finance) | Optional | Live beta, risk-free rate, peer comps |
 | SEC EDGAR | Optional | Historical financials for public companies |
 | Damodaran ERP | Optional | Live equity risk premium |

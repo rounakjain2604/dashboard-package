@@ -38,7 +38,7 @@ logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s")
 logger = logging.getLogger(__name__)
 
-# Resolve paths relative to this file so it works both locally and on Vercel
+# Resolve paths relative to this file
 _BASE_DIR = Path(__file__).resolve().parent
 
 app = Flask(
@@ -47,10 +47,13 @@ app = Flask(
     template_folder=str(_BASE_DIR / "templates"),
 )
 app.json.sort_keys = False
+app.secret_key = os.environ.get("SECRET_KEY", "dev-only-insecure-key-change-in-production")
 app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("MAX_CONTENT_LENGTH", 1_000_000))
 
-# Detect Vercel environment
-IS_VERCEL = bool(os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"))
+# ── Environment configuration ──
+IS_PRODUCTION = os.environ.get("APP_ENV", "development").lower() == "production"
+MAX_MC_ITERATIONS = int(os.environ.get("MAX_MONTE_CARLO_ITERATIONS", 2000 if IS_PRODUCTION else 50_000))
+WACC_LIVE_DATA = os.environ.get("WACC_LIVE_DATA_ENABLED", "false").lower() == "true"
 BRAND_NAME = os.environ.get("BRAND_NAME", "Trinsic")
 SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@trinsic.space")
 CUSTOM_MODEL_CHECKOUT_URL = os.environ.get("CUSTOM_MODEL_CHECKOUT_URL", "")
@@ -167,9 +170,8 @@ def _load_historical_and_base_values(data: dict):
 def _run_payload(data: dict, output_excel: str | None = None):
     """Build config and run the valuation pipeline from a dashboard payload."""
     cfg = _build_config_from_payload(data)
-    max_mc = int(os.environ.get("MAX_MONTE_CARLO_ITERATIONS", 2000 if IS_VERCEL else cfg.monte_carlo.iterations))
-    cfg.monte_carlo.iterations = min(cfg.monte_carlo.iterations, max_mc)
-    if IS_VERCEL:
+    cfg.monte_carlo.iterations = min(cfg.monte_carlo.iterations, MAX_MC_ITERATIONS)
+    if not WACC_LIVE_DATA:
         cfg.wacc.use_live_data = False
 
     hist, base = _load_historical_and_base_values(data)
@@ -333,7 +335,7 @@ def _build_config_from_payload(data: dict) -> DCFEngineConfig:
 
 @app.after_request
 def add_cache_headers(response):
-    """Prevent aggressive caching of HTML and API responses on Vercel."""
+    """Prevent aggressive caching of dynamic HTML and API responses."""
     if response.content_type and ('text/html' in response.content_type or 'application/json' in response.content_type):
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
@@ -388,10 +390,10 @@ def api_run():
         data = request.get_json(force=True)
         cfg = _build_config_from_payload(data)
 
-        # Cap Monte Carlo iterations on Vercel to avoid timeouts
-        if IS_VERCEL:
-            cfg.monte_carlo.iterations = min(cfg.monte_carlo.iterations, 2000)
-            cfg.wacc.use_live_data = False  # No external API calls on Vercel
+        # Cap Monte Carlo iterations in production to avoid timeouts
+        cfg.monte_carlo.iterations = min(cfg.monte_carlo.iterations, MAX_MC_ITERATIONS)
+        if not WACC_LIVE_DATA:
+            cfg.wacc.use_live_data = False
 
         # Load historical data — resolve relative to project root
         data_file = data.get("data_file", "data/asian_street_financials.csv")
@@ -584,8 +586,8 @@ def api_export_excel():
         data = request.get_json(force=True)
         cfg = _build_config_from_payload(data)
 
-        if IS_VERCEL:
-            cfg.monte_carlo.iterations = min(cfg.monte_carlo.iterations, 2000)
+        cfg.monte_carlo.iterations = min(cfg.monte_carlo.iterations, MAX_MC_ITERATIONS)
+        if not WACC_LIVE_DATA:
             cfg.wacc.use_live_data = False
 
         # Load historical data

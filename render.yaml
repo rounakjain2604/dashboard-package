@@ -3,29 +3,28 @@ services:
     name: trinsic
     runtime: python
     plan: free
+    region: oregon
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn dashboard_api:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     autoDeploy: true
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
       - key: APP_ENV
         value: production
+      - key: SECRET_KEY
+        generateValue: true
       - key: BRAND_NAME
         value: Trinsic
       - key: SUPPORT_EMAIL
         value: support@trinsic.space
-      - key: FREE_EXPORT_LIMIT
-        value: "1"
       - key: MAX_MONTE_CARLO_ITERATIONS
         value: "2000"
-      - key: DATABASE_URL
+      - key: WACC_LIVE_DATA_ENABLED
+        value: "false"
+      - key: CUSTOM_MODEL_CHECKOUT_URL
         sync: false
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_SERVICE_ROLE_KEY
+      - key: BUNDLE_CHECKOUT_URL
         sync: false
       - key: LEMONSQUEEZY_WEBHOOK_SECRET
-        sync: false
-      - key: LEMONSQUEEZY_STORE_ID
-        sync: false
-      - key: LEMONSQUEEZY_PRODUCT_ID
         sync: false

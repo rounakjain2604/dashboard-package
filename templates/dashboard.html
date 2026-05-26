@@ -149,62 +149,6 @@ body {
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1.4px;
-  color: var(--text-muted);
-  padding: 0 8px;
-  margin-bottom: 6px;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  border: none;
-  background: none;
-  width: 100%;
-  text-align: left;
-}
-
-.nav-item:hover {
-  background: rgba(0,0,0,0.03);
-  color: var(--text-primary);
-}
-
-.nav-item.active {
-  background: rgba(0,0,0,0.05);
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.nav-item .nav-icon {
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-
-.nav-item.active .nav-icon { opacity: 1; }
-
-.sidebar-footer {
-  padding: 12px;
-  border-top: 1px solid var(--border);
-}
-
-.sidebar-run-btn {
-  width: 100%;
-  padding: 10px 16px;
-  background: var(--text-primary);
   color: white;
   border: none;
   border-radius: var(--radius-sm);
@@ -374,6 +318,12 @@ body {
 
 .main-body {
   padding: 20px 32px 40px;
+  animation: contentFade 0.3s ease;
+}
+
+@keyframes contentFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── KPI CARDS (like ClawProxy stats row) ──── */
@@ -394,7 +344,8 @@ body {
 }
 
 .kpi-card:hover {
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
   border-color: #d4cfc6;
 }
 
@@ -460,6 +411,11 @@ body {
   border-radius: var(--radius);
   padding: 20px;
   margin-bottom: 24px;
+  transition: all 0.25s ease;
+}
+
+.distribution-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
 }
 
 .distribution-card-header {
@@ -577,11 +533,13 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
-  transition: all var(--transition);
+  transition: all 0.25s ease;
 }
 
 .chart-card:hover {
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+  border-color: #d4cfc6;
 }
 
 .chart-card-header {
@@ -627,6 +585,12 @@ body {
   border-radius: var(--radius);
   overflow: hidden;
   margin-bottom: 24px;
+  transition: all 0.25s ease;
+}
+
+.table-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+  border-color: #d4cfc6;
 }
 
 .table-card-header {
@@ -699,6 +663,8 @@ body {
 
 .data-table tr:hover td { background: rgba(0,0,0,0.01); }
 
+.data-table tbody tr:nth-child(even) td { background: rgba(0,0,0,0.008); }
+
 .data-table .row-total td {
   font-weight: 700;
   color: var(--text-primary);
@@ -717,6 +683,24 @@ body {
   border-collapse: collapse;
   font-size: 12px;
   font-family: var(--font-mono);
+}
+
+.nav-item.active {
+  background: rgba(0,0,0,0.05);
+  color: var(--text-primary);
+  font-weight: 600;
+  position: relative;
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--text-primary);
 }
 
 .heatmap-table th {
@@ -940,6 +924,12 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
   height: 80px;
   margin-bottom: 28px;
   opacity: 0.25;
+  animation: emptyPulse 3s ease-in-out infinite;
+}
+
+@keyframes emptyPulse {
+  0%,100% { opacity: 0.25; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.05); }
 }
 
 .empty-title {
@@ -994,11 +984,46 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
   .chart-row.cols-2 { grid-template-columns: 1fr; }
 }
 
+/* ── MOBILE TOGGLE ────────────────────────── */
+.mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 60;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  cursor: pointer;
+  font-size: 18px;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition);
+}
+
+.mobile-toggle:hover { background: var(--bg-body); }
+
+/* ── SIDEBAR SCROLLBAR ───────────────────── */
+.sidebar-nav::-webkit-scrollbar { width: 3px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: transparent; }
+.sidebar-nav:hover::-webkit-scrollbar-thumb { background: var(--border); }
+
 @media (max-width: 768px) {
   .app-layout { grid-template-columns: 1fr; }
   .sidebar { position: fixed; left: -260px; transition: left 0.3s; z-index: 50; }
   .sidebar.open { left: 0; }
   .main-header, .tab-filter-row, .main-body { padding-left: 16px; padding-right: 16px; }
+  .mobile-toggle { display: flex; }
+  .sidebar.open ~ .main-content::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 40;
+  }
 }
 
 /* ── FOOTBALL FIELD ───────────────────────── */
@@ -1556,10 +1581,10 @@ function App() {
   const renderSidebar = () => (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <div className="sidebar-brand-inner">
+        <a href="/" className="sidebar-brand-inner" style={{textDecoration:'none',color:'inherit'}}>
           <div className="brand-logo"><IntrinsicLogo size={32} color="#8a9bb5" /></div>
           <span className="brand-name">Trinsic</span>
-        </div>
+        </a>
       </div>
 
       <nav className="sidebar-nav">
@@ -2508,6 +2533,7 @@ function App() {
       {renderSidebar()}
       {renderSettingsPanel()}
 
+      <button className="mobile-toggle" onClick={() => { document.querySelector('.sidebar').classList.toggle('open'); }}>☰</button>
       <main className="main-content">
         <div className="main-header">
           <div className="main-header-left">

@@ -48,8 +48,6 @@ dcf_engine_v13/
   data/                   Historical financial data (CSV)
   templates/              Dashboard UI (single HTML file)
   src/                    Core engine source code
-  api/                    Vercel serverless entry point
-  vercel.json             Vercel deployment config
 ```
 
 ---
@@ -126,11 +124,11 @@ pip install matplotlib scipy reportlab yfinance
 python dashboard_api.py          # http://localhost:5050
 ```
 
-### Vercel (Serverless)
-```bash
-npm i -g vercel
-vercel --prod
-```
+### Render (Production Web Service)
+The project is configured for deployment to **Render** via the included `render.yaml` infrastructure-as-code file:
+1. Connect your GitHub repository to Render.
+2. Render will automatically detect the `render.yaml` configuration.
+3. It will provision a Python Web Service running on Gunicorn with all environment variables configured.
 
 ### Production WSGI
 ```bash

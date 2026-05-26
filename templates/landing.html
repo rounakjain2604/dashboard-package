@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ brand_name }} - Editable Excel DCF Models</title>
 <meta name="description" content="Generate editable Excel DCF models for public stocks. Download free sample valuation workbooks or request a custom ticker model.">
+<link rel='preconnect' href='https://fonts.googleapis.com'>
+<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
 <style>
 :root {
   --ink: #151515;
@@ -21,7 +24,7 @@
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
   color: var(--ink);
   background: var(--paper);
   line-height: 1.5;
@@ -34,7 +37,9 @@ a { color: inherit; }
   justify-content: space-between;
   padding: 0 32px;
   border-bottom: 1px solid var(--line);
-  background: rgba(250, 248, 243, 0.96);
+  background: rgba(250, 248, 243, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -58,7 +63,10 @@ a { color: inherit; }
   text-decoration: none;
   font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
+.button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.button:active { transform: translateY(0); }
 .button.secondary {
   background: transparent;
   color: var(--ink);
@@ -87,6 +95,7 @@ a { color: inherit; }
   background: #fff;
   color: var(--muted);
   font-size: 13px;
+  animation: fadeUp 0.5s ease both;
 }
 h1 {
   font-family: Georgia, 'Times New Roman', serif;
@@ -109,6 +118,7 @@ h1 {
   border-radius: 8px;
   box-shadow: 0 18px 55px rgba(50, 40, 25, 0.12);
   overflow: hidden;
+  animation: float 4s ease-in-out infinite, fadeUp 0.8s ease 0.15s both;
 }
 .sheet-top {
   display: flex;
@@ -185,7 +195,15 @@ h2 {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  transition: all 0.25s ease;
+  animation: fadeUp 0.5s ease both;
 }
+.sample-card:nth-child(1) { animation-delay: 0s; }
+.sample-card:nth-child(2) { animation-delay: 0.08s; }
+.sample-card:nth-child(3) { animation-delay: 0.16s; }
+.sample-card:nth-child(4) { animation-delay: 0.24s; }
+.sample-card:nth-child(5) { animation-delay: 0.32s; }
+.sample-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(50, 40, 25, 0.10); border-color: #d4cfc6; }
 .ticker {
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 32px;
@@ -202,7 +220,9 @@ h2 {
   text-decoration: none;
   font-size: 13px;
   font-weight: 700;
+  transition: all 0.2s ease;
 }
+.mini-link:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
 .offer {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
@@ -214,7 +234,10 @@ h2 {
   color: #fff;
   border-radius: 8px;
   padding: 28px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 20px 50px rgba(0,0,0,0.25);
+  transition: all 0.3s ease;
 }
+.price:hover { box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 25px 60px rgba(0,0,0,0.3); transform: translateY(-2px); }
 .price .amount {
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 64px;
@@ -237,15 +260,19 @@ input, textarea {
   font: inherit;
   background: #fff;
 }
+input:focus, textarea:focus { border-color: var(--ink); outline: none; box-shadow: 0 0 0 3px rgba(21, 21, 21, 0.06); }
 textarea { min-height: 92px; resize: vertical; }
-.message { margin-top: 12px; color: var(--green); font-weight: 700; }
+.message { margin-top: 12px; color: var(--green); font-weight: 700; transition: all 0.3s ease; }
 .error { max-width: 1180px; margin: 16px auto 0; padding: 12px 16px; background: #fff1ee; border: 1px solid #e8b5ab; color: var(--red); border-radius: 6px; }
 .footer {
   padding: 34px 32px;
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 13px;
+  text-align: center;
 }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @media (max-width: 980px) {
   .hero, .offer { grid-template-columns: 1fr; }
   .sample-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -276,7 +303,7 @@ textarea { min-height: 92px; resize: vertical; }
 
 <main>
   <section class="hero">
-    <div>
+    <div style="animation: fadeUp 0.7s ease both;">
       <div class="eyebrow">Editable Excel DCF models for public stocks</div>
       <h1>Get a clean valuation workbook without building it from scratch.</h1>
       <p class="lead">{{ brand_name }} generates formula-linked Excel DCF models with 3-statement outputs, WACC, scenarios, sensitivity tables, and Monte Carlo tabs.</p>
@@ -369,7 +396,7 @@ textarea { min-height: 92px; resize: vertical; }
 
 <footer class="footer">
   <div class="inner">
-    {{ brand_name }} builds editable valuation workbooks for education and research. Not investment, tax, legal, or financial advice. Contact: {{ support_email }}.
+    © 2024–2026 {{ brand_name }}. Editable valuation workbooks for education and research. Not investment, tax, legal, or financial advice. Contact: {{ support_email }}.
   </div>
 </footer>
 

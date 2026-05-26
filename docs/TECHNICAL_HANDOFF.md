@@ -21,7 +21,7 @@ The result is a dual-delivery model:
 ### Backend
 
 - **Language:** Python 3.10+
-- **Web framework:** Flask (`dashboard_api.py`) with serverless entry compatibility (`api/index.py`).
+- **Web framework:** Flask (`dashboard_api.py`) configured with robust production settings.
 - **Core engine:** modular valuation pipeline under `src/dcf_engine/`.
 
 ### Key Libraries
@@ -43,7 +43,7 @@ The result is a dual-delivery model:
 ## 3. Directory Structure & Key Files
 
 - `dashboard_api.py` — primary Flask app; request parsing, config assembly, pipeline invocation, JSON serialization, export endpoint.
-- `api/index.py` — serverless bootstrap for Vercel deployment.
+- `render.yaml` — Infrastructure-as-code configuration for Render deployment.
 - `templates/dashboard.html` — single-file frontend UI and dashboard logic.
 - `src/dcf_engine/pipeline.py` — 16-step orchestration layer for all modeling stages.
 - `src/dcf_engine/valuation/monte_carlo.py` — **Monte Carlo logic** (distribution sampling, valuation distribution, histogram/stats).
@@ -117,7 +117,7 @@ and point frontend API calls to the Python backend base URL.
 
 ### Step 4: Environment Variables
 
-- `VERCEL` / `VERCEL_ENV` (optional): toggles cloud-safe behavior (caps Monte Carlo iterations, disables live market pulls).
+- `IS_PRODUCTION` / `MAX_MONTE_CARLO_ITERATIONS` (optional): toggles cloud-safe behavior (caps Monte Carlo iterations, disables live market pulls).
 - No mandatory `.env` variables are required for local core operation.
 
 ## 6. Extension Guide (How to Customize)
