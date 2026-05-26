@@ -136,6 +136,21 @@ body {
   letter-spacing: 0;
 }
 
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+  letter-spacing: 0.01em;
+}
+.back-link:hover {
+  color: var(--text-primary);
+}
+
 .sidebar-nav {
   padding: 16px 12px;
   flex: 1;
@@ -815,6 +830,209 @@ body {
   font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
+}
+/* ── PAYWALL MODAL ────────────────────────── */
+.paywall-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+  padding: 20px;
+}
+
+.paywall-modal {
+  width: 580px;
+  max-width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 20px 48px rgba(0,0,0,0.15);
+  animation: zoomIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.paywall-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.paywall-header h2 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.paywall-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.paywall-close:hover {
+  color: var(--text-primary);
+}
+
+.paywall-body {
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.paywall-feature-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.paywall-body h3 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 10px;
+  letter-spacing: -0.01em;
+}
+
+.paywall-body > p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 0 0 24px;
+  max-width: 440px;
+}
+
+.paywall-value-props {
+  width: 100%;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.val-prop {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.val-check {
+  color: #22c55e;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.paywall-offer {
+  width: 100%;
+  border-top: 1px dashed var(--border);
+  padding-top: 20px;
+  margin-bottom: 28px;
+}
+
+.paywall-price-box {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.paywall-price {
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.paywall-period {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.paywall-subtext {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.paywall-actions {
+  display: flex;
+  width: 100%;
+  gap: 12px;
+}
+
+.paywall-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.paywall-btn.primary {
+  background: var(--text-primary);
+  color: var(--bg-card);
+  border: 1px solid var(--text-primary);
+}
+
+.paywall-btn.primary:hover {
+  background: #27272a;
+  border-color: #27272a;
+}
+
+.paywall-btn.secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.paywall-btn.secondary:hover {
+  background: var(--bg-sidebar);
 }
 
 /* ── SETTINGS MODAL ───────────────────────── */
@@ -1686,6 +1904,7 @@ function App() {
   const [error, setError] = useState(null);
   const [appVersion, setAppVersion] = useState('V14');
   const [showSettings, setShowSettings] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // Deep updater
   const updateConfig = useCallback((path, value) => {
@@ -1798,32 +2017,10 @@ function App() {
     return () => clearTimeout(timer);
   }, [runModel]);
 
-  // Export
-  const exportExcel = useCallback(async () => {
-    setExporting(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/export-excel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config),
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Export failed');
-      }
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${(config.company_name || 'DCF_Model').replace(/\s+/g, '_')}_IB_Grade_Model.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (e) { setError(e.message); }
-    setExporting(false);
-  }, [config]);
+  // Export (Locked behind paywall)
+  const exportExcel = useCallback(() => {
+    setShowPaywall(true);
+  }, []);
 
   // ── NAV ITEMS ──
   const NAV_MAIN = [
@@ -1851,6 +2048,10 @@ function App() {
         <a href="/" className="sidebar-brand-inner" style={{textDecoration:'none',color:'inherit'}}>
           <div className="brand-logo"><IntrinsicLogo size={32} color="#8a9bb5" /></div>
           <span className="brand-name">Trinsic</span>
+        </a>
+        <a href="/" className="back-link">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Back to Overview
         </a>
       </div>
 
@@ -2799,6 +3000,56 @@ function App() {
     <div className="app-layout">
       {renderSidebar()}
       {renderSettingsPanel()}
+
+      {showPaywall && (
+        <div className="paywall-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowPaywall(false); }}>
+          <div className="paywall-modal">
+            <div className="paywall-header">
+              <h2>Valuation Engine Premium</h2>
+              <button className="paywall-close" onClick={() => setShowPaywall(false)}>×</button>
+            </div>
+            <div className="paywall-body">
+              <div className="paywall-feature-icon">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </div>
+              <h3>Unlock Unrestricted Model Export</h3>
+              <p>Exporting dynamic, formula-linked financial workbooks is a premium feature. Unlock institutional-grade models that are fully editable and auditable.</p>
+              
+              <div className="paywall-value-props">
+                <div className="val-prop">
+                  <span className="val-check">✓</span>
+                  <div><strong>100% Unlocked Workbook</strong>: Fully editable formulas, spreadsheets, and assumptions. No passwords.</div>
+                </div>
+                <div className="val-prop">
+                  <span className="val-check">✓</span>
+                  <div><strong>Dynamic Three-Statement Linking</strong>: Income Statement, Balance Sheet, and Cash Flow statement integrated cleanly.</div>
+                </div>
+                <div className="val-prop">
+                  <span className="val-check">✓</span>
+                  <div><strong>Custom Monte Carlo & Sensitivity</strong>: Pre-linked real-time simulation logic directly inside Excel.</div>
+                </div>
+              </div>
+
+              <div className="paywall-offer">
+                <div className="paywall-price-box">
+                  <span className="paywall-price">$30</span>
+                  <span className="paywall-period">/ 5 Model Coverage Bundle</span>
+                </div>
+                <p className="paywall-subtext">Request 5 custom stock ticker models of your choice, delivered fully unlocked and audited within 24 hours.</p>
+              </div>
+
+              <div className="paywall-actions">
+                <a className="paywall-btn primary" href="mailto:support@trinsic.com?subject=Trinsic%20Coverage%20Bundle%20Access%20Request&body=Hello,%20I%20would%20like%20to%20unlock%20the%20premium%205-model%20coverage%20bundle%20for%20my%20valuation%20sandbox." style={{textDecoration:'none'}}>
+                  Contact Support to Unlock
+                </a>
+                <button className="paywall-btn secondary" onClick={() => setShowPaywall(false)}>
+                  Keep Testing Sandbox
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <button className="mobile-toggle" onClick={() => { document.querySelector('.sidebar').classList.toggle('open'); }}>☰</button>
       <main className="main-content">

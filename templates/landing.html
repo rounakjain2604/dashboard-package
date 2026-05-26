@@ -29,10 +29,10 @@ body {
   color: var(--ink);
   background-color: #f6f8fa;
   background-image: 
-    radial-gradient(at 0% 0%, rgba(243, 244, 246, 0.8) 0, transparent 50%),
-    radial-gradient(at 50% 0%, rgba(229, 231, 235, 0.4) 0, transparent 50%),
-    radial-gradient(rgba(17, 24, 39, 0.03) 1.2px, transparent 1.2px);
-  background-size: 100% 100%, 100% 100%, 24px 24px;
+    radial-gradient(at 50% 0%, rgba(229, 231, 235, 0.6) 0%, transparent 60%),
+    linear-gradient(to right, rgba(17, 24, 39, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 24, 39, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 24px 24px, 24px 24px;
   background-attachment: fixed;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -121,11 +121,11 @@ a { color: inherit; }
   animation: fadeUp 0.5s ease both;
 }
 h1 {
-  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  font-family: 'Outfit', Arial, Helvetica, sans-serif;
   font-size: clamp(38px, 6vw, 68px);
   line-height: 1.02;
-  letter-spacing: 0;
-  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-weight: 800;
   margin: 18px 0;
 }
 .lead {
@@ -141,7 +141,7 @@ h1 {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 16px 42px rgba(15,23,42,0.06);
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 20px 48px rgba(15,23,42,0.06);
   overflow: hidden;
   animation: fadeUp 0.8s ease 0.15s both;
 }
@@ -190,17 +190,19 @@ h1 {
 }
 .tabs {
   display: flex;
-  gap: 8px;
-  padding: 0 24px 24px;
-  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 20px 20px;
+  flex-wrap: nowrap;
+  justify-content: space-between;
 }
 .tab {
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 5px 8px;
+  border-radius: 5px;
   background: #f3f4f6;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 500;
   color: #374151;
+  white-space: nowrap;
 }
 /* ── Mockup Spreadsheet Formula Bar ── */
 .sheet-formula-bar {
@@ -245,13 +247,38 @@ h1 {
   margin-bottom: 24px;
 }
 h2 {
-  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  font-family: 'Outfit', Arial, Helvetica, sans-serif;
   font-size: 40px;
-  letter-spacing: 0;
-  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-weight: 800;
   margin: 0;
 }
 .section-copy { color: var(--muted); max-width: 600px; margin: 8px 0 0; font-size: 15px; }
+
+/* ── Stock Logo Badges ── */
+.ticker-badge-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--ink);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: -0.02em;
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+.ticker-badge-logo.logo-nvda { background: #0f172a; border-color: rgba(76, 175, 80, 0.25); color: #4caf50; }
+.ticker-badge-logo.logo-tsla { background: #0f172a; border-color: rgba(244, 67, 54, 0.25); color: #f44336; }
+.ticker-badge-logo.logo-aapl { background: #0f172a; border-color: rgba(255, 255, 255, 0.25); color: #ffffff; }
+.ticker-badge-logo.logo-msft { background: #0f172a; border-color: rgba(3, 169, 244, 0.25); color: #03a9f4; }
+.ticker-badge-logo.logo-amzn { background: #0f172a; border-color: rgba(255, 152, 0, 0.25); color: #ff9800; }
 
 /* ── Directory Layout ── */
 .samples-directory {
@@ -266,7 +293,7 @@ h2 {
 }
 .directory-header {
   display: grid;
-  grid-template-columns: 110px 200px 120px 1fr 280px;
+  grid-template-columns: 160px 200px 120px 1fr 340px;
   align-items: center;
   padding: 16px 24px;
   background: #f9fafb;
@@ -279,7 +306,7 @@ h2 {
 }
 .directory-row {
   display: grid;
-  grid-template-columns: 110px 200px 120px 1fr 280px;
+  grid-template-columns: 160px 200px 120px 1fr 340px;
   align-items: center;
   padding: 24px;
   border-bottom: 1px solid var(--line);
@@ -422,6 +449,50 @@ h2 {
     justify-content: flex-start;
     margin-top: 4px;
   }
+}
+
+/* ── Features Section Styling ── */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 32px;
+}
+.feature-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 32px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(15,23,42,0.02);
+}
+.feature-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(15,23,42,0.04);
+  border-color: #cbd5e1;
+}
+.feature-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.feature-card h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+.feature-card p {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0;
 }
 
 /* ── Access Tiers Section ── */
@@ -687,6 +758,19 @@ h2 {
         <div class="directory-row">
           <div class="col-ticker">
             <span class="dir-num">0{{ loop.index }}</span>
+            {% if sample.ticker == 'NVDA' %}
+            <span class="ticker-badge-logo logo-nvda" title="NVIDIA">NV</span>
+            {% elif sample.ticker == 'TSLA' %}
+            <span class="ticker-badge-logo logo-tsla" title="Tesla">TS</span>
+            {% elif sample.ticker == 'AAPL' %}
+            <span class="ticker-badge-logo logo-aapl" title="Apple">AP</span>
+            {% elif sample.ticker == 'MSFT' %}
+            <span class="ticker-badge-logo logo-msft" title="Microsoft">MS</span>
+            {% elif sample.ticker == 'AMZN' %}
+            <span class="ticker-badge-logo logo-amzn" title="Amazon">AM</span>
+            {% else %}
+            <span class="ticker-badge-logo" title="{{ sample.name }}">{{ sample.ticker[:2] }}</span>
+            {% endif %}
             <span class="dir-ticker">{{ sample.ticker }}</span>
           </div>
           <div class="col-company">
@@ -720,14 +804,56 @@ h2 {
           <div class="col-actions">
             <a class="dir-btn primary" href="/download/sample/{{ sample.ticker }}">
               <svg class="icon-download" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              Excel Workbook
+              Download Model (XLSX)
             </a>
             <a class="dir-btn secondary" href="/samples/{{ sample.ticker }}">
-              Live Dashboard <span class="arrow">→</span>
+              Run Valuation Engine <span class="arrow">→</span>
             </a>
           </div>
         </div>
         {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="features">
+    <div class="inner">
+      <div class="section-head" style="margin-bottom: 56px;">
+        <h2>Interactive Sandbox Capabilities</h2>
+        <p class="section-copy">Trinsic features an integrated sandbox valuation engine. Play with dynamic projections in real-time, or download fully unlocked formula-linked Excel spreadsheets under our premium coverage tiers.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          </div>
+          <h3>Dynamic 3-Statement Forecast</h3>
+          <p>Tweak revenue growth, opex rates, and working capital schedules. The engine instantly cascades calculations across linked income statements, balance sheets, and cash flow schedules.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </div>
+          <h3>WACC Discount Rate Calibration</h3>
+          <p>Tune capital structure weights, risk-free rates, equity risk premiums, and cost of debt. See how changes in cost of capital immediately shift the present value of future cash flows.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2.5 3.19-2.5 5.5h20c0-2.31-1-4.24-2.5-5.5"></path><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></path></svg>
+          </div>
+          <h3>Monte Carlo Confidence Corridor</h3>
+          <p>Execute 2,000+ statistical iterations in real-time, sampling key drivers across probability distributions to map standard deviations and the mathematical probability of beating current price points.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>
+          </div>
+          <h3>2D Sensitivity Matrices</h3>
+          <p>Instantly generate valuation matrices mapping cost of capital (WACC) against terminal growth rates, revealing the dynamic stability corridor of equity value per share.</p>
+        </div>
       </div>
     </div>
   </section>
