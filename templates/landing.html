@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ brand_name }} - Premium Editable Excel DCF Models</title>
 <meta name="description" content="Generate formula-linked Excel DCF models for public stocks. Download free sample valuation workbooks or request a custom ticker model.">
-<link rel='preconnect' href='https://fonts.googleapis.com'>
-<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
-<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --ink: #111827;
@@ -25,12 +25,20 @@
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  font-family: 'Plus Jakarta Sans', Arial, Helvetica, sans-serif;
   color: var(--ink);
-  background: var(--paper);
-  background-image: linear-gradient(180deg, #ffffff 0, var(--paper) 280px);
+  background-color: #f6f8fa;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(243, 244, 246, 0.8) 0, transparent 50%),
+    radial-gradient(at 50% 0%, rgba(229, 231, 235, 0.4) 0, transparent 50%),
+    radial-gradient(rgba(17, 24, 39, 0.03) 1.2px, transparent 1.2px);
+  background-size: 100% 100%, 100% 100%, 24px 24px;
+  background-attachment: fixed;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, .brand, .button, .price .amount, .price-val {
+  font-family: 'Outfit', sans-serif;
 }
 a { color: inherit; }
 .nav {
@@ -48,10 +56,10 @@ a { color: inherit; }
   z-index: 10;
 }
 .brand {
-  font-family: 'Inter', Arial, Helvetica, sans-serif;
-  font-size: 21px;
-  font-weight: 700;
-  letter-spacing: 0;
+  font-family: 'Outfit', Arial, Helvetica, sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 .nav-links { display: flex; gap: 24px; align-items: center; font-size: 14px; color: var(--muted); }
 .nav-links a:hover { color: var(--ink); text-decoration: none; }
@@ -258,7 +266,7 @@ h2 {
 }
 .directory-header {
   display: grid;
-  grid-template-columns: 140px 240px 1fr 280px;
+  grid-template-columns: 110px 200px 120px 1fr 280px;
   align-items: center;
   padding: 16px 24px;
   background: #f9fafb;
@@ -271,7 +279,7 @@ h2 {
 }
 .directory-row {
   display: grid;
-  grid-template-columns: 140px 240px 1fr 280px;
+  grid-template-columns: 110px 200px 120px 1fr 280px;
   align-items: center;
   padding: 24px;
   border-bottom: 1px solid var(--line);
@@ -280,6 +288,29 @@ h2 {
 }
 .directory-row:hover {
   background: #f9fafb;
+}
+.col-chart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sparkline {
+  display: block;
+  width: 100px;
+  height: 30px;
+  overflow: visible;
+}
+.sparkline-path {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: drawSpark 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.directory-row:hover .sparkline-path {
+  stroke-width: 2.5;
+  filter: drop-shadow(0 2px 4px rgba(17, 24, 39, 0.15));
+}
+@keyframes drawSpark {
+  to { stroke-dashoffset: 0; }
 }
 .directory-row:last-child {
   border-bottom: none;
@@ -375,7 +406,7 @@ h2 {
 .dir-btn:hover .arrow {
   transform: translateX(3px);
 }
-@media (max-width: 980px) {
+@media (max-width: 1024px) {
   .directory-header {
     display: none;
   }
@@ -384,118 +415,156 @@ h2 {
     gap: 14px;
     padding: 24px 20px;
   }
+  .col-chart {
+    display: none;
+  }
   .col-actions {
     justify-content: flex-start;
     margin-top: 4px;
   }
 }
 
-.offer {
+/* ── Access Tiers Section ── */
+.access-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 40px;
   align-items: stretch;
 }
-.price {
-  background: #111827;
-  color: #ffffff;
-  border-radius: 8px;
+.access-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
   padding: 44px;
-  border: 1px solid rgba(255,255,255,0.06);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(15,23,42,0.02);
 }
-.price:hover { box-shadow: 0 24px 64px rgba(0,0,0,0.3); transform: translateY(-2px); border-color: rgba(255,255,255,0.12); }
-.price-label {
-  font-size: 12px;
-  font-weight: 600;
+.access-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(15,23,42,0.04);
+}
+.access-card.premium {
+  background: var(--ink);
+  color: #ffffff;
+  border-color: var(--ink);
+}
+.access-card.premium:hover {
+  box-shadow: 0 24px 64px rgba(17,24,39,0.15);
+}
+.tier-badge {
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 12px;
+  display: inline-block;
+}
+.tier-badge.premium {
   color: #94a3b8;
 }
-.price .amount {
-  font-family: 'Inter', Arial, Helvetica, sans-serif;
-  font-size: 72px;
-  line-height: 1;
-  margin: 16px 0;
-  color: #ffffff;
+.tier-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+.tier-price {
   display: flex;
   align-items: baseline;
-}
-.price .amount::after {
-  content: ' USD';
-  font-size: 16px;
-  font-family: 'Inter', sans-serif;
-  color: #94a3b8;
-  margin-left: 8px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-}
-.price-copy {
-  color: #94a3b8;
-  font-size: 15px;
-  line-height: 1.6;
   margin-bottom: 24px;
 }
-.price ul {
+.price-val {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+}
+.price-period {
+  font-size: 14px;
+  color: var(--muted);
+  margin-left: 8px;
+  font-weight: 500;
+}
+.access-card.premium .price-period {
+  color: #94a3b8;
+}
+.tier-description {
+  font-size: 15px;
+  color: #4b5563;
+  line-height: 1.6;
+  margin: 0 0 32px;
+}
+.access-card.premium .tier-description {
+  color: #cbd5e1;
+}
+.tier-features {
   padding-left: 0;
   list-style: none;
-  color: #cbd5e1;
-  font-size: 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 32px;
-}
-.price ul li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.price ul li::before {
-  content: "✓";
-  color: #cbd5e1;
-  font-weight: bold;
-}
-.form {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 44px;
-  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
-}
-.field { display: grid; gap: 8px; margin-bottom: 20px; }
-.field label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  gap: 16px;
+  margin-bottom: 44px;
+  font-size: 14px;
   color: var(--muted);
 }
-input, textarea {
-  width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 14px;
-  font-size: 14px;
-  font-family: 'Inter', sans-serif;
-  background: #ffffff;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+.tier-features li {
+  display: flex;
+  align-items: start;
+  gap: 10px;
+  line-height: 1.5;
+  text-align: left;
+}
+.tier-features li::before {
+  content: "✓";
+  font-weight: 700;
   color: var(--ink);
 }
-input:focus, textarea:focus {
-  background: #ffffff;
-  border-color: var(--ink);
-  outline: none;
-  box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.06);
+.access-card.premium .tier-features li::before {
+  color: #ffffff;
 }
-textarea { min-height: 98px; resize: vertical; }
-.message { margin-top: 14px; color: var(--green); font-weight: 600; transition: all 0.3s ease; }
+.access-card.premium .tier-features {
+  color: #e5e7eb;
+}
+.access-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+.access-btn.outline {
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  background: transparent;
+}
+.access-btn.outline:hover {
+  background: #f9fafb;
+  transform: translateY(-1px);
+}
+.access-btn.solid {
+  background: #ffffff;
+  color: var(--ink);
+  border: 1px solid #ffffff;
+}
+.access-btn.solid:hover {
+  background: #f3f4f6;
+  border-color: #f3f4f6;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(255,255,255,0.15);
+}
+@media (max-width: 860px) {
+  .access-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
 .error {
   max-width: 1200px;
   margin: 24px auto 0;
@@ -546,12 +615,12 @@ textarea { min-height: 98px; resize: vertical; }
 </head>
 <body>
 <nav class="nav">
-  <div class="brand">{{ brand_name }}</div>
+  <a class="brand" href="/" style="text-decoration:none;">{{ brand_name }}</a>
   <div class="nav-links">
-    <a href="#samples">Samples</a>
-    <a href="#custom">Custom Model</a>
+    <a href="#samples">Free Coverage</a>
+    <a href="#access">Access Tiers</a>
     <a href="/dashboard">Dashboard</a>
-    <a class="button secondary" href="#custom" style="min-height:36px;padding:0 14px;font-size:13px;">$29 Custom DCF</a>
+    <a class="button" href="/dashboard" style="min-height:36px;padding:0 14px;font-size:13px;font-weight:600;">Launch App</a>
   </div>
 </nav>
 
@@ -610,6 +679,7 @@ textarea { min-height: 98px; resize: vertical; }
         <div class="directory-header">
           <span>Ticker</span>
           <span>Company &amp; Industry</span>
+          <span style="text-align: center;">Valuation Curve</span>
           <span>Valuation Focus</span>
           <span style="text-align: right;">Coverage Actions</span>
         </div>
@@ -622,6 +692,27 @@ textarea { min-height: 98px; resize: vertical; }
           <div class="col-company">
             <span class="dir-name">{{ sample.name }}</span>
             <span class="dir-industry">{{ sample.industry }}</span>
+          </div>
+          <div class="col-chart">
+            <svg class="sparkline" viewBox="0 0 100 30" width="100" height="30" aria-label="{{ sample.ticker }} sparkline">
+              <defs>
+                <linearGradient id="grad-{{ sample.ticker }}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#94a3b8" />
+                  <stop offset="100%" stop-color="#111827" />
+                </linearGradient>
+              </defs>
+              {% if sample.ticker == 'NVDA' %}
+              <path class="sparkline-path" d="M 5 25 C 25 24, 45 18, 65 10, 85 4, 95 2" fill="none" stroke="url(#grad-{{ sample.ticker }})" stroke-width="2" stroke-linecap="round" />
+              {% elif sample.ticker == 'TSLA' %}
+              <path class="sparkline-path" d="M 5 25 C 20 23, 35 15, 50 16, 70 17, 85 8, 95 3" fill="none" stroke="url(#grad-{{ sample.ticker }})" stroke-width="2" stroke-linecap="round" />
+              {% elif sample.ticker == 'AAPL' %}
+              <path class="sparkline-path" d="M 5 25 C 30 22, 55 18, 75 14, 95 11" fill="none" stroke="url(#grad-{{ sample.ticker }})" stroke-width="2" stroke-linecap="round" />
+              {% elif sample.ticker == 'MSFT' %}
+              <path class="sparkline-path" d="M 5 25 C 25 21, 50 14, 75 8, 95 3" fill="none" stroke="url(#grad-{{ sample.ticker }})" stroke-width="2" stroke-linecap="round" />
+              {% else %}
+              <path class="sparkline-path" d="M 5 25 C 30 25, 50 20, 75 11, 95 5" fill="none" stroke="url(#grad-{{ sample.ticker }})" stroke-width="2" stroke-linecap="round" />
+              {% endif %}
+            </svg>
           </div>
           <div class="col-desc">
             <span class="dir-tagline">{{ sample.tagline }}</span>
@@ -641,45 +732,48 @@ textarea { min-height: 98px; resize: vertical; }
     </div>
   </section>
 
-  <section class="band" id="custom">
+  <section class="band" id="access">
     <div class="inner">
-      <div class="section-head" style="margin-bottom: 40px;">
-        <h2>Order Custom Model</h2>
-        <p class="section-copy">Get any active US public stock modeled to professional standards and delivered directly to your inbox.</p>
+      <div class="section-head" style="margin-bottom: 56px;">
+        <h2>Subscription &amp; Access Models</h2>
+        <p class="section-copy">We distribute institutional-grade valuation templates on a highly clean, utility-driven access framework. Designed for professional analysts, reference, and structural auditability.</p>
       </div>
-      <div class="offer">
-        <div class="price">
+      <div class="access-grid">
+        <div class="access-card">
           <div>
-            <span class="price-label">Standard License</span>
-            <div class="amount">$29</div>
-            <p class="price-copy">Submit your ticker preference. You will receive an editable, institutional-grade starter model workbook within 24 hours during our early launch period.</p>
-            <ul>
-              <li>100% formula-linked Excel spreadsheet</li>
-              <li>Dynamic cost-of-capital synthetic credit builds</li>
-              <li>10,000-iteration Monte Carlo & 2D sensitivity</li>
-              <li>Unlocked and un-watermarked assumptions tab</li>
+            <span class="tier-badge">Standard Access</span>
+            <h3 class="tier-title">Free Coverage</h3>
+            <div class="tier-price">
+              <span class="price-val">Free</span>
+              <span class="price-period">/ 1 Ticker Monthly</span>
+            </div>
+            <p class="tier-description">Deploy one verified public stock valuation model workbook every month. Ideal for verifying dynamic, formula-linked sheet structures and basic beta overrides.</p>
+            <ul class="tier-features">
+              <li>Formula-linked dynamic 3-statement forecast schedule</li>
+              <li>Read-only sheet protection to guarantee sample integrity</li>
+              <li>Full auditable access to WACC Credit Spread &amp; discount factors</li>
             </ul>
           </div>
-          <a class="button" style="background:#ffffff;color:#121212;border-color:#ffffff" href="/checkout/custom">Continue to Payment</a>
+          <a class="access-btn outline" href="#samples" style="width: 100%; margin-top: 24px;">Browse Available Samples</a>
         </div>
-        <form class="form" id="requestForm">
-          <h2 style="font-size:28px;margin-bottom:8px;">Request a Ticker</h2>
-          <p class="section-copy" style="margin-bottom:24px;font-size:14px;">Pre-register your ticker and contact email here to guarantee backup tracking and support during your checkout.</p>
-          <div class="field">
-            <label for="email">Email Address</label>
-            <input id="email" name="email" type="email" placeholder="you@example.com" required>
+        
+        <div class="access-card premium">
+          <div>
+            <span class="tier-badge premium">Professional Access</span>
+            <h3 class="tier-title">Coverage Bundle</h3>
+            <div class="tier-price">
+              <span class="price-val">$30</span>
+              <span class="price-period">/ 5 Model Pack</span>
+            </div>
+            <p class="tier-description">Acquire fully unlocked, un-watermarked sheets for 5 custom stock models of your choice. Gain total forecasting agency and formula control.</p>
+            <ul class="tier-features">
+              <li>100% unlocked sheets (complete control over assumptions &amp; formulas)</li>
+              <li>Full active Monte Carlo settings &amp; custom 2D sensitivity calculations</li>
+              <li>Direct prioritization delivery for custom tickers (within 24 hours)</li>
+            </ul>
           </div>
-          <div class="field">
-            <label for="ticker">Stock Ticker Symbol</label>
-            <input id="ticker" name="ticker" placeholder="e.g. MSFT" required style="text-transform: uppercase;">
-          </div>
-          <div class="field">
-            <label for="notes">Special Requirements / Notes</label>
-            <textarea id="notes" name="notes" placeholder="Optional: Specific beta overrides, peer lists, custom growth CAGR assumptions, etc."></textarea>
-          </div>
-          <button class="button" type="submit" style="width: 100%;">Submit Request</button>
-          <div id="formMessage" class="message" role="status"></div>
-        </form>
+          <a class="access-btn solid" href="mailto:{{ support_email }}?subject=Trinsic%20Coverage%20Bundle%20Access%20Request" style="width: 100%; margin-top: 24px;">Contact Support</a>
+        </div>
       </div>
     </div>
   </section>
@@ -696,30 +790,6 @@ function updateFormula(formula) {
   const display = document.getElementById('activeFormula');
   if (display) display.textContent = formula;
 }
-
-const form = document.getElementById('requestForm');
-const msg = document.getElementById('formMessage');
-form.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  msg.textContent = 'Submitting...';
-  const payload = {
-    email: form.email.value,
-    ticker: form.ticker.value.toUpperCase(),
-    notes: form.notes.value
-  };
-  try {
-    const res = await fetch('/api/request-model', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error || 'Request failed');
-    msg.innerHTML = 'Request captured. <a href="' + data.checkout_url + '" style="text-decoration: underline; font-weight: bold; color: var(--ink);">Continue to payment</a>.';
-  } catch (err) {
-    msg.textContent = err.message || 'Could not submit request. Please email support.';
-  }
-});
 </script>
 </body>
 </html>

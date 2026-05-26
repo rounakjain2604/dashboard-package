@@ -5,29 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ sample.ticker }} DCF Excel Model - {{ brand_name }}</title>
 <meta name="description" content="Download a free editable {{ sample.ticker }} DCF Excel sample model from {{ brand_name }}.">
-<link rel='preconnect' href='https://fonts.googleapis.com'>
-<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
-<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 :root { --ink:#111827; --muted:#64748b; --line:#e5e7eb; --paper:#f7f8fa; --panel:#fff; }
 * { box-sizing: border-box; }
-body { margin:0; font-family:'Inter', Arial, Helvetica, sans-serif; background:linear-gradient(180deg,#fff 0,var(--paper) 280px); color:var(--ink); line-height:1.5; }
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', Arial, Helvetica, sans-serif;
+  color: var(--ink);
+  background-color: #f6f8fa;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(243, 244, 246, 0.8) 0, transparent 50%),
+    radial-gradient(at 50% 0%, rgba(229, 231, 235, 0.4) 0, transparent 50%),
+    radial-gradient(rgba(17, 24, 39, 0.03) 1.2px, transparent 1.2px);
+  background-size: 100% 100%, 100% 100%, 24px 24px;
+  background-attachment: fixed;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, .brand, .button {
+  font-family: 'Outfit', sans-serif;
+}
 .nav { height:64px; display:flex; align-items:center; justify-content:space-between; padding:0 32px; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:10; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); background:rgba(255,255,255,0.88); transition:all 0.2s ease; }
-.brand { font-family:'Inter', Arial, Helvetica, sans-serif; font-size:21px; font-weight:700; text-decoration:none; color:var(--ink); }
+.brand { font-family:'Outfit', Arial, Helvetica, sans-serif; font-size:22px; font-weight:800; text-decoration:none; color:var(--ink); letter-spacing:-0.02em; }
 .button { display:inline-flex; min-height:42px; padding:0 18px; align-items:center; justify-content:center; border-radius:8px; border:1px solid var(--ink); background:var(--ink); color:#fff; text-decoration:none; font-weight:700; transition:all 0.2s ease; }
 .button:hover { transform:translateY(-1px); box-shadow:0 8px 18px rgba(15,23,42,0.12); }
 .button:active { transform:translateY(0); }
 .button.secondary { background:transparent; color:var(--ink); }
 .hero { max-width:1040px; margin:0 auto; padding:70px 32px 40px; animation:fadeUp 0.7s ease both; }
 .eyebrow { color:var(--muted); font-size:12px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; }
-h1 { font-family:'Inter', Arial, Helvetica, sans-serif; font-size:clamp(42px, 7vw, 78px); line-height:.98; margin:12px 0 18px; font-weight:700; letter-spacing:0; }
+h1 { font-size:clamp(42px, 7vw, 78px); line-height:.98; margin:12px 0 18px; font-weight:700; letter-spacing:-0.01em; }
 .lead { max-width:680px; color:#3d3d3d; font-size:19px; margin-bottom:26px; line-height:1.65; }
 .actions { display:flex; flex-wrap:wrap; gap:12px; }
 .panel { max-width:1040px; margin:0 auto 56px; padding:0 32px; display:grid; grid-template-columns:1fr 1fr; gap:18px; animation:fadeUp 0.6s ease 0.1s both; }
 .box { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px; transition:all 0.25s ease; box-shadow:0 1px 2px rgba(15,23,42,0.04); }
-.box:hover { transform:translateY(-2px); box-shadow:0 14px 32px rgba(15,23,42,0.08); border-color:#d8dee8; }
-h2 { font-family:'Inter', Arial, Helvetica, sans-serif; font-size:28px; margin:0 0 10px; font-weight:700; }
+.box:hover { transform:translateY(-2px); box-shadow:0 14px 32px rgba(15,23,42,0.08); border-color:#cbd5e1; }
+h2 { font-size:28px; margin:0 0 10px; font-weight:700; letter-spacing:-0.01em; }
 ul { margin:0; padding-left:20px; color:var(--muted); }
 .footer { border-top:1px solid var(--line); color:var(--muted); padding:28px 32px; font-size:13px; text-align:center; }
 @media(max-width:760px){ .panel{grid-template-columns:1fr;} .nav{padding:0 18px;} .hero{padding-left:18px;padding-right:18px;} }
