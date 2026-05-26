@@ -80,6 +80,13 @@ def build_excel(
     build_checks(wb, n)
     build_audit(wb, cfg)
 
+    # ── Protection for free sample workbooks ─────────────────────────
+    protect_sheets = kwargs.get("protect_sheets", False)
+    if protect_sheets:
+        for sheet in wb.worksheets:
+            sheet.protection.sheet = True
+            sheet.protection.password = "trinsic_sample_protect_2026"
+
     wb.save(str(output_path))
     logger.info("Excel workbook saved to %s", output_path)
     return output_path

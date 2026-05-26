@@ -167,7 +167,7 @@ def _load_historical_and_base_values(data: dict):
     }
 
 
-def _run_payload(data: dict, output_excel: str | None = None):
+def _run_payload(data: dict, output_excel: str | None = None, protect_sheets: bool = False):
     """Build config and run the valuation pipeline from a dashboard payload."""
     cfg = _build_config_from_payload(data)
     cfg.monte_carlo.iterations = min(cfg.monte_carlo.iterations, MAX_MC_ITERATIONS)
@@ -175,7 +175,7 @@ def _run_payload(data: dict, output_excel: str | None = None):
         cfg.wacc.use_live_data = False
 
     hist, base = _load_historical_and_base_values(data)
-    return run_pipeline(cfg=cfg, historical=hist, output_excel=output_excel, **base)
+    return run_pipeline(cfg=cfg, historical=hist, output_excel=output_excel, protect_sheets=protect_sheets, **base)
 
 
 def _build_config_from_payload(data: dict) -> DCFEngineConfig:
@@ -674,7 +674,7 @@ def download_sample_model(ticker: str):
         safe_ticker = ticker.upper()
         excel_filename = f"Trinsic_{safe_ticker}_DCF_Sample.xlsx"
         excel_path = os.path.join(tmp_dir, excel_filename)
-        result = _run_payload(payload, output_excel=excel_path)
+        result = _run_payload(payload, output_excel=excel_path, protect_sheets=True)
         if result.excel_path and Path(result.excel_path).exists():
             return send_file(
                 str(result.excel_path),

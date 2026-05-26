@@ -109,6 +109,7 @@ def run_pipeline(
     base_intangibles: float = 0.0,
     output_excel: Optional[str] = None,
     output_pdf: Optional[str] = None,
+    protect_sheets: bool = False,
 ) -> PipelineResult:
     """
     Run the full DCF pipeline.
@@ -481,6 +482,7 @@ def run_pipeline(
             tornado_result=result.tornado,
             comps_result=result.comps,
             credit_spread=_credit_spread,
+            protect_sheets=protect_sheets,
         )
         result.excel_path = excel_path
 
