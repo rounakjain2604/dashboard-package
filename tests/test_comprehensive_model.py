@@ -68,7 +68,7 @@ def _run(cfg, base_rev, base_cash=0, base_ppe=0, base_nwc=0,
 class TestCaseStudy1_SimpleCorp:
     """
     SimpleCorp: $1M revenue, 5yr CAGR 10%, COGS 40%, SGA 15%,
-    OOpex 5% → EBITDA margin 40%. No debt, no WC changes.
+    OOpex 5% -> EBITDA margin 40%. No debt, no WC changes.
     Mid-year convention. 100% equity.
     """
 
@@ -157,7 +157,7 @@ class TestCaseStudy1_SimpleCorp:
             assert abs(cf_cash - bs_cash) < 1.0, f"Year {yr}: CF={cf_cash}, BS={bs_cash}"
 
     def test_wacc_is_cost_of_equity(self):
-        """100% equity → WACC = Ke = Rf + β × ERP = 4% + 1.0 × 6% = 10%."""
+        """100% equity -> WACC = Ke = Rf + β × ERP = 4% + 1.0 × 6% = 10%."""
         wacc = self.result.wacc.wacc
         expected = 0.04 + 1.0 * 0.06  # 10%
         assert abs(wacc - expected) < 0.001
@@ -174,7 +174,7 @@ class TestCaseStudy1_SimpleCorp:
 class TestCaseStudy2_LeveragedMfg:
     """
     LeveragedMfg: $5M revenue, 5yr CAGR 6%, COGS 55%, SGA 20%,
-    OOpex 3% → margin 22%. $1.5M debt (2 tranches), 30/70 D/E.
+    OOpex 3% -> margin 22%. $1.5M debt (2 tranches), 30/70 D/E.
     """
 
     @pytest.fixture(autouse=True)
@@ -362,7 +362,7 @@ class TestCaseStudy3_HighGrowthTech:
         assert abs(df_yr1 - expected) < 0.001
 
     def test_terminal_growth_capped_at_gdp(self):
-        """TG 3% vs GDP cap 3.5% → effective_g = min(3%, 3.5% - spread_floor)."""
+        """TG 3% vs GDP cap 3.5% -> effective_g = min(3%, 3.5% - spread_floor)."""
         dcf = self.result.dcf
         assert dcf.effective_terminal_growth <= 0.035
         assert dcf.effective_terminal_growth <= dcf.effective_terminal_growth + 0.001
@@ -403,7 +403,7 @@ class TestKnownValuationOutputs:
         self.shares = 1_000_000
 
     def test_wacc_calculation(self):
-        """WACC = We × Ke + Wd × Kd_post. Here 100% equity → WACC = Ke = 10%."""
+        """WACC = We × Ke + Wd × Kd_post. Here 100% equity -> WACC = Ke = 10%."""
         cfg = WACCConfig(
             risk_free_rate=0.04, equity_risk_premium=0.06, beta=1.0,
             target_debt_weight=0.0, target_equity_weight=1.0,
@@ -414,7 +414,7 @@ class TestKnownValuationOutputs:
         assert abs(w.cost_of_equity - 0.10) < 0.001
 
     def test_synthetic_rating_grid(self):
-        """Verify a few ICR → rating lookups."""
+        """Verify a few ICR -> rating lookups."""
         assert synthetic_credit_spread(15.0) == ("AAA", 0.0063)
         assert synthetic_credit_spread(10.0) == ("AA", 0.0078)
         assert synthetic_credit_spread(5.0) == ("A-", 0.0122)
@@ -638,7 +638,7 @@ class TestStressTests:
         assert r.dcf.effective_terminal_growth < r.wacc.wacc
 
     def test_100pct_cogs(self):
-        """COGS = 100% of revenue → zero GP → negative EBITDA."""
+        """COGS = 100% of revenue -> zero GP -> negative EBITDA."""
         cfg = self._base_cfg(**{
             "forecast.cogs_pct_revenue": 1.0,
             "forecast.sga_pct_revenue": 0.0,
@@ -651,7 +651,7 @@ class TestStressTests:
         assert abs(ebitda) < TOL
 
     def test_exceeding_100pct_costs(self):
-        """Total cost > 100% revenue → negative EBITDA. No crash."""
+        """Total cost > 100% revenue -> negative EBITDA. No crash."""
         cfg = self._base_cfg(**{
             "forecast.cogs_pct_revenue": 0.60,
             "forecast.sga_pct_revenue": 0.30,
@@ -867,7 +867,7 @@ class TestEdgeCases:
     # ── Working Capital Edge Cases ───────────────────────────────────
 
     def test_zero_dso_dio_dpo(self):
-        """Zero WC days → NWC should be ~0 (only prepaid/accrued contribute)."""
+        """Zero WC days -> NWC should be ~0 (only prepaid/accrued contribute)."""
         cfg = self._clean_cfg()
         cfg.forecast.dso = 0
         cfg.forecast.dio = 0
@@ -929,7 +929,7 @@ class TestEdgeCases:
     # ── Gordon Growth Sanity ─────────────────────────────────────────
 
     def test_gordon_weight_0_means_exit_only(self):
-        """gordon_weight = 0 → TV = Exit Multiple only."""
+        """gordon_weight = 0 -> TV = Exit Multiple only."""
         cfg = self._clean_cfg()
         cfg.valuation.gordon_weight = 0.0
         r = _run(cfg, 1_000_000, base_ppe=100_000)
@@ -937,7 +937,7 @@ class TestEdgeCases:
         assert abs(r.dcf.blended_tv - r.dcf.exit_tv) < TOL
 
     def test_gordon_weight_1_means_gordon_only(self):
-        """gordon_weight = 1 → TV = Gordon Growth only."""
+        """gordon_weight = 1 -> TV = Gordon Growth only."""
         cfg = self._clean_cfg()
         cfg.valuation.gordon_weight = 1.0
         r = _run(cfg, 1_000_000, base_ppe=100_000)
@@ -972,7 +972,7 @@ class TestEdgeCases:
     # ── Scenario Edge Cases ──────────────────────────────────────────
 
     def test_scenario_revenue_multiplier_zero(self):
-        """revenue_multiplier = 0 → zero revenue."""
+        """revenue_multiplier = 0 -> zero revenue."""
         cfg = self._clean_cfg()
         cfg.scenarios = {
             "Base": ScenarioOverrides(name="Base"),
@@ -982,7 +982,7 @@ class TestEdgeCases:
         assert len(r.errors) == 0
 
     def test_extreme_margin_delta(self):
-        """Very large margin_delta_bps → COGS could go negative."""
+        """Very large margin_delta_bps -> COGS could go negative."""
         cfg = self._clean_cfg()
         cfg.scenarios = {
             "Base": ScenarioOverrides(name="Base"),
@@ -995,7 +995,7 @@ class TestEdgeCases:
     # ── Capex Edge Cases ─────────────────────────────────────────────
 
     def test_zero_capex(self):
-        """No capex → PP&E depreciates to zero over time."""
+        """No capex -> PP&E depreciates to zero over time."""
         cfg = self._clean_cfg()
         cfg.forecast.capex_pct_revenue = 0.0
         r = _run(cfg, 1_000_000, base_ppe=100_000)
@@ -1017,7 +1017,7 @@ class TestEdgeCases:
     # ── Monte Carlo Edge Cases ───────────────────────────────────────
 
     def test_mc_deterministic_with_zero_std(self):
-        """Zero std deviations → all trials should give same equity."""
+        """Zero std deviations -> all trials should give same equity."""
         cfg = self._clean_cfg()
         cfg.monte_carlo = MonteCarloConfig(
             iterations=100, seed=42,
@@ -1032,7 +1032,7 @@ class TestEdgeCases:
         assert np.std(eq) < 1.0, f"Std should be ~0, got {np.std(eq)}"
 
     def test_mc_reproducible_with_seed(self):
-        """Same seed → same results."""
+        """Same seed -> same results."""
         cfg1 = self._clean_cfg()
         cfg1.monte_carlo = MonteCarloConfig(iterations=100, seed=42)
         r1 = _run(cfg1, 1_000_000, base_ppe=100_000)
@@ -1064,7 +1064,7 @@ class TestEdgeCases:
     # ── Tornado Directionality ───────────────────────────────────────
 
     def test_tornado_wacc_inverse_relationship(self):
-        """Higher WACC → lower equity (WACC low input should give higher equity)."""
+        """Higher WACC -> lower equity (WACC low input should give higher equity)."""
         cfg = self._clean_cfg()
         r = _run(cfg, 1_000_000, base_ppe=100_000)
         tornado = r.tornado
@@ -1073,12 +1073,12 @@ class TestEdgeCases:
             if not wacc_row.empty:
                 eq_low = float(wacc_row.iloc[0]["Equity at Low"])
                 eq_high = float(wacc_row.iloc[0]["Equity at High"])
-                # Lower WACC → higher equity
+                # Lower WACC -> higher equity
                 assert eq_low > eq_high, \
                     f"WACC inverse: eq_low={eq_low}, eq_high={eq_high}"
 
     def test_tornado_revenue_positive_relationship(self):
-        """Higher revenue growth → higher equity."""
+        """Higher revenue growth -> higher equity."""
         cfg = self._clean_cfg()
         r = _run(cfg, 1_000_000, base_ppe=100_000)
         tornado = r.tornado
@@ -1354,7 +1354,7 @@ class TestCrossValidation:
 
     def test_sensitivity_monotonicity_wacc(self):
         """
-        In WACC vs TG table: higher WACC (right columns) → lower equity.
+        In WACC vs TG table: higher WACC (right columns) -> lower equity.
         """
         tbl = self.r.sensitivity.wacc_vs_growth
         for row_idx in range(len(tbl)):
@@ -1366,7 +1366,7 @@ class TestCrossValidation:
 
     def test_sensitivity_monotonicity_tg(self):
         """
-        In WACC vs TG table: higher TG (lower rows) → higher equity.
+        In WACC vs TG table: higher TG (lower rows) -> higher equity.
         """
         tbl = self.r.sensitivity.wacc_vs_growth
         for col_idx in range(tbl.shape[1]):

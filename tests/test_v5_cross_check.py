@@ -7,17 +7,24 @@ and what the Excel formulas would compute.
 
 Run:  python test_v5_cross_check.py
 """
+import sys
+if __name__ != '__main__':
+    try:
+        import pytest
+        pytest.skip("Skip script-style test at import time", allow_module_level=True)
+    except ImportError:
+        pass
+
 import json
 import math
 import os
-import sys
 import tempfile
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.dcf_engine.config import (
     DCFEngineConfig, CompanyInfo, ForecastConfig, WACCConfig,

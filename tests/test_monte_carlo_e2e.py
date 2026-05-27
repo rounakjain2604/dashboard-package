@@ -18,14 +18,21 @@ pipeline.  Validates:
 
 Run:  python test_monte_carlo_e2e.py
 """
-import math
 import sys
+if __name__ != '__main__':
+    try:
+        import pytest
+        pytest.skip("Skip script-style test at import time", allow_module_level=True)
+    except ImportError:
+        pass
+
+import math
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.dcf_engine.config import (
     DCFEngineConfig, CompanyInfo, ForecastConfig, WACCConfig,
@@ -147,14 +154,14 @@ ra = run_mc(mc_a)
 rb = run_mc(mc_b)
 
 check(np.allclose(ra.equity_values, rb.equity_values),
-      "Same seed → identical equity arrays")
+      "Same seed -> identical equity arrays")
 check(ra.statistics["Mean"] == rb.statistics["Mean"],
-      "Same seed → identical mean",
+      "Same seed -> identical mean",
       f"{ra.statistics['Mean']:.2f} vs {rb.statistics['Mean']:.2f}")
 check(ra.statistics["P10"] == rb.statistics["P10"],
-      "Same seed → identical P10")
+      "Same seed -> identical P10")
 check(ra.statistics["P90"] == rb.statistics["P90"],
-      "Same seed → identical P90")
+      "Same seed -> identical P90")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -169,7 +176,7 @@ rx1 = run_mc(mc_x)
 rx2 = run_mc(mc_x)
 
 check(not np.allclose(rx1.equity_values, rx2.equity_values),
-      "seed=None → different equity arrays across runs")
+      "seed=None -> different equity arrays across runs")
 # Means should still be close (law of large numbers) but not identical
 pct_diff = abs(rx1.statistics["Mean"] - rx2.statistics["Mean"]) / rx1.statistics["Mean"]
 check(pct_diff < 0.10,
@@ -177,17 +184,17 @@ check(pct_diff < 0.10,
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# TEST 4 — Different Seeds → Different Results
+# TEST 4 — Different Seeds -> Different Results
 # ═══════════════════════════════════════════════════════════════════════
-section("TEST 4: Different Seeds → Different Results")
+section("TEST 4: Different Seeds -> Different Results")
 
 rc = run_mc(MonteCarloConfig(iterations=1000, seed=42))
 rd = run_mc(MonteCarloConfig(iterations=1000, seed=99))
 
 check(not np.allclose(rc.equity_values, rd.equity_values),
-      "seed=42 vs seed=99 → different arrays")
+      "seed=42 vs seed=99 -> different arrays")
 check(rc.statistics["Mean"] != rd.statistics["Mean"],
-      "seed=42 vs seed=99 → different means")
+      "seed=42 vs seed=99 -> different means")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -205,12 +212,12 @@ r_low = run_mc(mc_low_g)
 r_hi = run_mc(mc_hi_g)
 
 check(r_hi.statistics["Mean"] > r_low.statistics["Mean"],
-      "Higher rev growth → higher mean equity",
+      "Higher rev growth -> higher mean equity",
       f"low={r_low.statistics['Mean']:,.0f}  hi={r_hi.statistics['Mean']:,.0f}")
 check(r_hi.statistics["Median"] > r_low.statistics["Median"],
-      "Higher rev growth → higher median equity")
+      "Higher rev growth -> higher median equity")
 check(r_hi.statistics["P10"] > r_low.statistics["P10"],
-      "Higher rev growth → higher P10")
+      "Higher rev growth -> higher P10")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -228,7 +235,7 @@ r_lm = run_mc(mc_low_m)
 r_hm = run_mc(mc_hi_m)
 
 check(r_hm.statistics["Mean"] > r_lm.statistics["Mean"],
-      "Higher margin → higher mean equity",
+      "Higher margin -> higher mean equity",
       f"low={r_lm.statistics['Mean']:,.0f}  hi={r_hm.statistics['Mean']:,.0f}")
 
 
@@ -247,7 +254,7 @@ r_lw = run_mc(mc_low_w)
 r_hw = run_mc(mc_hi_w)
 
 check(r_lw.statistics["Mean"] > r_hw.statistics["Mean"],
-      "Lower WACC → higher equity (higher PV)",
+      "Lower WACC -> higher equity (higher PV)",
       f"low_wacc={r_lw.statistics['Mean']:,.0f}  hi_wacc={r_hw.statistics['Mean']:,.0f}")
 
 
@@ -268,7 +275,7 @@ r_ltg = run_mc(mc_low_tg)
 r_htg = run_mc(mc_hi_tg)
 
 check(r_htg.statistics["Mean"] > r_ltg.statistics["Mean"],
-      "Higher terminal growth → higher equity",
+      "Higher terminal growth -> higher equity",
       f"low={r_ltg.statistics['Mean']:,.0f}  hi={r_htg.statistics['Mean']:,.0f}")
 
 
@@ -289,7 +296,7 @@ r_lem = run_mc(mc_low_em)
 r_hem = run_mc(mc_hi_em)
 
 check(r_hem.statistics["Mean"] > r_lem.statistics["Mean"],
-      "Higher exit multiple → higher equity",
+      "Higher exit multiple -> higher equity",
       f"low={r_lem.statistics['Mean']:,.0f}  hi={r_hem.statistics['Mean']:,.0f}")
 
 
@@ -340,7 +347,7 @@ check(not np.any(np.isinf(r_ext.equity_values)), "No Inf in equity values")
 # ═══════════════════════════════════════════════════════════════════════
 # TEST 11 — Cash / Debt Impact on Equity
 # ═══════════════════════════════════════════════════════════════════════
-section("TEST 11: Cash / Debt Impact on Equity (EV + Cash − Debt)")
+section("TEST 11: Cash / Debt Impact on Equity (EV + Cash - Debt)")
 
 mc_seed = MonteCarloConfig(iterations=2000, seed=42)
 
@@ -438,7 +445,7 @@ r_full_exit = run_mc(mc_gw, gordon_weight=0.0)
 r_blend_50 = run_mc(mc_gw, gordon_weight=0.5)
 
 check(r_full_gordon.statistics["Mean"] != r_full_exit.statistics["Mean"],
-      "Gordon-only vs Exit-only → different values")
+      "Gordon-only vs Exit-only -> different values")
 # The 50/50 blend should fall between the two (approximately)
 mean_g = r_full_gordon.statistics["Mean"]
 mean_e = r_full_exit.statistics["Mean"]
@@ -466,9 +473,9 @@ r_5yr = run_mc(mc_proj, projection_years=5)
 r_10yr = run_mc(mc_proj, projection_years=10)
 
 check(r_3yr.statistics["Mean"] != r_5yr.statistics["Mean"],
-      "3yr vs 5yr → different equity values")
+      "3yr vs 5yr -> different equity values")
 check(r_5yr.statistics["Mean"] != r_10yr.statistics["Mean"],
-      "5yr vs 10yr → different equity values")
+      "5yr vs 10yr -> different equity values")
 # Longer projections capture more growth (at 8% rev growth, 30% margin)
 # so EV should generally increase with horizon — but this isn't guaranteed
 # for all inputs; just check they produce different valid results.
@@ -502,13 +509,13 @@ r_tight = run_mc(mc_tight)
 r_wide = run_mc(mc_wide)
 
 check(r_wide.statistics["Std Dev"] > r_tight.statistics["Std Dev"],
-      "Wider inputs → wider output distribution",
+      "Wider inputs -> wider output distribution",
       f"tight_sd={r_tight.statistics['Std Dev']:,.0f}  wide_sd={r_wide.statistics['Std Dev']:,.0f}")
 
 iqr_tight = r_tight.statistics["P75"] - r_tight.statistics["P25"]
 iqr_wide = r_wide.statistics["P75"] - r_wide.statistics["P25"]
 check(iqr_wide > iqr_tight,
-      "Wider inputs → wider IQR",
+      "Wider inputs -> wider IQR",
       f"tight_iqr={iqr_tight:,.0f}  wide_iqr={iqr_wide:,.0f}")
 
 
@@ -633,17 +640,17 @@ if res.monte_carlo:
 
     # Verify auto-sync happened by checking cfg was mutated
     check(abs(cfg_pipe.monte_carlo.revenue_growth_mean - 0.12) < 0.001,
-          "Pipeline synced revenue_growth_mean → 0.12",
+          "Pipeline synced revenue_growth_mean -> 0.12",
           f"got {cfg_pipe.monte_carlo.revenue_growth_mean}")
     expected_margin = 1.0 - 0.40 - 0.15 - 0.05  # = 0.40
     check(abs(cfg_pipe.monte_carlo.ebitda_margin_mean - expected_margin) < 0.01,
-          f"Pipeline synced ebitda_margin_mean → {expected_margin}",
+          f"Pipeline synced ebitda_margin_mean -> {expected_margin}",
           f"got {cfg_pipe.monte_carlo.ebitda_margin_mean}")
     check(abs(cfg_pipe.monte_carlo.terminal_growth_mean - 0.030) < 0.001,
-          "Pipeline synced terminal_growth_mean → 0.030",
+          "Pipeline synced terminal_growth_mean -> 0.030",
           f"got {cfg_pipe.monte_carlo.terminal_growth_mean}")
     check(abs(cfg_pipe.monte_carlo.exit_multiple_mean - 12.0) < 0.01,
-          "Pipeline synced exit_multiple_mean → 12.0",
+          "Pipeline synced exit_multiple_mean -> 12.0",
           f"got {cfg_pipe.monte_carlo.exit_multiple_mean}")
 
 
@@ -758,7 +765,7 @@ r_low_tax = run_mc(mc_tax, tax_rate=0.10)
 r_hi_tax = run_mc(mc_tax, tax_rate=0.40)
 
 check(r_low_tax.statistics["Mean"] > r_hi_tax.statistics["Mean"],
-      "Lower tax → higher equity",
+      "Lower tax -> higher equity",
       f"10% tax={r_low_tax.statistics['Mean']:,.0f}  40% tax={r_hi_tax.statistics['Mean']:,.0f}")
 
 
@@ -778,7 +785,7 @@ r_hi_capex = run_mc(mc_capex, capex_pct=0.15, da_pct=0.05)
 
 # FCF = NOPAT + DA - Capex.  When capex >> DA, FCF drops, equity lower.
 check(r_lo_capex.statistics["Mean"] > r_hi_capex.statistics["Mean"],
-      "Lower capex (net of D&A) → higher equity",
+      "Lower capex (net of D&A) -> higher equity",
       f"lo={r_lo_capex.statistics['Mean']:,.0f}  hi={r_hi_capex.statistics['Mean']:,.0f}")
 
 
@@ -795,3 +802,4 @@ if FAIL > 0:
 else:
     print("\n  All Monte Carlo end-to-end tests passed.\n")
     sys.exit(0)
+

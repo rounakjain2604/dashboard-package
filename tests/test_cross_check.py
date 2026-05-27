@@ -4,10 +4,17 @@ Comprehensive cross-check test: Dashboard (Python) vs Excel formulas.
 Uses completely different input numbers from the default config to
 surface any hardcoded values, formula mismatches, or computation bugs.
 """
+import sys
+if __name__ != '__main__':
+    try:
+        import pytest
+        pytest.skip("Skip script-style test at import time", allow_module_level=True)
+    except ImportError:
+        pass
+
 import json
 import math
 import os
-import sys
 import tempfile
 from pathlib import Path
 
@@ -15,7 +22,7 @@ import numpy as np
 import pandas as pd
 
 # Ensure project root is on path
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.dcf_engine.config import (
     DCFEngineConfig, CompanyInfo, ForecastConfig, WACCConfig,
@@ -148,10 +155,10 @@ def check(description, expected, actual, tol=0.01, is_pct=False):
     if diff > tol:
         msg = f"FAIL: {description}: expected={expected:,.2f}, actual={actual:,.2f}, diff={diff:.4%}"
         errors_found.append(msg)
-        print(f"  ❌ {msg}")
+        print(f"  FAIL {msg}")
         return False
     else:
-        print(f"  ✓ {description}: {actual:,.2f}")
+        print(f"  OK {description}: {actual:,.2f}")
         return True
 
 # ══════════════════════════════════════════════════════════════════════
@@ -287,9 +294,9 @@ for i, row in bs_df.iterrows():
     diff = abs(ta - tle)
     if diff > 1:
         errors_found.append(f"FAIL: Yr{yr} BS doesn't balance: A={ta:,.2f} L+E={tle:,.2f}")
-        print(f"  ❌ Yr{yr} BS doesn't balance: A={ta:,.2f} L+E={tle:,.2f}")
+        print(f"  FAIL Yr{yr} BS doesn't balance: A={ta:,.2f} L+E={tle:,.2f}")
     else:
-        print(f"  ✓ Yr{yr} BS balances: A={ta:,.2f} = L+E={tle:,.2f}")
+        print(f"  OK Yr{yr} BS balances: A={ta:,.2f} = L+E={tle:,.2f}")
 
 # ── 1I: Cash Flow Statement ─────────────────────────────────────────
 print("\n--- 1I: Cash Flow Statement ---")
@@ -324,7 +331,7 @@ print("\n--- 1K: WACC ---")
 w = result.wacc
 ke = 0.038 + 1.25 * 0.065 + 0.01 + 0.005  # Rf + Beta*ERP + SP + CRP
 check("Ke (CAPM)", ke, w.cost_of_equity)
-# ICR=6.5 → A rating (6.0 ≤ 6.5 < 7.5) → spread = 0.0108
+# ICR=6.5 -> A rating (6.0 ≤ 6.5 < 7.5) -> spread = 0.0108
 kd_pre = 0.038 + 0.0108
 check("Kd Pre-Tax", kd_pre, w.cost_of_debt_pre_tax)
 kd_post = kd_pre * (1 - 0.22)
@@ -409,10 +416,10 @@ expected_sheets = [
 ]
 for s in expected_sheets:
     if s in wb.sheetnames:
-        print(f"  ✓ Sheet '{s}' present")
+        print(f"  OK Sheet '{s}' present")
     else:
         errors_found.append(f"FAIL: Sheet '{s}' missing")
-        print(f"  ❌ Sheet '{s}' missing!")
+        print(f"  FAIL Sheet '{s}' missing!")
 
 # ── 2A: Assumptions values match config ──────────────────────────────
 print("\n--- 2A: Assumptions Sheet Values ---")
@@ -465,16 +472,16 @@ for key, expected in assumptions_checks.items():
     val = ws_a.cell(row, 2).value
     if val is None:
         errors_found.append(f"FAIL: Assumptions[{key}] (row {row}) is None, expected {expected}")
-        print(f"  ❌ Assumptions[{key}] (row {row}) is None")
+        print(f"  FAIL Assumptions[{key}] (row {row}) is None")
     elif isinstance(val, str) and val.startswith("="):
         # Formula cell, skip value check
         print(f"  ~ Assumptions[{key}] (row {row}) = formula: {val}")
     elif isinstance(val, (int, float)):
         if abs(val - expected) > 0.001:
             errors_found.append(f"FAIL: Assumptions[{key}] (row {row}) = {val}, expected {expected}")
-            print(f"  ❌ Assumptions[{key}] (row {row}) = {val}, expected {expected}")
+            print(f"  FAIL Assumptions[{key}] (row {row}) = {val}, expected {expected}")
         else:
-            print(f"  ✓ Assumptions[{key}] (row {row}) = {val}")
+            print(f"  OK Assumptions[{key}] (row {row}) = {val}")
     else:
         print(f"  ~ Assumptions[{key}] (row {row}) = {val} (type: {type(val).__name__})")
 
@@ -487,46 +494,46 @@ from src.dcf_engine.output.sheets_core import IS as IS_ROWS
 yr1_rev_formula = ws_is.cell(IS_ROWS["Rev"], 2).value
 if isinstance(yr1_rev_formula, str):
     if f"$B${A['brev']}" in yr1_rev_formula and f"$B${A['rev_cagr']}" in yr1_rev_formula:
-        print(f"  ✓ Yr1 Revenue formula references brev and rev_cagr correctly")
+        print(f"  OK Yr1 Revenue formula references brev and rev_cagr correctly")
     else:
         errors_found.append(f"FAIL: Yr1 Rev formula doesn't ref correct cells: {yr1_rev_formula}")
-        print(f"  ❌ Yr1 Rev formula: {yr1_rev_formula}")
+        print(f"  FAIL Yr1 Rev formula: {yr1_rev_formula}")
 
 # Year 2 Revenue should reference Year 1 Revenue and rev_cagr
 yr2_rev_formula = ws_is.cell(IS_ROWS["Rev"], 3).value
 if isinstance(yr2_rev_formula, str):
     if "B2" in yr2_rev_formula and f"$B${A['rev_cagr']}" in yr2_rev_formula:
-        print(f"  ✓ Yr2 Revenue formula references B2 and rev_cagr correctly")
+        print(f"  OK Yr2 Revenue formula references B2 and rev_cagr correctly")
     else:
         errors_found.append(f"FAIL: Yr2 Rev formula: {yr2_rev_formula}")
-        print(f"  ❌ Yr2 Rev formula: {yr2_rev_formula}")
+        print(f"  FAIL Yr2 Rev formula: {yr2_rev_formula}")
 
 # COGS should reference Rev and cogs_pct
 yr1_cogs_formula = ws_is.cell(IS_ROWS["COGS"], 2).value
 if isinstance(yr1_cogs_formula, str):
     if f"$B${A['cogs_pct']}" in yr1_cogs_formula:
-        print(f"  ✓ Yr1 COGS formula references cogs_pct correctly")
+        print(f"  OK Yr1 COGS formula references cogs_pct correctly")
     else:
         errors_found.append(f"FAIL: Yr1 COGS formula: {yr1_cogs_formula}")
-        print(f"  ❌ Yr1 COGS formula: {yr1_cogs_formula}")
+        print(f"  FAIL Yr1 COGS formula: {yr1_cogs_formula}")
 
 # Depreciation should come from Capex DA sheet
 yr1_dep_formula = ws_is.cell(IS_ROWS["Dep"], 2).value
 if isinstance(yr1_dep_formula, str):
     if "Capex DA" in yr1_dep_formula:
-        print(f"  ✓ Yr1 Depreciation references Capex DA sheet")
+        print(f"  OK Yr1 Depreciation references Capex DA sheet")
     else:
         errors_found.append(f"FAIL: Yr1 Dep formula: {yr1_dep_formula}")
-        print(f"  ❌ Yr1 Dep formula: {yr1_dep_formula}")
+        print(f"  FAIL Yr1 Dep formula: {yr1_dep_formula}")
 
 # Interest should come from Debt Schedule
 yr1_int_formula = ws_is.cell(IS_ROWS["Int"], 2).value
 if isinstance(yr1_int_formula, str):
     if "Debt Schedule" in yr1_int_formula:
-        print(f"  ✓ Yr1 Interest references Debt Schedule")
+        print(f"  OK Yr1 Interest references Debt Schedule")
     else:
         errors_found.append(f"FAIL: Yr1 Interest formula: {yr1_int_formula}")
-        print(f"  ❌ Yr1 Interest formula: {yr1_int_formula}")
+        print(f"  FAIL Yr1 Interest formula: {yr1_int_formula}")
 
 # ── 2C: Capex DA formula structure ──────────────────────────────────
 print("\n--- 2C: Capex DA Formula Structure ---")
@@ -536,27 +543,27 @@ from src.dcf_engine.output.sheets_core import CD as CD_ROWS
 yr1_beg_formula = ws_cd.cell(CD_ROWS["Beg"], 2).value
 if isinstance(yr1_beg_formula, str):
     if f"$B${A['bppe']}" in yr1_beg_formula:
-        print(f"  ✓ Yr1 Beg PP&E references bppe correctly")
+        print(f"  OK Yr1 Beg PP&E references bppe correctly")
     else:
         errors_found.append(f"FAIL: Yr1 Beg PP&E formula: {yr1_beg_formula}")
-        print(f"  ❌ Yr1 Beg PP&E formula: {yr1_beg_formula}")
+        print(f"  FAIL Yr1 Beg PP&E formula: {yr1_beg_formula}")
 
 yr1_capex_formula = ws_cd.cell(CD_ROWS["Capex"], 2).value
 if isinstance(yr1_capex_formula, str):
     if f"$B${A['capex_pct']}" in yr1_capex_formula:
-        print(f"  ✓ Yr1 Capex references capex_pct correctly")
+        print(f"  OK Yr1 Capex references capex_pct correctly")
     else:
         errors_found.append(f"FAIL: Yr1 Capex formula: {yr1_capex_formula}")
-        print(f"  ❌ Yr1 Capex formula: {yr1_capex_formula}")
+        print(f"  FAIL Yr1 Capex formula: {yr1_capex_formula}")
 
 # Dep on Existing = Beg * dep_rate
 yr1_depex_formula = ws_cd.cell(CD_ROWS["DepEx"], 2).value
 if isinstance(yr1_depex_formula, str):
     if f"$B${A['dep_rate']}" in yr1_depex_formula:
-        print(f"  ✓ Yr1 DepExisting references dep_rate correctly")
+        print(f"  OK Yr1 DepExisting references dep_rate correctly")
     else:
         errors_found.append(f"FAIL: Yr1 DepExisting formula: {yr1_depex_formula}")
-        print(f"  ❌ Yr1 DepExisting formula: {yr1_depex_formula}")
+        print(f"  FAIL Yr1 DepExisting formula: {yr1_depex_formula}")
 
 # ── 2D: Debt Schedule Formulas ──────────────────────────────────────
 print("\n--- 2D: Debt Schedule Formula Structure ---")
@@ -566,18 +573,18 @@ from src.dcf_engine.output.sheets_core import DS as DS_ROWS
 yr1_beg_formula = ws_ds.cell(DS_ROWS["Beg"], 2).value
 if isinstance(yr1_beg_formula, str):
     if f"$B${A['debt_bal']}" in yr1_beg_formula:
-        print(f"  ✓ Yr1 Debt Beg references debt_bal correctly")
+        print(f"  OK Yr1 Debt Beg references debt_bal correctly")
     else:
         errors_found.append(f"FAIL: Yr1 Debt Beg: {yr1_beg_formula}")
-        print(f"  ❌ Yr1 Debt Beg: {yr1_beg_formula}")
+        print(f"  FAIL Yr1 Debt Beg: {yr1_beg_formula}")
 
 yr1_int_formula = ws_ds.cell(DS_ROWS["Int"], 2).value
 if isinstance(yr1_int_formula, str):
     if f"$B${A['debt_rate']}" in yr1_int_formula:
-        print(f"  ✓ Yr1 Interest references debt_rate correctly")
+        print(f"  OK Yr1 Interest references debt_rate correctly")
     else:
         errors_found.append(f"FAIL: Yr1 Interest formula: {yr1_int_formula}")
-        print(f"  ❌ Yr1 Interest formula: {yr1_int_formula}")
+        print(f"  FAIL Yr1 Interest formula: {yr1_int_formula}")
 
 # ── 2E: DCF Formula Structure ──────────────────────────────────────
 print("\n--- 2E: DCF Formula Structure ---")
@@ -588,37 +595,37 @@ from src.dcf_engine.output.sheets_core import DC as DC_ROWS
 yr1_ufcf = ws_dcf.cell(DC_ROWS["UFCF"], 2).value
 if isinstance(yr1_ufcf, str):
     if "Cash Flow" in yr1_ufcf:
-        print(f"  ✓ DCF UFCF references Cash Flow sheet")
+        print(f"  OK DCF UFCF references Cash Flow sheet")
     else:
         errors_found.append(f"FAIL: DCF UFCF formula: {yr1_ufcf}")
-        print(f"  ❌ DCF UFCF formula: {yr1_ufcf}")
+        print(f"  FAIL DCF UFCF formula: {yr1_ufcf}")
 
 # Discount factor uses WACC and mid-year
 yr1_df_formula = ws_dcf.cell(DC_ROWS["DF"], 2).value
 if isinstance(yr1_df_formula, str):
     if "WACC" in yr1_df_formula and "0.5" in yr1_df_formula:
-        print(f"  ✓ DCF DF uses WACC and mid-year convention")
+        print(f"  OK DCF DF uses WACC and mid-year convention")
     else:
         errors_found.append(f"FAIL: DCF DF formula: {yr1_df_formula}")
-        print(f"  ❌ DCF DF formula: {yr1_df_formula}")
+        print(f"  FAIL DCF DF formula: {yr1_df_formula}")
 
 # TV Gordon references terminal growth and WACC
 tv_gordon_formula = ws_dcf.cell(DC_ROWS["TVG"], 2).value
 if isinstance(tv_gordon_formula, str):
     if f"$B${A['tg']}" in tv_gordon_formula and "WACC" in tv_gordon_formula:
-        print(f"  ✓ Gordon TV references terminal growth and WACC")
+        print(f"  OK Gordon TV references terminal growth and WACC")
     else:
         errors_found.append(f"FAIL: Gordon TV formula: {tv_gordon_formula}")
-        print(f"  ❌ Gordon TV formula: {tv_gordon_formula}")
+        print(f"  FAIL Gordon TV formula: {tv_gordon_formula}")
 
 # Equity bridge
 equity_formula = ws_dcf.cell(DC_ROWS["Equity"], 2).value
 if isinstance(equity_formula, str):
     if f"$B${A['cash']}" in equity_formula or f"B{DC_ROWS['Cash']}" in equity_formula:
-        print(f"  ✓ Equity bridge formula present")
+        print(f"  OK Equity bridge formula present")
     else:
         errors_found.append(f"FAIL: Equity formula: {equity_formula}")
-        print(f"  ❌ Equity formula: {equity_formula}")
+        print(f"  FAIL Equity formula: {equity_formula}")
 
 # ── 2F: WACC Formula Check ─────────────────────────────────────────
 print("\n--- 2F: WACC Formula Check ---")
@@ -626,19 +633,19 @@ ws_wacc = wb["WACC"]
 wacc_formula = ws_wacc.cell(19, 2).value
 if isinstance(wacc_formula, str):
     if "B16" in wacc_formula and "B9" in wacc_formula and "B17" in wacc_formula and "B13" in wacc_formula:
-        print(f"  ✓ WACC formula = Ew*Ke + Dw*Kd_post")
+        print(f"  OK WACC formula = Ew*Ke + Dw*Kd_post")
     else:
         errors_found.append(f"FAIL: WACC formula: {wacc_formula}")
-        print(f"  ❌ WACC formula: {wacc_formula}")
+        print(f"  FAIL WACC formula: {wacc_formula}")
 
 # Ke = Rf + Beta*ERP + SP + CRP
 ke_formula = ws_wacc.cell(9, 2).value
 if isinstance(ke_formula, str):
     if "B4" in ke_formula and "B5" in ke_formula and "B6" in ke_formula:
-        print(f"  ✓ Ke formula = Rf + Beta*ERP + ...")
+        print(f"  OK Ke formula = Rf + Beta*ERP + ...")
     else:
         errors_found.append(f"FAIL: Ke formula: {ke_formula}")
-        print(f"  ❌ Ke formula: {ke_formula}")
+        print(f"  FAIL Ke formula: {ke_formula}")
 
 # ── 2G: Balance Sheet formulas ──────────────────────────────────────
 print("\n--- 2G: Balance Sheet Formula Structure ---")
@@ -649,19 +656,19 @@ from src.dcf_engine.output.sheets_core import BS as BS_ROWS
 yr1_ppe = ws_bs.cell(BS_ROWS["PPE"], 2).value
 if isinstance(yr1_ppe, str):
     if "Capex DA" in yr1_ppe:
-        print(f"  ✓ BS PPE references Capex DA")
+        print(f"  OK BS PPE references Capex DA")
     else:
         errors_found.append(f"FAIL: BS PPE formula: {yr1_ppe}")
-        print(f"  ❌ BS PPE formula: {yr1_ppe}")
+        print(f"  FAIL BS PPE formula: {yr1_ppe}")
 
 # Cash from Cash Flow
 yr1_cash = ws_bs.cell(BS_ROWS["Cash"], 2).value
 if isinstance(yr1_cash, str):
     if "Cash Flow" in yr1_cash:
-        print(f"  ✓ BS Cash references Cash Flow Ending Cash")
+        print(f"  OK BS Cash references Cash Flow Ending Cash")
     else:
         errors_found.append(f"FAIL: BS Cash formula: {yr1_cash}")
-        print(f"  ❌ BS Cash formula: {yr1_cash}")
+        print(f"  FAIL BS Cash formula: {yr1_cash}")
 
 # ── 2H: Cash Flow references ───────────────────────────────────────
 print("\n--- 2H: Cash Flow Formula Structure ---")
@@ -672,28 +679,28 @@ from src.dcf_engine.output.sheets_core import CF as CF_ROWS
 yr1_ni = ws_cf.cell(CF_ROWS["NI"], 2).value
 if isinstance(yr1_ni, str):
     if "Income Statement" in yr1_ni:
-        print(f"  ✓ CF NI references Income Statement")
+        print(f"  OK CF NI references Income Statement")
     else:
         errors_found.append(f"FAIL: CF NI formula: {yr1_ni}")
-        print(f"  ❌ CF NI formula: {yr1_ni}")
+        print(f"  FAIL CF NI formula: {yr1_ni}")
 
 # UFCF = NOPAT + D&A + Capex + dNWC
 yr1_ufcf = ws_cf.cell(CF_ROWS["UFCF"], 2).value
 if isinstance(yr1_ufcf, str):
     if f"B{CF_ROWS['NOPAT']}" in yr1_ufcf:
-        print(f"  ✓ CF UFCF formula correct")
+        print(f"  OK CF UFCF formula correct")
     else:
         errors_found.append(f"FAIL: CF UFCF formula: {yr1_ufcf}")
-        print(f"  ❌ CF UFCF formula: {yr1_ufcf}")
+        print(f"  FAIL CF UFCF formula: {yr1_ufcf}")
 
 # Beg Cash Year 1 references Base Cash
 yr1_begc = ws_cf.cell(CF_ROWS["BegC"], 2).value
 if isinstance(yr1_begc, str):
     if f"$B${A['bcash']}" in yr1_begc:
-        print(f"  ✓ CF Yr1 Beg Cash references base cash")
+        print(f"  OK CF Yr1 Beg Cash references base cash")
     else:
         errors_found.append(f"FAIL: CF Yr1 BegCash: {yr1_begc}")
-        print(f"  ❌ CF Yr1 BegCash: {yr1_begc}")
+        print(f"  FAIL CF Yr1 BegCash: {yr1_begc}")
 
 # ── 2I: Working Capital references ─────────────────────────────────
 print("\n--- 2I: Working Capital Formula Structure ---")
@@ -704,19 +711,19 @@ from src.dcf_engine.output.sheets_core import WC as WC_ROWS
 yr1_rev = ws_wc.cell(WC_ROWS["Rev"], 2).value
 if isinstance(yr1_rev, str):
     if "Income Statement" in yr1_rev:
-        print(f"  ✓ WC Revenue references Income Statement")
+        print(f"  OK WC Revenue references Income Statement")
     else:
         errors_found.append(f"FAIL: WC Rev formula: {yr1_rev}")
-        print(f"  ❌ WC Rev formula: {yr1_rev}")
+        print(f"  FAIL WC Rev formula: {yr1_rev}")
 
 # Delta NWC Year 1 references base NWC
 yr1_dnwc = ws_wc.cell(15, 2).value  # Delta NWC is row 15
 if isinstance(yr1_dnwc, str):
     if f"$B${A['bnwc']}" in yr1_dnwc:
-        print(f"  ✓ WC Yr1 Delta NWC references base NWC")
+        print(f"  OK WC Yr1 Delta NWC references base NWC")
     else:
         errors_found.append(f"FAIL: WC Yr1 dNWC: {yr1_dnwc}")
-        print(f"  ❌ WC Yr1 dNWC: {yr1_dnwc}")
+        print(f"  FAIL WC Yr1 dNWC: {yr1_dnwc}")
 
 # ── 2J: Checks tab formulas ────────────────────────────────────────
 print("\n--- 2J: Checks Tab Formula Structure ---")
@@ -724,18 +731,18 @@ ws_chk = wb["Checks"]
 yr1_bs_check = ws_chk.cell(3, 2).value
 if isinstance(yr1_bs_check, str):
     if "Balance Sheet" in yr1_bs_check:
-        print(f"  ✓ Checks BS Balance references Balance Sheet")
+        print(f"  OK Checks BS Balance references Balance Sheet")
     else:
         errors_found.append(f"FAIL: Checks BS check formula: {yr1_bs_check}")
-        print(f"  ❌ Checks BS check formula: {yr1_bs_check}")
+        print(f"  FAIL Checks BS check formula: {yr1_bs_check}")
 
 yr1_cf_check = ws_chk.cell(6, 2).value
 if isinstance(yr1_cf_check, str):
     if "Cash Flow" in yr1_cf_check and "Balance Sheet" in yr1_cf_check:
-        print(f"  ✓ Checks CF check references both CF and BS")
+        print(f"  OK Checks CF check references both CF and BS")
     else:
         errors_found.append(f"FAIL: Checks CF check formula: {yr1_cf_check}")
-        print(f"  ❌ Checks CF check formula: {yr1_cf_check}")
+        print(f"  FAIL Checks CF check formula: {yr1_cf_check}")
 
 # ══════════════════════════════════════════════════════════════════════
 # PART 3: PYTHON vs EXCEL FORMULA LOGIC COMPARISON
@@ -773,7 +780,7 @@ check("Yr1 GP: Excel vs Python", excel_gp_y1, python_gp_y1)
 print("\n  Python COGS formula (base): Rev * cogs_pct * (1 - margin_shift)")
 print(f"  margin_shift for Base = {0.0 / 10000} = 0.0")
 print(f"  Excel COGS formula: Rev * cogs_pct (no margin adjustment)")
-print(f"  These match for Base scenario ✓")
+print(f"  These match for Base scenario OK")
 
 # Capex DA Year 1
 excel_beg_ppe_y1 = BASE_PPE
@@ -806,13 +813,13 @@ check("Yr1 Repayment: Excel vs Python", excel_debt_rep_y1, python_debt_rep_y1)
 # THIS IS A POTENTIAL MISMATCH when intangibles=0
 python_amort_y1 = is_df.iloc[0]["Amortisation"]
 excel_amort_y1 = min(excel_rev_y1 * 0.003, 0)  # intangibles = 0
-print(f"\n  ⚠ Amortisation check: Python={python_amort_y1:,.2f}, Excel would={excel_amort_y1:,.2f}")
+print(f"\n  WARNING Amortisation check: Python={python_amort_y1:,.2f}, Excel would={excel_amort_y1:,.2f}")
 if abs(python_amort_y1 - excel_amort_y1) > 1:
     if excel_amort_y1 == 0 and python_amort_y1 > 0:
         msg = (f"MISMATCH: Amortisation - Python computes {python_amort_y1:,.2f} but "
                f"Excel MIN(Rev*amort_pct, intangibles=0) = 0")
         warnings_found.append(msg)
-        print(f"  ⚠ {msg}")
+        print(f"  WARNING {msg}")
     else:
         errors_found.append(f"FAIL: Amort Y1: Python={python_amort_y1:,.2f}, Excel={excel_amort_y1:,.2f}")
 
@@ -850,7 +857,7 @@ check("Yr1 NWC: Excel vs Python", excel_nwc_y1, python_nwc_y1)
 # which is Rev*cogs_pct, and then multiplies by DIO/365.
 # In Python: COGS is also Rev*cogs_pct, then Inv = COGS*DIO/365
 # These should match for base scenario.
-print("\n  WC Inventory source: Python=COGS*DIO/365, Excel=IS_COGS*DIO/365 - should match ✓")
+print("\n  WC Inventory source: Python=COGS*DIO/365, Excel=IS_COGS*DIO/365 - should match OK")
 
 # WACC computation
 excel_ke = 0.038 + 1.25 * 0.065 + 0.01 + 0.005
@@ -866,7 +873,7 @@ if isinstance(credit_spread_excel, (int, float)):
     if abs(credit_spread_excel - 0.0108) > 0.001:
         msg = f"Credit spread mismatch: Excel={credit_spread_excel}, expected=0.0108"
         warnings_found.append(msg)
-        print(f"  ⚠ {msg}")
+        print(f"  WARNING {msg}")
 
 # Excel WACC formula: B16*B9 + B17*B13
 # B16 = ew = 0.65, B9 = Ke, B17 = dw = 0.35, B13 = Kd post-tax
@@ -875,7 +882,7 @@ if isinstance(credit_spread_excel, (int, float)):
 wacc_kd_pre_formula = ws_wacc.cell(12, 2).value
 print(f"  WACC Kd Pre-Tax formula: {wacc_kd_pre_formula}")
 if isinstance(wacc_kd_pre_formula, str) and "$B$31" in wacc_kd_pre_formula:
-    print(f"  ✓ WACC Kd correctly references Assumptions credit spread (B31)")
+    print(f"  OK WACC Kd correctly references Assumptions credit spread (B31)")
 else:
     print(f"  ~ WACC Kd formula: {wacc_kd_pre_formula}")
 
@@ -902,7 +909,7 @@ if abs(python_effective_g - 0.03) > 0.0001:
     msg = (f"Excel TV uses nominal tg=3.0% but Python uses effective_g={python_effective_g:.4f} "
            f"(capped by GDP cap or spread floor)")
     warnings_found.append(msg)
-    print(f"  ⚠ {msg}")
+    print(f"  WARNING {msg}")
 
     # Calculate what Excel would get vs Python
     excel_gordon_tv = terminal_fcf * (1 + 0.03) / (wacc_val - 0.03)
@@ -915,7 +922,7 @@ if abs(python_effective_g - 0.03) > 0.0001:
             f"Python uses effective_g={python_effective_g:.4f} giving {python_gordon_tv:,.2f}"
         )
 else:
-    print(f"  ✓ Terminal growth matches between Excel and Python")
+    print(f"  OK Terminal growth matches between Excel and Python")
 
 # ── Shares: Check if Excel stores shares in millions vs absolute ───
 print("\n--- Shares outstanding convention ---")
@@ -923,19 +930,19 @@ shares_excel = ws_a.cell(A["shares"], 2).value
 print(f"  Excel Assumptions shares value: {shares_excel}")
 print(f"  Python fully_diluted_shares config: {cfg.valuation.fully_diluted_shares}")
 print(f"  DCF Price per Share formula divides Equity by B37 (shares from Assumptions)")
-# If shares stored as 2.0 (millions), price = equity / 2.0 → in millions
-# If shares stored as 2000000, price = equity / 2000000 → per share
+# If shares stored as 2.0 (millions), price = equity / 2.0 -> in millions
+# If shares stored as 2000000, price = equity / 2000000 -> per share
 # The code stores: v.fully_diluted_shares/1e6 if > 1e6, else raw
 if cfg.valuation.fully_diluted_shares > 1e6:
     if isinstance(shares_excel, (int, float)) and shares_excel < 100:
         msg = (f"CRITICAL: Shares stored as {shares_excel}M in Excel but DCF divides Equity by this "
                f"number, giving price in millions instead of per-share!")
         errors_found.append(msg)
-        print(f"  ❌ {msg}")
+        print(f"  FAIL {msg}")
     else:
-        print(f"  ✓ Shares stored correctly")
+        print(f"  OK Shares stored correctly")
 else:
-    print(f"  ✓ Shares {shares_excel} OK")
+    print(f"  OK Shares {shares_excel} OK")
 
 # ══════════════════════════════════════════════════════════════════════
 # PART 4: SENSITIVITY / TORNADO / MONTE CARLO CONSISTENCY
@@ -1001,14 +1008,14 @@ if result.scenario_comparison:
             print(f"  Bear EV: {bear_ev:,.2f}")
             if bull_ev <= base_ev:
                 errors_found.append(f"FAIL: Bull EV ({bull_ev:,.0f}) should be > Base EV ({base_ev:,.0f})")
-                print(f"  ❌ Bull EV should be > Base EV")
+                print(f"  FAIL Bull EV should be > Base EV")
             else:
-                print(f"  ✓ Bull EV > Base EV")
+                print(f"  OK Bull EV > Base EV")
             if bear_ev >= base_ev:
                 errors_found.append(f"FAIL: Bear EV ({bear_ev:,.0f}) should be < Base EV ({base_ev:,.0f})")
-                print(f"  ❌ Bear EV should be < Base EV")
+                print(f"  FAIL Bear EV should be < Base EV")
             else:
-                print(f"  ✓ Bear EV < Base EV")
+                print(f"  OK Bear EV < Base EV")
 
 # ══════════════════════════════════════════════════════════════════════
 # SUMMARY
@@ -1018,14 +1025,14 @@ print("FINAL SUMMARY")
 print("=" * 70)
 
 if errors_found:
-    print(f"\n❌ {len(errors_found)} ERRORS FOUND:")
+    print(f"\nFAIL {len(errors_found)} ERRORS FOUND:")
     for e in errors_found:
         print(f"  • {e}")
 else:
-    print(f"\n✓ NO ERRORS FOUND")
+    print(f"\nOK NO ERRORS FOUND")
 
 if warnings_found:
-    print(f"\n⚠ {len(warnings_found)} WARNINGS:")
+    print(f"\nWARNING {len(warnings_found)} WARNINGS:")
     for w in warnings_found:
         print(f"  • {w}")
 
