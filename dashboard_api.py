@@ -33,6 +33,10 @@ from src.dcf_engine.config import (
 from src.dcf_engine import __version__ as ENGINE_VERSION
 from src.dcf_engine.pipeline import run_pipeline
 from src.dcf_engine.sample_models import get_sample, get_sample_payload, list_samples
+from src.dcf_engine.intelligence import (
+    fetch_company_snapshot, build_assumptions_from_snapshot, build_valuation_preview,
+    detect_filing_changes, detect_red_flags, build_valuation_impacts, refresh_watchlist,
+)
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s")
@@ -374,6 +378,425 @@ def checkout_custom():
     return render_template("landing.html", **_public_context(
         error="Custom model orders are temporarily paused while our LemonSqueezy payment gateway completes verification. Please check back shortly, or email support at " + SUPPORT_EMAIL + " to order directly!"
     )), 503
+
+
+@app.route("/api/company-snapshot", methods=["POST"])
+def api_company_snapshot():
+    request_id = uuid.uuid4().hex[:10]
+    try:
+        data = request.get_json(force=True) or {}
+        ticker = str(data.get("ticker", "")).strip().upper()
+        if not ticker:
+            return jsonify({
+                "success": False,
+                "error": "Ticker is required",
+                "request_id": request_id,
+                "warnings": []
+            }), 400
+            
+        if len(ticker) > 12:
+            return jsonify({
+                "success": False,
+                "error": "Ticker too long",
+                "request_id": request_id,
+                "warnings": []
+            }), 400
+            
+        years_val = data.get("years")
+        if years_val is None:
+            years = 5
+        else:
+            if isinstance(years_val, bool) or not isinstance(years_val, (int, str)):
+                return jsonify({
+                    "success": False,
+                    "error": "Invalid years parameter: must be an integer",
+                    "request_id": request_id,
+                    "warnings": []
+                }), 400
+            try:
+                if isinstance(years_val, str):
+                    if not years_val.strip().isdigit():
+                        raise ValueError("Non-integer string")
+                years = int(years_val)
+            except (ValueError, TypeError):
+                return jsonify({
+                    "success": False,
+                    "error": "Invalid years parameter: must be an integer",
+                    "request_id": request_id,
+                    "warnings": []
+                }), 400
+                
+        if years < 1 or years > 10:
+            return jsonify({
+                "success": False,
+                "error": "Years must be between 1 and 10",
+                "request_id": request_id,
+                "warnings": []
+            }), 400
+        
+        snapshot = fetch_company_snapshot(ticker=ticker, years=years)
+        
+        # Serialize snapshot facts
+        facts_serialized = []
+        for f in snapshot.facts:
+            facts_serialized.append({
+                "ticker": f.ticker,
+                "cik": f.cik,
+                "company_name": f.company_name,
+                "account": f.account,
+                "concept": f.concept,
+                "value": f.value,
+                "unit": f.unit,
+                "form": f.form,
+                "filed": f.filed,
+                "period_end": f.period_end,
+                "fiscal_year": f.fiscal_year,
+                "fiscal_period": f.fiscal_period,
+                "accession": f.accession,
+                "frame": f.frame,
+                "source_url": f.source_url
+            })
+            
+        return jsonify({
+            "success": True,
+            "request_id": request_id,
+            "ticker": snapshot.ticker,
+            "cik": snapshot.cik,
+            "company_name": snapshot.company_name,
+            "latest_period": snapshot.latest_period,
+            "key_metrics": snapshot.key_metrics,
+            "financials": _df_to_records(snapshot.financials),
+            "source_map": facts_serialized,
+            "warnings": snapshot.warnings
+        })
+    except Exception as exc:
+        logger.error("Snapshot error [%s]: %s", request_id, traceback.format_exc())
+        return jsonify({
+            "success": False,
+            "error": "Failed to fetch company snapshot",
+            "request_id": request_id,
+            "warnings": []
+        }), 500
+
+
+@app.route("/api/ticker-assumptions", methods=["POST"])
+def api_ticker_assumptions():
+    request_id = uuid.uuid4().hex[:10]
+    try:
+        data = request.get_json(force=True) or {}
+        ticker = str(data.get("ticker", "")).strip().upper()
+        if not ticker:
+            return jsonify({
+                "success": False,
+                "error": "Ticker is required",
+                "request_id": request_id,
+                "warnings": []
+            }), 400
+            
+        if len(ticker) > 12:
+            return jsonify({
+                "success": False,
+                "error": "Ticker too long",
+                "request_id": request_id,
+                "warnings": []
+            }), 400
+            
+        years_val = data.get("years")
+        if years_val is None:
+            years = 5
+        else:
+            if isinstance(years_val, bool) or not isinstance(years_val, (int, str)):
+                return jsonify({
+                    "success": False,
+                    "error": "Invalid years parameter: must be an integer",
+                    "request_id": request_id,
+                    "warnings": []
+                }), 400
+            try:
+                if isinstance(years_val, str):
+                    if not years_val.strip().isdigit():
+                        raise ValueError("Non-integer string")
+                years = int(years_val)
+            except (ValueError, TypeError):
+                return jsonify({
+                    "success": False,
+                    "error": "Invalid years parameter: must be an integer",
+                    "request_id": request_id,
+                    "warnings": []
+                }), 400
+                
+        if years < 1 or years > 10:
+            return jsonify({
+                "success": False,
+                "error": "Years must be between 1 and 10",
+                "request_id": request_id,
+                "warnings": []
+            }), 400
+            
+        snapshot = fetch_company_snapshot(ticker=ticker, years=years)
+        result = build_assumptions_from_snapshot(snapshot)
+        
+        # Serialize underlying source facts to list of dictionaries
+        source_map_serialized = []
+        for f in result.source_map:
+            source_map_serialized.append({
+                "ticker": f.ticker,
+                "cik": f.cik,
+                "company_name": f.company_name,
+                "account": f.account,
+                "concept": f.concept,
+                "value": f.value,
+                "unit": f.unit,
+                "form": f.form,
+                "filed": f.filed,
+                "period_end": f.period_end,
+                "fiscal_year": f.fiscal_year,
+                "fiscal_period": f.fiscal_period,
+                "accession": f.accession,
+                "frame": f.frame,
+                "source_url": f.source_url
+            })
+            
+        return jsonify({
+            "success": True,
+            "request_id": request_id,
+            "ticker": snapshot.ticker,
+            "payload": result.payload,
+            "source_map": source_map_serialized,
+            "warnings": result.warnings
+        })
+    except Exception as exc:
+        logger.error("Ticker assumptions error [%s]: %s", request_id, traceback.format_exc())
+        return jsonify({
+            "success": False,
+            "error": "Failed to build company assumptions",
+            "request_id": request_id,
+            "warnings": []
+        }), 500
+
+
+@app.route("/api/valuation-preview", methods=["POST"])
+def api_valuation_preview():
+    request_id = uuid.uuid4().hex[:10]
+    try:
+        data = request.get_json(force=True) or {}
+        ticker = str(data.get("ticker", "")).strip().upper()
+        if not ticker:
+            return jsonify({
+                "success": False,
+                "error": "Ticker is required",
+                "request_id": request_id,
+                "warnings": []
+            }), 400
+            
+        if len(ticker) > 12:
+            return jsonify({
+                "success": False,
+                "error": "Ticker too long",
+                "request_id": request_id,
+                "warnings": []
+            }), 400
+            
+        years_val = data.get("years")
+        if years_val is None:
+            years = 5
+        else:
+            if isinstance(years_val, bool) or not isinstance(years_val, (int, str)):
+                return jsonify({
+                    "success": False,
+                    "error": "Invalid years parameter: must be an integer",
+                    "request_id": request_id,
+                    "warnings": []
+                }), 400
+            try:
+                if isinstance(years_val, str):
+                    if not years_val.strip().isdigit():
+                        raise ValueError("Non-integer string")
+                years = int(years_val)
+            except (ValueError, TypeError):
+                return jsonify({
+                    "success": False,
+                    "error": "Invalid years parameter: must be an integer",
+                    "request_id": request_id,
+                    "warnings": []
+                }), 400
+                
+        if years < 1 or years > 10:
+            return jsonify({
+                "success": False,
+                "error": "Years must be between 1 and 10",
+                "request_id": request_id,
+                "warnings": []
+            }), 400
+
+        overrides = data.get("overrides")
+        
+        result = build_valuation_preview(ticker=ticker, years=years, overrides=overrides)
+        
+        # If result.dcf or result.wacc is missing, return success: false with a clean JSON error
+        if result.get("blended_equity_value") is None or result.get("wacc") is None:
+            return jsonify({
+                "success": False,
+                "error": "Critical valuation or WACC result missing from preview calculation.",
+                "request_id": request_id,
+                "warnings": result.get("warnings", []),
+                "assumption_quality": result.get("assumption_quality"),
+                "reverse_dcf": result.get("reverse_dcf"),
+                "valuation_impacts": result.get("valuation_impacts", []),
+            }), 400
+            
+        response = {
+            "success": True,
+            "request_id": request_id,
+        }
+        response.update(result)
+        return jsonify(response)
+        
+    except ValueError as exc:
+        return jsonify({
+            "success": False,
+            "error": str(exc),
+            "request_id": request_id,
+            "warnings": []
+        }), 400
+    except Exception as exc:
+        logger.error("Valuation preview error [%s]: %s", request_id, traceback.format_exc())
+        return jsonify({
+            "success": False,
+            "error": f"Failed to build valuation preview: {str(exc)}",
+            "request_id": request_id,
+            "warnings": []
+        }), 500
+
+
+@app.route("/api/filing-changes", methods=["POST"])
+def api_filing_changes():
+    """Detect numeric changes between latest and prior filing periods."""
+    request_id = uuid.uuid4().hex[:10]
+    try:
+        data = request.get_json(force=True) or {}
+        ticker = str(data.get("ticker", "")).strip().upper()
+        if not ticker:
+            return jsonify({
+                "success": False,
+                "error": "Ticker is required",
+                "request_id": request_id,
+                "warnings": []
+            }), 400
+
+        if len(ticker) > 12:
+            return jsonify({
+                "success": False,
+                "error": "Ticker too long",
+                "request_id": request_id,
+                "warnings": []
+            }), 400
+
+        years_val = data.get("years")
+        years = 5
+        if years_val is not None:
+            try:
+                years = int(years_val)
+                if years < 1 or years > 10:
+                    raise ValueError()
+            except (ValueError, TypeError):
+                return jsonify({
+                    "success": False,
+                    "error": "Invalid years parameter",
+                    "request_id": request_id,
+                    "warnings": []
+                }), 400
+
+        snapshot = fetch_company_snapshot(ticker, years=years)
+        change_result = detect_filing_changes(snapshot)
+
+        numeric_changes = change_result.get("numeric_changes", [])
+        red_flags = detect_red_flags(
+            snapshot=snapshot,
+            filing_changes=numeric_changes,
+            submissions=None,
+        )
+
+        impacts = build_valuation_impacts(numeric_changes, red_flags)
+
+        return jsonify({
+            "success": True,
+            "request_id": request_id,
+            "ticker": ticker,
+            "latest_period": change_result.get("latest_period"),
+            "prior_period": change_result.get("prior_period"),
+            "numeric_changes": numeric_changes,
+            "red_flags": red_flags,
+            "valuation_impacts": impacts,
+            "warnings": change_result.get("warnings", []),
+        })
+
+    except ValueError as exc:
+        return jsonify({
+            "success": False,
+            "error": str(exc),
+            "request_id": request_id,
+            "warnings": []
+        }), 400
+    except Exception as exc:
+        logger.error("Filing changes error [%s]: %s", request_id, traceback.format_exc())
+        return jsonify({
+            "success": False,
+            "error": f"Failed to detect filing changes: {str(exc)}",
+            "request_id": request_id,
+            "warnings": []
+        }), 500
+
+
+@app.route("/api/watchlist/refresh", methods=["POST"])
+def api_watchlist_refresh():
+    """Refresh a watchlist of tickers with filing change and red flag analysis."""
+    request_id = uuid.uuid4().hex[:10]
+    try:
+        data = request.get_json(force=True) or {}
+        tickers = data.get("tickers")
+
+        if not tickers or not isinstance(tickers, list):
+            return jsonify({
+                "success": False,
+                "error": "tickers must be a non-empty list",
+                "request_id": request_id,
+                "warnings": []
+            }), 400
+
+        if len(tickers) > 10:
+            return jsonify({
+                "success": False,
+                "error": "Maximum 10 tickers allowed per request",
+                "request_id": request_id,
+                "warnings": []
+            }), 400
+
+        years = int(data.get("years", 5))
+        result = refresh_watchlist(tickers=tickers, years=years)
+
+        return jsonify({
+            "success": True,
+            "request_id": request_id,
+            "results": result.get("results", []),
+            "warnings": result.get("warnings", []),
+        })
+
+    except ValueError as exc:
+        return jsonify({
+            "success": False,
+            "error": str(exc),
+            "request_id": request_id,
+            "warnings": []
+        }), 400
+    except Exception as exc:
+        logger.error("Watchlist refresh error [%s]: %s", request_id, traceback.format_exc())
+        return jsonify({
+            "success": False,
+            "error": f"Failed to refresh watchlist: {str(exc)}",
+            "request_id": request_id,
+            "warnings": []
+        }), 500
 
 
 @app.route("/api/version", methods=["GET"])

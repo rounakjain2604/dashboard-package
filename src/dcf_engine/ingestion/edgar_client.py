@@ -21,7 +21,7 @@ _BASE_URL = "https://data.sec.gov"
 _COMPANY_FACTS = f"{_BASE_URL}/api/xbrl/companyfacts/CIK{{cik}}.json"
 _COMPANY_CONCEPT = f"{_BASE_URL}/api/xbrl/companyconcept/CIK{{cik}}/us-gaap/{{concept}}.json"
 _TICKER_TO_CIK = "https://efts.sec.gov/LATEST/search-index?q=%22{ticker}%22&dateRange=custom&startdt=2020-01-01&enddt=2025-12-31&forms=10-K"
-_CIK_LOOKUP = f"{_BASE_URL}/files/company_tickers.json"
+_CIK_LOOKUP = "https://www.sec.gov/files/company_tickers.json"
 
 _DEFAULT_USER_AGENT = "Trinsic/1.0 (support@trinsic.space)"
 _RATE_LIMIT_DELAY = 0.12  # ~8 req/sec to stay under 10
@@ -81,6 +81,7 @@ PRIORITY_CONCEPTS = [
     "SalesRevenueNet",
     "CostOfGoodsAndServicesSold", "CostOfRevenue", "CostOfGoodsSold",
     "SellingGeneralAndAdministrativeExpense",
+    "ResearchAndDevelopmentExpense",
     "DepreciationDepletionAndAmortization", "DepreciationAndAmortization",
     "OperatingIncomeLoss",
     "InterestExpense",
@@ -95,6 +96,7 @@ PRIORITY_CONCEPTS = [
     "AccountsPayableCurrent",
     "AccruedLiabilitiesCurrent",
     "LongTermDebt", "LongTermDebtNoncurrent",
+    "ShortTermBorrowings",
     "StockholdersEquity",
     "RetainedEarningsAccumulatedDeficit",
     "NetCashProvidedByUsedInOperatingActivities",
@@ -269,6 +271,16 @@ class EdgarClient:
         )
 
     # ── Internal ─────────────────────────────────────────────────────
+    def fetch_submissions(self, cik: str) -> Optional[dict]:
+        """Fetch SEC filing submissions metadata for a company.
+
+        Returns the raw JSON from the submissions endpoint, or None on failure.
+        Used by red flag detection to check for late filings, amendments, and 8-K events.
+        """
+        cik_padded = cik.zfill(10)
+        url = f"{_BASE_URL}/submissions/CIK{cik_padded}.json"
+        return self._get(url)
+
     def _get(self, url: str) -> Optional[dict]:
         """Rate-limited GET with error handling."""
         elapsed = time.time() - self._last_request_time
