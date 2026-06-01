@@ -47,7 +47,7 @@ def _quick_dcf(
 
     Returns implied share price or None if inputs are degenerate.
     """
-    if shares <= 0 or wacc <= 0 or base_revenue <= 0:
+    if shares is None or shares <= 0 or wacc <= 0 or base_revenue <= 0:
         return None
     if wacc <= terminal_growth:
         return None
@@ -158,7 +158,7 @@ def _extract_params(payload: dict) -> dict:
         "projection_years": int(fc.get("projection_years", 5)),
         "cash": float(vc.get("cash", 0)),
         "debt": float(vc.get("debt", 0)),
-        "shares": float(vc.get("fully_diluted_shares", 1_000_000)),
+        "shares": float(vc.get("fully_diluted_shares")) if vc.get("fully_diluted_shares") is not None else None,
     }
 
 
@@ -184,7 +184,7 @@ def solve_implied_revenue_cagr(
     warnings = []
     params = _extract_params(base_payload)
 
-    if params["shares"] <= 0:
+    if params.get("shares") is None or params["shares"] <= 0:
         return {
             "implied_revenue_cagr": None,
             "target_price": target_price,
@@ -304,7 +304,7 @@ def solve_implied_ebitda_margin(
     warnings = []
     params = _extract_params(base_payload)
 
-    if params["shares"] <= 0:
+    if params.get("shares") is None or params["shares"] <= 0:
         return {
             "implied_ebitda_margin": None,
             "implied_cogs_pct": None,
@@ -451,13 +451,17 @@ def solve_implied_metrics(
     warnings = []
     ticker = base_payload.get("ticker", base_payload.get("company_name", "Unknown"))
     vc = base_payload.get("valuation", {})
-    shares = float(vc.get("fully_diluted_shares", 0))
+    shares_val = vc.get("fully_diluted_shares")
+    shares = float(shares_val) if shares_val is not None else None
 
     # Derive target_price from market_cap if needed
-    if target_price is None and market_cap is not None and shares > 0:
+    if target_price is None and market_cap is not None and shares is not None and shares > 0:
         target_price = market_cap / shares
 
     if target_price is None:
+        if shares is None or shares <= 0:
+            warnings.append("Shares outstanding missing or zero; cannot solve implied metrics.")
+        warnings.append("Live market price unavailable; reverse DCF not computed.")
         return {
             "ticker": ticker,
             "target_price": None,
@@ -465,10 +469,10 @@ def solve_implied_metrics(
             "implied_revenue_cagr": None,
             "implied_ebitda_margin": None,
             "base_case_price": None,
-            "warnings": ["Live market price unavailable; reverse DCF not computed."],
+            "warnings": warnings,
         }
 
-    target_equity_value = target_price * shares if shares > 0 else None
+    target_equity_value = target_price * shares if (shares is not None and shares > 0) else None
 
     cagr_result = solve_implied_revenue_cagr(base_payload, target_price)
     margin_result = solve_implied_ebitda_margin(base_payload, target_price)

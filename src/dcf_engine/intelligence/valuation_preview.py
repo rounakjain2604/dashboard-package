@@ -39,22 +39,51 @@ def _compute_filing_analysis(snapshot) -> dict:
         from src.dcf_engine.intelligence.filing_changes import detect_filing_changes
         from src.dcf_engine.intelligence.red_flags import detect_red_flags
         from src.dcf_engine.intelligence.valuation_impacts import build_valuation_impacts
+        from src.dcf_engine.ingestion.edgar_client import EdgarClient
 
         change_result = detect_filing_changes(snapshot)
         numeric_changes = change_result.get("numeric_changes", [])
 
-        if not numeric_changes:
-            extra_warnings = []
-            if change_result.get("prior_period") is None:
-                extra_warnings.append("Fewer than two filing periods available; valuation impacts not computed.")
-            return {"valuation_impacts": [], "warnings": extra_warnings}
+        submissions = None
+        metadata_checked = False
+        warnings = []
 
-        red_flags = detect_red_flags(snapshot=snapshot, filing_changes=numeric_changes)
+        if snapshot.cik:
+            try:
+                client = EdgarClient()
+                submissions = client.fetch_submissions(snapshot.cik)
+                if submissions is not None:
+                    metadata_checked = True
+                else:
+                    warnings.append("SEC submissions metadata unavailable; metadata red flags were not checked.")
+            except Exception as e:
+                logger.warning("Submissions fetch failed for CIK %s: %s", snapshot.cik, e)
+                warnings.append("SEC submissions metadata unavailable; metadata red flags were not checked.")
+        else:
+            warnings.append("SEC submissions metadata unavailable; metadata red flags were not checked.")
+
+        if not numeric_changes:
+            if change_result.get("prior_period") is None:
+                warnings.append("Fewer than two filing periods available; numeric filing changes were not computed.")
+
+        red_flags = detect_red_flags(
+            snapshot=snapshot,
+            filing_changes=numeric_changes,
+            submissions=submissions
+        )
         impacts = build_valuation_impacts(numeric_changes, red_flags)
-        return {"valuation_impacts": impacts, "warnings": []}
+        return {
+            "valuation_impacts": impacts,
+            "warnings": warnings,
+            "metadata_checked": metadata_checked
+        }
     except Exception as exc:
         logger.warning("Filing analysis failed: %s", exc)
-        return {"valuation_impacts": [], "warnings": [f"Filing analysis failed: {exc}"]}
+        return {
+            "valuation_impacts": [],
+            "warnings": [f"Filing analysis failed: {exc}"],
+            "metadata_checked": False
+        }
 
 # Strictly whitelisted keys for safe overrides
 WHITELISTED_KEYS = {
@@ -215,6 +244,7 @@ def build_valuation_preview(ticker: str, years: int = 5, overrides: dict | None 
     # 4. Compute filing changes and valuation impacts from snapshot (if >= 2 periods)
     filing_change_result = _compute_filing_analysis(snapshot)
     valuation_impacts_list = filing_change_result.get("valuation_impacts", [])
+    metadata_checked = filing_change_result.get("metadata_checked", False)
     filing_analysis_warnings = filing_change_result.get("warnings", [])
     for w in filing_analysis_warnings:
         if w not in all_warnings:
@@ -244,6 +274,7 @@ def build_valuation_preview(ticker: str, years: int = 5, overrides: dict | None 
             "reverse_dcf": {"warnings": ["Reverse DCF not computed: missing base revenue."]},
             "valuation_impacts": valuation_impacts_list,
             "payload": payload,
+            "metadata_checked": metadata_checked,
         }
 
     # 5. Dynamic import of _run_payload to avoid circular dependencies
@@ -298,4 +329,5 @@ def build_valuation_preview(ticker: str, years: int = 5, overrides: dict | None 
         "reverse_dcf": reverse_dcf_result,
         "valuation_impacts": valuation_impacts_list,
         "payload": payload,
+        "metadata_checked": metadata_checked,
     }

@@ -36,6 +36,10 @@ def build_excel(
     tornado_result=None,
     comps_result=None,
     credit_spread: float = 0.02,
+    source_facts=None,
+    warnings=None,
+    filing_changes=None,
+    valuation_impacts=None,
     **kwargs,  # Accept and ignore legacy parameters
 ) -> Path:
     """Build the fully formula-linked IB-grade Excel workbook."""
@@ -48,6 +52,8 @@ def build_excel(
     from .sheets_analytics import (
         build_scenarios, build_sensitivity, build_monte_carlo,
         build_tornado, build_comps, build_checks, build_audit,
+        build_source_map, build_warnings, build_filing_changes,
+        build_valuation_impacts,
     )
 
     output_path = Path(output_path)
@@ -62,6 +68,14 @@ def build_excel(
     build_assumptions(wb, cfg, base_revenue, base_cash, base_ppe,
                       base_nwc, base_retained_earnings, base_common_stock,
                       credit_spread)
+    if source_facts is not None:
+        build_source_map(wb, source_facts)
+    if filing_changes is not None:
+        build_filing_changes(wb, filing_changes)
+    if valuation_impacts is not None:
+        build_valuation_impacts(wb, valuation_impacts)
+    if warnings is not None:
+        build_warnings(wb, warnings)
     build_is(wb, n)
     build_wc(wb, n)
     build_capex_da(wb, n)

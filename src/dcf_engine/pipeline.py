@@ -110,6 +110,10 @@ def run_pipeline(
     output_excel: Optional[str] = None,
     output_pdf: Optional[str] = None,
     protect_sheets: bool = False,
+    source_facts=None,
+    warnings=None,
+    filing_changes=None,
+    valuation_impacts=None,
 ) -> PipelineResult:
     """
     Run the full DCF pipeline.
@@ -483,6 +487,10 @@ def run_pipeline(
             comps_result=result.comps,
             credit_spread=_credit_spread,
             protect_sheets=protect_sheets,
+            source_facts=source_facts,
+            warnings=warnings,
+            filing_changes=filing_changes,
+            valuation_impacts=valuation_impacts,
         )
         result.excel_path = excel_path
 

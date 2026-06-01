@@ -213,3 +213,26 @@ def test_reverse_dcf_in_preview(MockEdgarClient):
     assert "warnings" in result["reverse_dcf"]
     # Since market price is None, should have unavailable warning
     assert any("unavailable" in w.lower() for w in result["reverse_dcf"]["warnings"])
+
+
+def test_reverse_dcf_missing_shares_returns_warning():
+    """Verify that when fully_diluted_shares is missing, reverse DCF returns warning and no CAGR/margin."""
+    payload = _make_base_payload()
+    if "fully_diluted_shares" in payload["valuation"]:
+        del payload["valuation"]["fully_diluted_shares"]
+    
+    result = solve_implied_metrics(payload, target_price=50.0)
+    assert result["implied_revenue_cagr"] is None
+    assert result["implied_ebitda_margin"] is None
+    assert any("shares" in w.lower() for w in result["warnings"])
+
+
+def test_reverse_dcf_zero_shares_returns_warning():
+    """Verify that when fully_diluted_shares is <= 0 (e.g. 0), reverse DCF returns warning and no CAGR/margin."""
+    payload = _make_base_payload()
+    payload["valuation"]["fully_diluted_shares"] = 0
+    
+    result = solve_implied_metrics(payload, target_price=50.0)
+    assert result["implied_revenue_cagr"] is None
+    assert result["implied_ebitda_margin"] is None
+    assert any("shares" in w.lower() for w in result["warnings"])

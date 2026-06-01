@@ -6,6 +6,16 @@ import pandas as pd
 from src.dcf_engine.intelligence import build_valuation_preview
 from dashboard_api import app
 
+
+@pytest.fixture(autouse=True)
+def mock_ingest_edgar_client_submissions():
+    with patch("src.dcf_engine.ingestion.edgar_client.EdgarClient") as mock:
+        mock_instance = MagicMock()
+        mock_instance.fetch_submissions.return_value = None
+        mock.return_value = mock_instance
+        yield mock
+
+
 # Realistic mock facts for a fully populated company (reused from test_assumption_builder.py)
 MOCK_FACTS_JSON_2Y = {
     "cik": 320193,
@@ -553,3 +563,166 @@ def test_valuation_preview_custom_data_file_path(MockEdgarClient):
 
     result = build_valuation_preview("AAPL", years=2)
     assert result["payload"]["data_file"] == "data/nonexistent_sec_preview_file.csv"
+
+
+@patch("src.dcf_engine.ingestion.edgar_client.EdgarClient")
+@patch("src.dcf_engine.intelligence.sec_snapshot.EdgarClient")
+def test_valuation_preview_metadata_red_flags(MockSecEdgarClient, MockIngestEdgarClient):
+    """Verify that metadata red flags flow into valuation impacts and metadata_checked is True."""
+    from datetime import date
+    
+    mock_sec = MagicMock()
+    mock_sec.ticker_to_cik.return_value = "0000320193"
+    mock_sec._get.return_value = MOCK_FACTS_JSON_2Y
+    MockSecEdgarClient.return_value = mock_sec
+
+    mock_submissions = {
+        "filings": {
+            "recent": {
+                "form": ["NT 10-K", "10-K/A", "8-K", "10-K"],
+                "filingDate": [date.today().isoformat()] * 4
+            }
+        }
+    }
+    mock_ingest = MagicMock()
+    mock_ingest.fetch_submissions.return_value = mock_submissions
+    MockIngestEdgarClient.return_value = mock_ingest
+
+    result = build_valuation_preview("AAPL", years=2)
+    assert result["metadata_checked"] is True
+    
+    # Assert metadata red flags flow into valuation impacts
+    impacts = result["valuation_impacts"]
+    categories = [imp.get("category") for imp in impacts]
+    titles = [imp.get("title") for imp in impacts]
+    
+    assert "red_flag" in categories
+    assert any("Late filing detected" in t for t in titles)
+    assert any("Filing amendment detected" in t for t in titles)
+    assert any("filing(s) in the last 30 days" in t for t in titles)
+
+
+@patch("src.dcf_engine.ingestion.edgar_client.EdgarClient")
+@patch("src.dcf_engine.intelligence.sec_snapshot.EdgarClient")
+def test_valuation_preview_submissions_fail_warning(MockSecEdgarClient, MockIngestEdgarClient):
+    """Verify that fetch_submissions returning None gives metadata_checked: False and the warnings."""
+    mock_sec = MagicMock()
+    mock_sec.ticker_to_cik.return_value = "0000320193"
+    mock_sec._get.return_value = MOCK_FACTS_JSON_2Y
+    MockSecEdgarClient.return_value = mock_sec
+
+    mock_ingest = MagicMock()
+    mock_ingest.fetch_submissions.return_value = None
+    MockIngestEdgarClient.return_value = mock_ingest
+
+    result = build_valuation_preview("AAPL", years=2)
+    assert result["metadata_checked"] is False
+    assert any("metadata unavailable" in w for w in result["warnings"])
+
+
+@patch("src.dcf_engine.ingestion.edgar_client.EdgarClient")
+@patch("src.dcf_engine.intelligence.sec_snapshot.EdgarClient")
+def test_api_route_valuation_preview_metadata_success(MockSecEdgarClient, MockIngestEdgarClient):
+    """Verify metadata_checked is included in successful /api/valuation-preview responses."""
+    mock_sec = MagicMock()
+    mock_sec.ticker_to_cik.return_value = "0000320193"
+    mock_sec._get.return_value = MOCK_FACTS_JSON_2Y
+    MockSecEdgarClient.return_value = mock_sec
+
+    mock_ingest = MagicMock()
+    mock_ingest.fetch_submissions.return_value = {"filings": {"recent": {"form": ["10-K"], "filingDate": ["2023-11-03"]}}}
+    MockIngestEdgarClient.return_value = mock_ingest
+
+    client = app.test_client()
+    resp = client.post("/api/valuation-preview", json={"ticker": "AAPL", "years": 2})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["success"] is True
+    assert data["metadata_checked"] is True
+
+
+@patch("src.dcf_engine.ingestion.edgar_client.EdgarClient")
+@patch("src.dcf_engine.intelligence.sec_snapshot.EdgarClient")
+def test_api_route_valuation_preview_missing_revenue_metadata(MockSecEdgarClient, MockIngestEdgarClient):
+    """Verify metadata_checked is included in 400 missing revenue responses."""
+    mock_sec = MagicMock()
+    mock_sec.ticker_to_cik.return_value = "0000320193"
+    mock_sec._get.return_value = {"cik": 320193, "entityName": "Apple Inc.", "facts": {}}  # empty -> missing revenue
+    MockSecEdgarClient.return_value = mock_sec
+
+    mock_ingest = MagicMock()
+    mock_ingest.fetch_submissions.return_value = None
+    MockIngestEdgarClient.return_value = mock_ingest
+
+    client = app.test_client()
+    resp = client.post("/api/valuation-preview", json={"ticker": "AAPL", "years": 2})
+    assert resp.status_code == 400
+    data = resp.get_json()
+    assert data["success"] is False
+    assert data["metadata_checked"] is False
+
+
+@patch("src.dcf_engine.ingestion.edgar_client.EdgarClient")
+@patch("src.dcf_engine.intelligence.sec_snapshot.EdgarClient")
+def test_valuation_preview_single_period_metadata_red_flags(MockSecEdgarClient, MockIngestEdgarClient):
+    """Verify metadata red flags are captured for single-period/sparse companies even when numeric_changes is empty."""
+    from datetime import date
+    
+    single_period_json = {
+        "cik": 320193,
+        "entityName": "Apple Inc.",
+        "facts": {
+            "us-gaap": {
+                "Revenues": {
+                    "units": {
+                        "USD": [
+                            {
+                                "end": "2023-09-30",
+                                "val": 330000000000.0,
+                                "accn": "0000320193-23-000106",
+                                "fy": 2023,
+                                "fp": "FY",
+                                "form": "10-K",
+                                "filed": "2023-11-03",
+                                "frame": "CY2023"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    
+    mock_sec = MagicMock()
+    mock_sec.ticker_to_cik.return_value = "0000320193"
+    mock_sec._get.return_value = single_period_json
+    MockSecEdgarClient.return_value = mock_sec
+
+    mock_submissions = {
+        "filings": {
+            "recent": {
+                "form": ["NT 10-K", "10-K/A", "8-K", "10-K"],
+                "filingDate": [date.today().isoformat()] * 4
+            }
+        }
+    }
+    mock_ingest = MagicMock()
+    mock_ingest.fetch_submissions.return_value = mock_submissions
+    MockIngestEdgarClient.return_value = mock_ingest
+
+    result = build_valuation_preview("AAPL", years=2)
+    
+    assert result["metadata_checked"] is True
+    
+    impacts = result["valuation_impacts"]
+    categories = [imp.get("category") for imp in impacts]
+    titles = [imp.get("title") for imp in impacts]
+    
+    assert "red_flag" in categories
+    assert any("Late filing detected" in t for t in titles)
+    assert any("Filing amendment detected" in t for t in titles)
+    assert any("filing(s) in the last 30 days" in t for t in titles)
+    
+    w = result["warnings"]
+    assert any("Fewer than two filing periods available; numeric filing changes were not computed." in msg for msg in w)
+    assert not any("valuation impacts not computed" in msg for msg in w)

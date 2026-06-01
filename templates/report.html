@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ report.ticker }} filing impact report | {{ brand_name }}</title>
+  <style>
+    :root { color-scheme: light; --ink:#172026; --muted:#5d6872; --line:#d9e2e8; --paper:#f6f8f9; --accent:#0c6b58; --warn:#9a4f00; --risk:#9f2435; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; color:var(--ink); background:#fff; }
+    a { color:var(--accent); }
+    .shell { max-width:1180px; margin:0 auto; padding:24px; }
+    .top { display:flex; justify-content:space-between; gap:18px; align-items:center; border-bottom:1px solid var(--line); padding-bottom:16px; }
+    .brand { font-weight:800; letter-spacing:.04em; text-transform:uppercase; font-size:13px; }
+    .nav { display:flex; flex-wrap:wrap; gap:10px; }
+    .btn { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:6px; padding:9px 12px; text-decoration:none; font-weight:700; font-size:14px; }
+    .primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .hero { padding:28px 0 18px; display:grid; grid-template-columns:minmax(0, 1.3fr) minmax(280px, .7fr); gap:24px; align-items:start; }
+    h1 { margin:0 0 10px; font-size:clamp(34px, 5vw, 64px); line-height:.96; letter-spacing:0; }
+    h2 { margin:0 0 12px; font-size:22px; }
+    h3 { margin:0 0 8px; font-size:16px; }
+    p { color:var(--muted); line-height:1.55; }
+    .meta { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .pill { border:1px solid var(--line); border-radius:999px; padding:6px 10px; font-size:13px; color:var(--muted); }
+    .panel { border-top:1px solid var(--line); padding:22px 0; }
+    .grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; }
+    .card { border:1px solid var(--line); border-radius:8px; padding:14px; background:#fff; }
+    .metric { font-size:24px; font-weight:800; }
+    .muted { color:var(--muted); }
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    th, td { padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:top; text-align:left; }
+    th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    .severity-high { color:var(--risk); font-weight:800; }
+    .severity-medium { color:var(--warn); font-weight:800; }
+    .severity-low { color:var(--accent); font-weight:800; }
+    .notice { background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:14px; }
+    .print-only { display:none; }
+    @media (max-width: 820px) { .hero, .grid { grid-template-columns:1fr; } .shell { padding:18px; } .top { align-items:flex-start; flex-direction:column; } }
+    @media print { .nav, .no-print { display:none; } .print-only { display:block; } .shell { max-width:none; padding:0; } body { font-size:11pt; } .hero { grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="top">
+      <div class="brand">{{ brand_name }}</div>
+      <nav class="nav no-print">
+        <a class="btn" href="/research">Analyze ticker</a>
+        <a class="btn" href="/watchlist">Watchlist</a>
+        <a class="btn" href="/reports/{{ report.ticker }}/print">Print report</a>
+        <a class="btn primary" href="/dashboard">Export premium Excel</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div>
+        <h1>{{ report.ticker }} filing impact report</h1>
+        <p>{{ report.company_name }} filings translated into valuation-relevant changes, source facts, assumption warnings, and reverse DCF context.</p>
+        <div class="meta">
+          <span class="pill">Latest period: {{ report.latest_period or "Unavailable" }}</span>
+          <span class="pill">Filed: {{ report.latest_filing_date or "Unavailable" }}</span>
+          <span class="pill">CIK: {{ report.cik or "Unavailable" }}</span>
+        </div>
+      </div>
+      <aside class="notice">
+        <h2>Research Note</h2>
+        <p>{{ report.methodology }}</p>
+      </aside>
+    </section>
+
+    <section class="panel">
+      <h2>Valuation Snapshot</h2>
+      <div class="grid">
+        <div class="card"><h3>Blended Equity Value</h3><div class="metric">{{ fmt_money(report.valuation_preview.get("blended_equity_value")) }}</div></div>
+        <div class="card"><h3>WACC</h3><div class="metric">{{ fmt_pct(report.valuation_preview.get("wacc")) }}</div></div>
+        <div class="card"><h3>Terminal Growth</h3><div class="metric">{{ fmt_pct(report.valuation_preview.get("terminal_growth_rate")) }}</div></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Key Filing Changes</h2>
+      <table>
+        <thead><tr><th>Account</th><th>Severity</th><th>Latest</th><th>Prior</th><th>Impact</th></tr></thead>
+        <tbody>
+        {% for change in report.numeric_changes[:8] %}
+          <tr>
+            <td>{{ change.account or change.get("account") }}</td>
+            <td class="severity-{{ change.severity or change.get("severity") }}">{{ change.severity or change.get("severity") }}</td>
+            <td>{{ fmt_number(change.latest_value or change.get("latest_value")) }}</td>
+            <td>{{ fmt_number(change.prior_value or change.get("prior_value")) }}</td>
+            <td>{{ change.valuation_impact or change.get("valuation_impact") }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="muted">No material numeric changes were available from the current filing set.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Valuation Impacts And Red Flags</h2>
+      <div class="grid">
+        {% for impact in report.valuation_impacts[:6] %}
+        <div class="card"><h3>{{ impact.title or impact.get("title") }}</h3><p>{{ impact.detail or impact.get("detail") }}</p></div>
+        {% endfor %}
+        {% for flag in report.red_flags[:3] %}
+        <div class="card"><h3>{{ flag.title or flag.get("title") }}</h3><p>{{ flag.detail or flag.get("detail") }}</p></div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Source Map</h2>
+      <table>
+        <thead><tr><th>Fact</th><th>Value</th><th>Period</th><th>Filing</th><th>Source</th></tr></thead>
+        <tbody>
+        {% for fact in report.source_map[:12] %}
+          <tr>
+            <td>{{ fact.account }}</td>
+            <td>{{ fmt_number(fact.value) }} {{ fact.unit }}</td>
+            <td>{{ fact.period_end }}</td>
+            <td>{{ fact.form }} filed {{ fact.filed }}</td>
+            <td>{% if fact.source_url %}<a href="{{ fact.source_url }}">SEC</a>{% else %}<span class="muted">Unavailable</span>{% endif %}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Warnings</h2>
+      <div class="notice">
+        {% for warning in report.warnings %}
+          <p>{{ warning }}</p>
+        {% else %}
+          <p>No major data warnings were generated.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+</body>
+</html>

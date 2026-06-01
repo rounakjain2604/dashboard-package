@@ -127,3 +127,28 @@ def test_api_route_missing_tickers():
     client = app.test_client()
     resp = client.post("/api/watchlist/refresh", json={})
     assert resp.status_code == 400
+
+
+def test_api_route_watchlist_years_validation():
+    """Verify /api/watchlist/refresh strictly validates years parameter."""
+    client = app.test_client()
+    
+    # Test bool
+    resp = client.post("/api/watchlist/refresh", json={"tickers": ["AAPL"], "years": True})
+    assert resp.status_code == 400
+    assert "must be an integer" in resp.get_json()["error"]
+
+    # Test float
+    resp = client.post("/api/watchlist/refresh", json={"tickers": ["AAPL"], "years": 5.5})
+    assert resp.status_code == 400
+    assert "must be an integer" in resp.get_json()["error"]
+
+    # Test non-digit string
+    resp = client.post("/api/watchlist/refresh", json={"tickers": ["AAPL"], "years": "abc"})
+    assert resp.status_code == 400
+    assert "must be an integer" in resp.get_json()["error"]
+
+    # Test out-of-range years
+    resp = client.post("/api/watchlist/refresh", json={"tickers": ["AAPL"], "years": 11})
+    assert resp.status_code == 400
+    assert "between 1 and 10" in resp.get_json()["error"]

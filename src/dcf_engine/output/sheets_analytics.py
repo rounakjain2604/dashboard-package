@@ -8,6 +8,85 @@ from .excel_formats import *
 from .sheets_core import BS, WR
 
 
+def _as_dict(item):
+    if hasattr(item, "__dataclass_fields__"):
+        from dataclasses import asdict
+        return asdict(item)
+    if isinstance(item, dict):
+        return item
+    return {"value": str(item)}
+
+
+def _write_table(ws, title, rows, columns):
+    ws.cell(1, 1, value=title).font = FK
+    for j, (key, label, width) in enumerate(columns, 1):
+        ws.cell(3, j, value=label).font = FH
+        ws.cell(3, j).fill = FILL_HDR
+        auto_col(ws, j, width)
+    if not rows:
+        ws.cell(4, 1, value="No data supplied").font = FN
+        fit_to_width(ws)
+        return
+    for r, raw in enumerate(rows, 4):
+        item = _as_dict(raw)
+        for j, (key, _label, _width) in enumerate(columns, 1):
+            value = item.get(key)
+            cell = ws.cell(r, j, value=value)
+            cell.font = FN
+            cell.number_format = NF if isinstance(value, (int, float)) else "@"
+    fit_to_width(ws)
+
+
+def build_source_map(wb, source_facts):
+    ws = wb.create_sheet("Source Map")
+    ws.sheet_properties.tabColor = "0C6B58"
+    _write_table(ws, "SEC Source Map", source_facts or [], [
+        ("account", "Account", 24),
+        ("concept", "Concept", 34),
+        ("value", "Value", 18),
+        ("unit", "Unit", 12),
+        ("form", "Form", 12),
+        ("filed", "Filed", 14),
+        ("period_end", "Period", 14),
+        ("source_url", "Source URL", 42),
+    ])
+
+
+def build_warnings(wb, warnings):
+    ws = wb.create_sheet("Warnings")
+    ws.sheet_properties.tabColor = "C00000"
+    rows = [{"severity": "warning", "message": str(w)} for w in (warnings or [])]
+    _write_table(ws, "Model Warnings", rows, [
+        ("severity", "Severity", 14),
+        ("message", "Message", 80),
+    ])
+
+
+def build_filing_changes(wb, changes):
+    ws = wb.create_sheet("Filing Changes")
+    ws.sheet_properties.tabColor = "9A4F00"
+    _write_table(ws, "Numeric Filing Changes", changes or [], [
+        ("account", "Account", 24),
+        ("category", "Category", 18),
+        ("severity", "Severity", 12),
+        ("latest_value", "Latest", 18),
+        ("prior_value", "Prior", 18),
+        ("percent_change", "% Change", 16),
+        ("valuation_impact", "Valuation Impact", 54),
+    ])
+
+
+def build_valuation_impacts(wb, impacts):
+    ws = wb.create_sheet("Valuation Impacts")
+    ws.sheet_properties.tabColor = "7030A0"
+    _write_table(ws, "Valuation Impacts", impacts or [], [
+        ("severity", "Severity", 12),
+        ("title", "Title", 28),
+        ("detail", "Detail", 70),
+        ("affected_assumptions", "Affected Assumptions", 34),
+    ])
+
+
 def build_scenarios(wb, scenario_comparison):
     """Write scenario comparison table (values from simulation)."""
     ws = wb.create_sheet("Scenarios")

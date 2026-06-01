@@ -256,6 +256,18 @@ def detect_filing_changes(snapshot: CompanySnapshot) -> dict:
             "warnings": warnings + ["No financial data available for filing change detection."],
         }
 
+    required_cols = {"period", "account", "amount"}
+    missing_cols = required_cols - set(df.columns)
+    if missing_cols:
+        missing_str = ", ".join(sorted(missing_cols))
+        return {
+            "ticker": ticker,
+            "latest_period": None,
+            "prior_period": None,
+            "numeric_changes": [],
+            "warnings": warnings + [f"Financial data is missing required columns for filing change detection: {missing_str}"],
+        }
+
     # Get unique periods sorted descending
     import pandas as pd
     periods = sorted(df["period"].dropna().unique(), reverse=True)

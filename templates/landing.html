@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ brand_name }} - Premium Editable Excel DCF Models</title>
-<meta name="description" content="Generate formula-linked Excel DCF models for public stocks. Download free sample valuation workbooks or request a custom ticker model.">
+<title>{{ brand_name }} - SEC filings translated into valuation assumptions</title>
+<meta name="description" content="Analyze SEC filing changes, source-linked valuation assumptions, reverse DCF context, and premium formula-linked Excel exports.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -809,9 +809,11 @@ h2 {
   <a class="brand" href="/" style="text-decoration:none;">{{ brand_name }}</a>
   <div class="nav-links">
     <a href="#samples">Free Coverage</a>
+    <a href="/research">Research</a>
+    <a href="/watchlist">Watchlist</a>
     <a href="#features">Sandbox</a>
     <a href="#access">Access Tiers</a>
-    <a class="button" href="/dashboard" style="min-height:36px;padding:0 14px;font-size:13px;font-weight:600;">Open Dashboard</a>
+    <a class="button" href="/research" style="min-height:36px;padding:0 14px;font-size:13px;font-weight:600;">Analyze a Ticker</a>
   </div>
 </nav>
 
@@ -825,14 +827,14 @@ h2 {
 <main>
   <section class="hero">
     <div style="animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;">
-      <div class="eyebrow">Institutional-Grade Financial Modeling</div>
-      <h1>Get a clean, fully editable Excel DCF without the build time.</h1>
-      <p class="lead">{{ brand_name }} generates formula-linked Excel models complete with full 3-statement projections, dynamic WACC structures, custom scenarios, 2D sensitivities, and Monte Carlo tabs.</p>
+      <div class="eyebrow">Source-Linked Filing Research</div>
+      <h1>SEC filings, translated into valuation assumptions.</h1>
+      <p class="lead">{{ brand_name }} shows what changed in a company's latest filing, whether it affects revenue, margin, debt, dilution, or terminal value assumptions, and links every number back to source filings.</p>
       <div class="hero-actions">
-        <a class="button" href="#samples">Download Free Samples</a>
-        <a class="button ghost" href="#access">View Access Plans</a>
+        <a class="button" href="/research">Analyze a Ticker</a>
+        <a class="button ghost" href="/reports/AAPL">See Sample Reports</a>
       </div>
-      <p class="fine">Unlocked, fully auditable, and assumption-driven workbooks. Built for education and valuation research.</p>
+      <p class="fine">Built for education and valuation research. Not investment advice.</p>
     </div>
     <div class="workbook" aria-label="Excel workbook preview">
       <div class="sheet-top">
@@ -1011,7 +1013,7 @@ h2 {
     <div class="inner">
       <div class="section-head" style="margin-bottom: 44px;">
         <h2>Subscription &amp; Access Models</h2>
-        <p class="section-copy">Simple validation-stage pricing while LemonSqueezy activation is pending. Every paid tier is built around the thing buyers actually want: unlocked Excel exports, editable assumptions, and usable valuation tabs.</p>
+        <p class="section-copy">Simple validation-stage pricing while LemonSqueezy activation is pending. Every paid tier is built around the thing users actually want: unlocked Excel exports, editable assumptions, and usable valuation tabs.</p>
       </div>
       <div class="access-grid">
         <div class="access-card">
@@ -1022,7 +1024,7 @@ h2 {
               <span class="price-val">Free</span>
               <span class="price-period">/ public models</span>
             </div>
-            <p class="tier-description">Use the public samples to inspect model quality, download proof-of-output workbooks, and test the interactive dashboard before buying.</p>
+            <p class="tier-description">Use the public samples to inspect model quality, download proof-of-output workbooks, and test the interactive dashboard before upgrading.</p>
             <ul class="tier-features">
               <li>Protected sample workbooks for NVDA, TSLA, AAPL, MSFT, and AMZN</li>
               <li>Dashboard access for assumptions, WACC, DCF, scenarios, and risk views</li>

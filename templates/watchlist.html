@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Watchlist | {{ brand_name }}</title>
+  <style>
+    :root { --ink:#172026; --muted:#5d6872; --line:#d9e2e8; --accent:#0c6b58; --risk:#9f2435; --warn:#9a4f00; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; color:var(--ink); }
+    .shell { max-width:1040px; margin:0 auto; padding:24px; }
+    header { display:flex; justify-content:space-between; gap:14px; border-bottom:1px solid var(--line); padding-bottom:16px; }
+    .brand { font-weight:800; letter-spacing:.04em; text-transform:uppercase; font-size:13px; }
+    a { color:var(--accent); }
+    .btn, button { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:6px; padding:10px 12px; text-decoration:none; font-weight:800; cursor:pointer; }
+    .primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+    h1 { font-size:clamp(34px, 5vw, 56px); line-height:1; margin:28px 0 10px; letter-spacing:0; }
+    p { color:var(--muted); line-height:1.55; }
+    form { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; margin:18px 0 26px; }
+    textarea { width:100%; min-height:84px; border:1px solid var(--line); border-radius:6px; padding:12px; font:inherit; }
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    th, td { padding:10px 8px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:var(--muted); text-transform:uppercase; font-size:12px; letter-spacing:.04em; }
+    .high { color:var(--risk); font-weight:800; } .medium { color:var(--warn); font-weight:800; } .low { color:var(--accent); font-weight:800; }
+    @media (max-width: 760px) { header, form { grid-template-columns:1fr; flex-direction:column; } .shell { padding:18px; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header><div class="brand">{{ brand_name }}</div><nav><a class="btn" href="/research">Research</a> <a class="btn" href="/">Home</a></nav></header>
+    <h1>Watch filing changes by materiality.</h1>
+    <p>Refresh up to 10 tickers and surface the names with the most valuation-relevant filing changes first.</p>
+    <form id="watch-form">
+      <textarea id="tickers" placeholder="AAPL, MSFT, NVDA, TSLA, AMZN">AAPL, MSFT, NVDA, TSLA, AMZN</textarea>
+      <button class="primary" type="submit">Refresh</button>
+    </form>
+    <p id="status">Ready.</p>
+    <table>
+      <thead><tr><th>Ticker</th><th>Status</th><th>Max severity</th><th>Changes</th><th>Top impact</th><th>Report</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </main>
+  <script>
+    const safe = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    document.getElementById('watch-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const tickers = document.getElementById('tickers').value.split(/[,\s]+/).map(t => t.trim().toUpperCase()).filter(Boolean).slice(0, 10);
+      document.getElementById('status').textContent = 'Refreshing watchlist...';
+      const res = await fetch('/api/watchlist/refresh', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ tickers, years:5 }) });
+      const data = await res.json();
+      if (!data.success) {
+        document.getElementById('status').textContent = data.error || 'Refresh failed';
+        return;
+      }
+      document.getElementById('rows').innerHTML = (data.results || []).map(item => {
+        const top = (item.top_impacts || [])[0] || {};
+        return `<tr><td>${safe(item.ticker)}</td><td>${safe(item.status)}</td><td class="${safe(item.max_severity)}">${safe(item.max_severity)}</td><td>${safe(item.change_count)}</td><td>${safe(top.detail || top.title || '')}</td><td><a href="/reports/${encodeURIComponent(item.ticker)}">Open</a></td></tr>`;
+      }).join('') || '<tr><td colspan="6">No results.</td></tr>';
+      document.getElementById('status').textContent = 'Refreshed ' + (data.results || []).length + ' tickers.';
+    });
+  </script>
+</body>
+</html>

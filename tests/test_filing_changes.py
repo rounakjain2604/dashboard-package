@@ -178,14 +178,17 @@ def test_dict_return_shape():
     assert isinstance(result["numeric_changes"], list)
 
 
+@patch("dashboard_api.EdgarClient")
 @patch("src.dcf_engine.intelligence.sec_snapshot.EdgarClient")
-def test_api_route(MockEdgarClient):
+def test_api_route(MockSecEdgarClient, MockApiEdgarClient):
     """Test /api/filing-changes route with mocked data."""
     from tests.test_valuation_preview import MOCK_FACTS_JSON_2Y
     mock_instance = MagicMock()
     mock_instance.ticker_to_cik.return_value = "0000320193"
     mock_instance._get.return_value = MOCK_FACTS_JSON_2Y
-    MockEdgarClient.return_value = mock_instance
+    mock_instance.fetch_submissions.return_value = None
+    MockSecEdgarClient.return_value = mock_instance
+    MockApiEdgarClient.return_value = mock_instance
 
     client = app.test_client()
     resp = client.post("/api/filing-changes", json={"ticker": "AAPL", "years": 2})
@@ -195,3 +198,97 @@ def test_api_route(MockEdgarClient):
     assert "red_flags" in data
     assert "valuation_impacts" in data
     assert "request_id" in data
+
+
+def test_detect_filing_changes_malformed_columns():
+    """Verify detect_filing_changes returns a clean warning when columns are missing."""
+    df = pd.DataFrame([{"foo": "bar", "period": "2023-09-30"}]) # missing account, amount
+    snap = CompanySnapshot(
+        ticker="TEST", cik="0000000001", company_name="Test Corp",
+        latest_period="2023-09-30", financials=df, facts=[], key_metrics={}, warnings=[],
+    )
+    result = detect_filing_changes(snap)
+    assert result["numeric_changes"] == []
+    assert result["latest_period"] is None
+    assert result["prior_period"] is None
+    assert any("missing required columns" in w for w in result["warnings"])
+
+
+@patch("dashboard_api.EdgarClient")
+@patch("src.dcf_engine.intelligence.sec_snapshot.EdgarClient")
+def test_api_route_metadata_red_flags(MockSecEdgarClient, MockApiEdgarClient):
+    """Test /api/filing-changes route with mocked metadata red flags in submissions."""
+    from datetime import date
+    from tests.test_valuation_preview import MOCK_FACTS_JSON_2Y
+    mock_instance = MagicMock()
+    mock_instance.ticker_to_cik.return_value = "0000320193"
+    mock_instance._get.return_value = MOCK_FACTS_JSON_2Y
+    
+    mock_submissions = {
+        "filings": {
+            "recent": {
+                "form": ["NT 10-K", "10-K/A", "8-K", "10-K"],
+                "filingDate": [date.today().isoformat()] * 4
+            }
+        }
+    }
+    mock_instance.fetch_submissions.return_value = mock_submissions
+    MockSecEdgarClient.return_value = mock_instance
+    MockApiEdgarClient.return_value = mock_instance
+
+    client = app.test_client()
+    resp = client.post("/api/filing-changes", json={"ticker": "AAPL", "years": 2})
+    data = resp.get_json()
+    assert data["success"] is True
+    assert data["metadata_checked"] is True
+    
+    red_flags = data["red_flags"]
+    codes = {rf["code"] for rf in red_flags}
+    assert "late_filing" in codes
+    assert "filing_amendment" in codes
+    assert "recent_8k" in codes
+
+
+@patch("dashboard_api.EdgarClient")
+@patch("src.dcf_engine.intelligence.sec_snapshot.EdgarClient")
+def test_api_route_submissions_fail_warning(MockSecEdgarClient, MockApiEdgarClient):
+    """Verify /api/filing-changes handles submissions fetch failure gracefully."""
+    from tests.test_valuation_preview import MOCK_FACTS_JSON_2Y
+    mock_instance = MagicMock()
+    mock_instance.ticker_to_cik.return_value = "0000320193"
+    mock_instance._get.return_value = MOCK_FACTS_JSON_2Y
+    mock_instance.fetch_submissions.return_value = None
+    MockSecEdgarClient.return_value = mock_instance
+    MockApiEdgarClient.return_value = mock_instance
+
+    client = app.test_client()
+    resp = client.post("/api/filing-changes", json={"ticker": "AAPL", "years": 2})
+    data = resp.get_json()
+    assert data["success"] is True
+    assert data["metadata_checked"] is False
+    assert any("metadata unavailable" in w for w in data["warnings"])
+
+
+def test_api_route_years_strict_validation():
+    """Verify /api/filing-changes performs strict years validation."""
+    client = app.test_client()
+    
+    # Test bool
+    resp = client.post("/api/filing-changes", json={"ticker": "AAPL", "years": True})
+    assert resp.status_code == 400
+    assert "must be an integer" in resp.get_json()["error"]
+
+    # Test float
+    resp = client.post("/api/filing-changes", json={"ticker": "AAPL", "years": 5.5})
+    assert resp.status_code == 400
+    assert "must be an integer" in resp.get_json()["error"]
+
+    # Test non-digit string
+    resp = client.post("/api/filing-changes", json={"ticker": "AAPL", "years": "abc"})
+    assert resp.status_code == 400
+    assert "must be an integer" in resp.get_json()["error"]
+
+    # Test out-of-range years
+    resp = client.post("/api/filing-changes", json={"ticker": "AAPL", "years": 11})
+    assert resp.status_code == 400
+    assert "between 1 and 10" in resp.get_json()["error"]

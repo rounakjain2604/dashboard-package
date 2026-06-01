@@ -36,7 +36,10 @@ from src.dcf_engine.sample_models import get_sample, get_sample_payload, list_sa
 from src.dcf_engine.intelligence import (
     fetch_company_snapshot, build_assumptions_from_snapshot, build_valuation_preview,
     detect_filing_changes, detect_red_flags, build_valuation_impacts, refresh_watchlist,
+    build_public_report,
 )
+from src.dcf_engine.ingestion.edgar_client import EdgarClient
+from src.dcf_engine.saas import identify_user, check_export_access, consume_export_credit
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s")
@@ -106,6 +109,71 @@ def _api_error(message: str, status: int = 500, request_id: str | None = None):
         "error": message,
         "request_id": request_id or uuid.uuid4().hex[:10],
     }), status
+
+
+@app.context_processor
+def _template_formatters():
+    def fmt_number(value):
+        try:
+            if value is None:
+                return "N/A"
+            value = float(value)
+            if abs(value) >= 1_000_000_000:
+                return f"{value / 1_000_000_000:,.1f}B"
+            if abs(value) >= 1_000_000:
+                return f"{value / 1_000_000:,.1f}M"
+            return f"{value:,.0f}"
+        except (TypeError, ValueError):
+            return "N/A"
+
+    def fmt_money(value):
+        formatted = fmt_number(value)
+        return formatted if formatted == "N/A" else f"${formatted}"
+
+    def fmt_pct(value):
+        try:
+            if value is None:
+                return "N/A"
+            return f"{float(value) * 100:.1f}%"
+        except (TypeError, ValueError):
+            return "N/A"
+
+    return {"fmt_number": fmt_number, "fmt_money": fmt_money, "fmt_pct": fmt_pct}
+
+
+def _validate_years(years_val, request_id):
+    """Strict validation for years parameter, reusing validation from /api/valuation-preview."""
+    if years_val is None:
+        return 5, None
+    if isinstance(years_val, bool) or not isinstance(years_val, (int, str)):
+        return None, (jsonify({
+            "success": False,
+            "error": "Invalid years parameter: must be an integer",
+            "request_id": request_id,
+            "warnings": []
+        }), 400)
+    try:
+        if isinstance(years_val, str):
+            if not years_val.strip().isdigit():
+                raise ValueError("Non-integer string")
+        years = int(years_val)
+    except (ValueError, TypeError):
+        return None, (jsonify({
+            "success": False,
+            "error": "Invalid years parameter: must be an integer",
+            "request_id": request_id,
+            "warnings": []
+        }), 400)
+
+    if years < 1 or years > 10:
+        return None, (jsonify({
+            "success": False,
+            "error": "Years must be between 1 and 10",
+            "request_id": request_id,
+            "warnings": []
+        }), 400)
+
+    return years, None
 
 
 def _safe_project_path(filename: str, allowed_dir: Path, allowed_suffixes: tuple[str, ...]) -> Path | None:
@@ -357,6 +425,16 @@ def dashboard():
     return render_template("dashboard.html")
 
 
+@app.route("/research")
+def research():
+    return render_template("research.html", **_public_context())
+
+
+@app.route("/watchlist")
+def watchlist():
+    return render_template("watchlist.html", **_public_context())
+
+
 @app.route("/samples/<ticker>")
 def sample_page(ticker: str):
     sample = get_sample(ticker)
@@ -369,6 +447,36 @@ def sample_page(ticker: str):
         "tagline": sample["tagline"],
         "summary": sample["summary"],
     }))
+
+
+@app.route("/reports/<ticker>")
+def report_page(ticker: str):
+    request_id = uuid.uuid4().hex[:10]
+    try:
+        report = build_public_report(ticker, years=5)
+        return render_template("report.html", **_public_context(report=report))
+    except ValueError as exc:
+        return render_template("landing.html", **_public_context(error=str(exc))), 400
+    except Exception:
+        logger.error("Public report error [%s]: %s", request_id, traceback.format_exc())
+        return render_template("landing.html", **_public_context(
+            error="Report is temporarily unavailable. Try another ticker."
+        )), 503
+
+
+@app.route("/reports/<ticker>/print")
+def printable_report(ticker: str):
+    request_id = uuid.uuid4().hex[:10]
+    try:
+        report = build_public_report(ticker, years=5)
+        return render_template("report.html", **_public_context(report=report, printable=True))
+    except ValueError as exc:
+        return render_template("landing.html", **_public_context(error=str(exc))), 400
+    except Exception:
+        logger.error("Printable report error [%s]: %s", request_id, traceback.format_exc())
+        return render_template("landing.html", **_public_context(
+            error="Printable report is temporarily unavailable."
+        )), 503
 
 
 @app.route("/checkout/custom")
@@ -403,36 +511,9 @@ def api_company_snapshot():
             }), 400
             
         years_val = data.get("years")
-        if years_val is None:
-            years = 5
-        else:
-            if isinstance(years_val, bool) or not isinstance(years_val, (int, str)):
-                return jsonify({
-                    "success": False,
-                    "error": "Invalid years parameter: must be an integer",
-                    "request_id": request_id,
-                    "warnings": []
-                }), 400
-            try:
-                if isinstance(years_val, str):
-                    if not years_val.strip().isdigit():
-                        raise ValueError("Non-integer string")
-                years = int(years_val)
-            except (ValueError, TypeError):
-                return jsonify({
-                    "success": False,
-                    "error": "Invalid years parameter: must be an integer",
-                    "request_id": request_id,
-                    "warnings": []
-                }), 400
-                
-        if years < 1 or years > 10:
-            return jsonify({
-                "success": False,
-                "error": "Years must be between 1 and 10",
-                "request_id": request_id,
-                "warnings": []
-            }), 400
+        years, err_resp = _validate_years(years_val, request_id)
+        if err_resp:
+            return err_resp[0], err_resp[1]
         
         snapshot = fetch_company_snapshot(ticker=ticker, years=years)
         
@@ -502,36 +583,9 @@ def api_ticker_assumptions():
             }), 400
             
         years_val = data.get("years")
-        if years_val is None:
-            years = 5
-        else:
-            if isinstance(years_val, bool) or not isinstance(years_val, (int, str)):
-                return jsonify({
-                    "success": False,
-                    "error": "Invalid years parameter: must be an integer",
-                    "request_id": request_id,
-                    "warnings": []
-                }), 400
-            try:
-                if isinstance(years_val, str):
-                    if not years_val.strip().isdigit():
-                        raise ValueError("Non-integer string")
-                years = int(years_val)
-            except (ValueError, TypeError):
-                return jsonify({
-                    "success": False,
-                    "error": "Invalid years parameter: must be an integer",
-                    "request_id": request_id,
-                    "warnings": []
-                }), 400
-                
-        if years < 1 or years > 10:
-            return jsonify({
-                "success": False,
-                "error": "Years must be between 1 and 10",
-                "request_id": request_id,
-                "warnings": []
-            }), 400
+        years, err_resp = _validate_years(years_val, request_id)
+        if err_resp:
+            return err_resp[0], err_resp[1]
             
         snapshot = fetch_company_snapshot(ticker=ticker, years=years)
         result = build_assumptions_from_snapshot(snapshot)
@@ -598,36 +652,9 @@ def api_valuation_preview():
             }), 400
             
         years_val = data.get("years")
-        if years_val is None:
-            years = 5
-        else:
-            if isinstance(years_val, bool) or not isinstance(years_val, (int, str)):
-                return jsonify({
-                    "success": False,
-                    "error": "Invalid years parameter: must be an integer",
-                    "request_id": request_id,
-                    "warnings": []
-                }), 400
-            try:
-                if isinstance(years_val, str):
-                    if not years_val.strip().isdigit():
-                        raise ValueError("Non-integer string")
-                years = int(years_val)
-            except (ValueError, TypeError):
-                return jsonify({
-                    "success": False,
-                    "error": "Invalid years parameter: must be an integer",
-                    "request_id": request_id,
-                    "warnings": []
-                }), 400
-                
-        if years < 1 or years > 10:
-            return jsonify({
-                "success": False,
-                "error": "Years must be between 1 and 10",
-                "request_id": request_id,
-                "warnings": []
-            }), 400
+        years, err_resp = _validate_years(years_val, request_id)
+        if err_resp:
+            return err_resp[0], err_resp[1]
 
         overrides = data.get("overrides")
         
@@ -643,6 +670,7 @@ def api_valuation_preview():
                 "assumption_quality": result.get("assumption_quality"),
                 "reverse_dcf": result.get("reverse_dcf"),
                 "valuation_impacts": result.get("valuation_impacts", []),
+                "metadata_checked": result.get("metadata_checked", False),
             }), 400
             
         response = {
@@ -693,28 +721,36 @@ def api_filing_changes():
             }), 400
 
         years_val = data.get("years")
-        years = 5
-        if years_val is not None:
-            try:
-                years = int(years_val)
-                if years < 1 or years > 10:
-                    raise ValueError()
-            except (ValueError, TypeError):
-                return jsonify({
-                    "success": False,
-                    "error": "Invalid years parameter",
-                    "request_id": request_id,
-                    "warnings": []
-                }), 400
+        years, err_resp = _validate_years(years_val, request_id)
+        if err_resp:
+            return err_resp[0], err_resp[1]
 
         snapshot = fetch_company_snapshot(ticker, years=years)
         change_result = detect_filing_changes(snapshot)
 
         numeric_changes = change_result.get("numeric_changes", [])
+        warnings = list(change_result.get("warnings", []))
+
+        submissions = None
+        metadata_checked = False
+        if snapshot.cik:
+            try:
+                client = EdgarClient()
+                submissions = client.fetch_submissions(snapshot.cik)
+                if submissions is not None:
+                    metadata_checked = True
+                else:
+                    warnings.append("SEC submissions metadata unavailable; metadata red flags were not checked.")
+            except Exception as e:
+                logger.warning("Submissions fetch failed for CIK %s: %s", snapshot.cik, e)
+                warnings.append("SEC submissions metadata unavailable; metadata red flags were not checked.")
+        else:
+            warnings.append("SEC submissions metadata unavailable; metadata red flags were not checked.")
+
         red_flags = detect_red_flags(
             snapshot=snapshot,
             filing_changes=numeric_changes,
-            submissions=None,
+            submissions=submissions,
         )
 
         impacts = build_valuation_impacts(numeric_changes, red_flags)
@@ -728,7 +764,8 @@ def api_filing_changes():
             "numeric_changes": numeric_changes,
             "red_flags": red_flags,
             "valuation_impacts": impacts,
-            "warnings": change_result.get("warnings", []),
+            "warnings": warnings,
+            "metadata_checked": metadata_checked,
         })
 
     except ValueError as exc:
@@ -772,7 +809,10 @@ def api_watchlist_refresh():
                 "warnings": []
             }), 400
 
-        years = int(data.get("years", 5))
+        years_val = data.get("years")
+        years, err_resp = _validate_years(years_val, request_id)
+        if err_resp:
+            return err_resp[0], err_resp[1]
         result = refresh_watchlist(tickers=tickers, years=years)
 
         return jsonify({
@@ -1007,6 +1047,16 @@ def api_export_excel():
     """Run pipeline and return the fully formula-linked Excel workbook."""
     try:
         data = request.get_json(force=True)
+        checkout_url = BUNDLE_CHECKOUT_URL or CUSTOM_MODEL_CHECKOUT_URL or "/checkout/custom"
+        user = identify_user(request.headers, data)
+        access = check_export_access(user, checkout_url=checkout_url)
+        if not access.allowed:
+            return jsonify({
+                "success": False,
+                "error": "Export requires a paid plan or export credit.",
+                "checkout_url": access.checkout_url,
+            }), 402
+
         cfg = _build_config_from_payload(data)
 
         cfg.monte_carlo.iterations = min(cfg.monte_carlo.iterations, MAX_MC_ITERATIONS)
@@ -1066,9 +1116,15 @@ def api_export_excel():
             base_common_stock=base_common_stock,
             base_intangibles=base_intangibles,
             output_excel=excel_path,
+            source_facts=data.get("source_map"),
+            warnings=data.get("warnings"),
+            filing_changes=data.get("filing_changes") or data.get("numeric_changes"),
+            valuation_impacts=data.get("valuation_impacts"),
         )
 
         if result.excel_path and Path(result.excel_path).exists():
+            if access.consume_credit:
+                consume_export_credit(access.email, cfg.company.ticker or cfg.company.name, result.errors)
             return send_file(
                 str(result.excel_path),
                 mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
